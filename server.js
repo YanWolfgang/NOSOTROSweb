@@ -6,7 +6,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3001;
 const NEWS_KEY = process.env.NEWSAPI_KEY;
-const GEMINI_KEY = process.env.GEMINI_API_KEY;
+const GROQ_KEY = process.env.GROQ_API_KEY;
 
 app.use(cors());
 app.use(express.json());
@@ -16,29 +16,51 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', service: 'NOSOTROS API' });
 });
 
+// Dominios de medios mexicanos para filtrar noticias de México
+const MX_DOMAINS = 'elfinanciero.com.mx,eluniversal.com.mx,milenio.com,proceso.com.mx,jornada.com.mx,excelsior.com.mx,reforma.com,animalpolitico.com,sdpnoticias.com,forbes.com.mx,expansion.mx,eleconomista.com.mx';
+
+// Palabras clave por categoría
+const CAT_Q = {
+  politica: 'política OR gobierno OR elecciones OR congreso OR presidente',
+  economia: 'economía OR mercados OR finanzas OR negocios OR inflación',
+  tecnologia: 'tecnología OR inteligencia artificial OR startup OR digital',
+  deportes: 'deportes OR fútbol OR NBA OR olimpiadas OR F1',
+  entretenimiento: 'entretenimiento OR cine OR música OR celebridades OR serie',
+  guerra: 'guerra OR conflicto OR militar OR Ucrania OR Gaza OR defensa',
+  ciencia: 'ciencia OR salud OR medicina OR investigación OR espacio'
+};
+
 // NewsAPI endpoint
 app.post('/api/news', async (req, res) => {
   try {
-    const { scope, query } = req.body;
+    const { scope, query, category } = req.body;
     let articles = [];
+    const catQuery = category && CAT_Q[category] ? CAT_Q[category] : null;
 
-    if (scope === 'mixed') {
+    if (scope === 'both') {
+      const intlQ = catQuery || 'Mexico OR mundial OR internacional';
+      const mxQ = catQuery ? `&q=${encodeURIComponent(catQuery)}` : '';
       const [r1, r2] = await Promise.all([
-        fetch(`https://newsapi.org/v2/everything?q=México+noticias&language=es&sortBy=publishedAt&pageSize=5&apiKey=${NEWS_KEY}`),
-        fetch(`https://newsapi.org/v2/top-headlines?country=us&pageSize=5&apiKey=${NEWS_KEY}`)
+        fetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(intlQ)}&language=es&sortBy=publishedAt&pageSize=5&apiKey=${NEWS_KEY}`),
+        fetch(`https://newsapi.org/v2/everything?domains=${MX_DOMAINS}&language=es&sortBy=publishedAt&pageSize=5${mxQ}&apiKey=${NEWS_KEY}`)
       ]);
       const d1 = await r1.json();
       const d2 = await r2.json();
-      articles = [...(d1.articles || []), ...(d2.articles || [])];
+      articles = [...(d1.articles || []).slice(0, 4), ...(d2.articles || []).slice(0, 4)];
+
     } else if (scope === 'mx') {
-      const q = query ? encodeURIComponent(query + ' México') : 'México+noticias';
-      const r = await fetch(`https://newsapi.org/v2/everything?q=${q}&language=es&sortBy=publishedAt&pageSize=10&apiKey=${NEWS_KEY}`);
+      const q = catQuery || query || null;
+      const qParam = q ? `&q=${encodeURIComponent(q)}` : '';
+      const r = await fetch(`https://newsapi.org/v2/everything?domains=${MX_DOMAINS}&language=es&sortBy=publishedAt&pageSize=10${qParam}&apiKey=${NEWS_KEY}`);
       const d = await r.json();
       articles = d.articles || [];
-    } else if (query) {
-      const r = await fetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&sortBy=publishedAt&pageSize=10&apiKey=${NEWS_KEY}`);
+
+    } else if (scope === 'intl') {
+      const q = catQuery || query || 'mundial OR internacional OR economía OR política OR tecnología';
+      const r = await fetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(q)}&language=es&sortBy=publishedAt&pageSize=10&apiKey=${NEWS_KEY}`);
       const d = await r.json();
       articles = d.articles || [];
+
     } else {
       const r = await fetch(`https://newsapi.org/v2/top-headlines?country=us&pageSize=10&apiKey=${NEWS_KEY}`);
       const d = await r.json();
@@ -62,30 +84,27 @@ app.post('/api/news', async (req, res) => {
   }
 });
 
-// Gemini endpoint
+// Groq endpoint (Llama 3.3 70B)
 app.post('/api/generate', async (req, res) => {
   try {
     const { prompt, system } = req.body;
     if (!prompt) return res.status(400).json({ error: 'Se requiere prompt' });
 
-    const contents = [];
-    if (system) {
-      contents.push({ role: 'user', parts: [{ text: 'INSTRUCCIONES: ' + system }] });
-      contents.push({ role: 'model', parts: [{ text: 'Entendido, seguiré esas instrucciones.' }] });
-    }
-    contents.push({ role: 'user', parts: [{ text: prompt }] });
+    const messages = [];
+    if (system) messages.push({ role: 'system', content: system });
+    messages.push({ role: 'user', content: prompt });
 
-    const r = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents })
-      }
-    );
+    const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_KEY}`
+      },
+      body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, max_tokens: 8192 })
+    });
     const d = await r.json();
-    const text = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    if (!text) throw new Error(d.error?.message || 'Gemini no devolvió texto');
+    const text = d.choices?.[0]?.message?.content || '';
+    if (!text) throw new Error(d.error?.message || 'Groq no devolvió texto');
     res.json({ result: text });
   } catch (error) {
     console.error('Error en /api/generate:', error.message);
