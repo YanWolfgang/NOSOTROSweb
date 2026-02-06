@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Central — Admin</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+<div class="app">
+  <nav class="sidebar" id="sidebar"></nav>
+  <main class="content fade-in" id="content">
+    <div class="page-header"><h1>👥 Usuarios</h1><p>Administrar usuarios y permisos</p></div>
+    <div id="userList"></div>
+  </main>
+</div>
+<div id="modal"></div>
+<script>
+const token=localStorage.getItem('token');
+if(!token){window.location.href='/index.html';}
+const user=JSON.parse(localStorage.getItem('user')||'{}');
+if(user.role!=='admin'){window.location.href='/dashboard.html';}
+const hdrs={'Content-Type':'application/json','Authorization':'Bearer '+token};
+
+const BUSINESSES=[
+  {id:'nosotros',name:'NOSOTROS',icon:'📰',color:'#8B5CF6',url:'/nosotros.html'},
+  {id:'duelazo',name:'DUELAZO',icon:'⚽',color:'#10B981',url:'/duelazo.html'},
+  {id:'spacebox',name:'SPACEBOX',icon:'📦',color:'#3B82F6',url:'/spacebox.html'},
+  {id:'styly',name:'STYLY',icon:'💻',color:'#EC4899',url:'/styly.html'}
+];
+const ALL_BIZ=['nosotros','duelazo','spacebox','styly'];
+
+function renderSidebar(){
+  const bs=user.businesses||[];const isAdmin=user.role==='admin';
+  const items=BUSINESSES.filter(b=>isAdmin||bs.includes(b.id));
+  document.getElementById('sidebar').innerHTML=`
+    <button class="sidebar-close" onclick="toggleSidebar()">&times;</button>
+    <div class="sidebar-header"><h2>Panel <span>Central</span></h2></div>
+    <div class="sidebar-section"><div class="sidebar-label">General</div><a href="/dashboard.html" class="sidebar-item"><span class="icon">📊</span>Dashboard</a></div>
+    <div class="sidebar-section"><div class="sidebar-label">Negocios</div>
+      ${items.map(b=>`<a href="${b.url}" class="sidebar-item" style="--accent:${b.color}"><span class="icon">${b.icon}</span>${b.name}</a>`).join('')}
+    </div>
+    <div class="sidebar-section"><div class="sidebar-label">Admin</div><a href="/admin.html" class="sidebar-item active"><span class="icon">👥</span>Usuarios</a></div>
+    <div class="sidebar-footer">
+      <div class="sidebar-avatar">${(user.name||'U')[0].toUpperCase()}</div>
+      <div class="sidebar-user"><div class="name">${user.name||'Usuario'}</div><div class="role">${user.role||'editor'}</div></div>
+      <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+      <button class="theme-btn" onclick="logout()" style="font-size:.75rem">↪</button>
+    </div>`;
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
+function toggleTheme(){const t=document.documentElement.getAttribute('data-theme')==='light'?'':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t)}
+function logout(){localStorage.clear();window.location.href='/index.html'}
+if(localStorage.getItem('theme')==='light') document.documentElement.setAttribute('data-theme','light');
+renderSidebar();
+
+let users=[];
+async function loadUsers(){
+  const el=document.getElementById('userList');
+  el.innerHTML='<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div></div>';
+  try{
+    const r=await fetch('/api/admin/users',{headers:hdrs});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    users=d.users||[];
+    renderUsers();
+  }catch(e){el.innerHTML=`<div class="error-bar"><span>${e.message}</span></div>`}
+}
+
+function renderUsers(){
+  const el=document.getElementById('userList');
+  el.innerHTML=`<div style="overflow-x:auto"><table class="admin-table">
+    <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Negocios</th><th>Estado</th><th>Acciones</th></tr></thead>
+    <tbody>${users.map(u=>{
+      const bs=(u.businesses||[]);
+      return`<tr>
+        <td>${u.name}</td><td>${u.email}</td>
+        <td style="text-transform:capitalize">${u.role}</td>
+        <td>${bs.length?bs.join(', '):'<span style="color:var(--mt)">Ninguno</span>'}</td>
+        <td><span class="badge-status ${u.status==='active'?'badge-active':'badge-pending'}">${u.status}</span></td>
+        <td><div class="admin-actions">
+          ${u.status==='pending'?`<button onclick="activateUser(${u.id})">Activar</button>`:''}
+          <button onclick="editBiz(${u.id})">Negocios</button>
+          ${u.email!=='yan@admin.com'?`<button onclick="deleteUser(${u.id})" style="color:#f87171">Eliminar</button>`:''}
+        </div></td>
+      </tr>`}).join('')}</tbody></table></div>`;
+}
+
+async function activateUser(id){
+  try{
+    await fetch(`/api/admin/users/${id}`,{method:'PUT',headers:hdrs,body:JSON.stringify({status:'active'})});
+    loadUsers();
+  }catch(e){alert(e.message)}
+}
+
+function editBiz(id){
+  const u=users.find(x=>x.id===id);if(!u)return;
+  const bs=u.businesses||[];
+  document.getElementById('modal').innerHTML=`
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal">
+        <h3>Negocios para ${u.name}</h3>
+        <div class="biz-checks" id="bizChecks">
+          ${ALL_BIZ.map(b=>`<label class="biz-check"><input type="checkbox" value="${b}" ${bs.includes(b)?'checked':''}>${b.toUpperCase()}</label>`).join('')}
+        </div>
+        <div class="modal-actions">
+          <button class="btn-outline btn" onclick="closeModal()">Cancelar</button>
+          <button class="btn" onclick="saveBiz(${id})">Guardar</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function saveBiz(id){
+  const checks=document.querySelectorAll('#bizChecks input:checked');
+  const businesses=[...checks].map(c=>c.value);
+  try{
+    await fetch(`/api/admin/users/${id}`,{method:'PUT',headers:hdrs,body:JSON.stringify({businesses})});
+    closeModal();loadUsers();
+  }catch(e){alert(e.message)}
+}
+
+function closeModal(){document.getElementById('modal').innerHTML=''}
+
+async function deleteUser(id){
+  if(!confirm('Eliminar este usuario?'))return;
+  try{
+    await fetch(`/api/admin/users/${id}`,{method:'DELETE',headers:hdrs});
+    loadUsers();
+  }catch(e){alert(e.message)}
+}
+
+loadUsers();
+</script>
+</body>
+</html>

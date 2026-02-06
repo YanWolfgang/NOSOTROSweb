@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Central — DUELAZO</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css">
+<style>
+/* Sport tabs */
+.sport-tabs{display:flex;gap:.5rem;margin:.75rem 0;flex-wrap:wrap}
+.sport-tab{display:flex;align-items:center;gap:.35rem;padding:.5rem 1rem;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s}
+.sport-tab:hover{border-color:#10B981;transform:translateY(-1px)}
+.sport-tab.active{border-color:#10B981;background:rgba(16,185,129,.12);color:#10B981;box-shadow:0 2px 8px rgba(16,185,129,.15)}
+.sport-tab .sport-emoji{font-size:1.1rem}
+/* League dropdown */
+.league-row{display:flex;align-items:center;gap:.75rem;margin:.5rem 0;flex-wrap:wrap}
+.league-row select{padding:.45rem .75rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.85rem;min-width:180px}
+.league-row select:focus{border-color:#10B981;outline:none}
+/* Date picker */
+.date-row{display:flex;align-items:center;gap:.5rem;margin:.5rem 0;flex-wrap:wrap}
+.date-row input[type="date"]{padding:.45rem .75rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.85rem}
+.date-row input[type="date"]:focus{border-color:#10B981;outline:none}
+.date-btn{padding:.4rem .7rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.78rem;cursor:pointer;transition:all .15s}
+.date-btn:hover,.date-btn.active{border-color:#10B981;color:#10B981;background:rgba(16,185,129,.08)}
+/* Fixture cards */
+.fixtures-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem;margin:.75rem 0}
+.fixture-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;cursor:pointer;transition:all .2s;position:relative}
+.fixture-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.fixture-card.on{border-color:#10B981;background:rgba(16,185,129,.08)}
+.fixture-teams{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.fixture-team{display:flex;flex-direction:column;align-items:center;gap:.25rem;flex:1;text-align:center}
+.fixture-team img{width:36px;height:36px;object-fit:contain}
+.fixture-team span{font-size:.8rem;font-weight:600;color:var(--fg)}
+.fixture-vs{font-size:.85rem;font-weight:700;color:var(--mt);padding:0 .5rem}
+.fixture-score{font-size:1.2rem;font-weight:700;color:#10B981}
+.fixture-time{font-size:.75rem;color:var(--mt)}
+.fixture-meta{display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border)}
+.fixture-league{font-size:.7rem;color:var(--mt);display:flex;align-items:center;gap:.25rem}
+.fixture-league img{width:16px;height:16px}
+.fixture-status{font-size:.7rem;padding:2px 6px;border-radius:4px;font-weight:600}
+.fixture-status.live{background:rgba(239,68,68,.15);color:#EF4444}
+.fixture-status.ns{background:rgba(59,130,246,.15);color:#3B82F6}
+.fixture-status.ft{background:rgba(16,185,129,.15);color:#10B981}
+.sel-check-fix{position:absolute;top:.5rem;right:.5rem;width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:#10B981;transition:all .2s}
+.fixture-card.on .sel-check-fix{border-color:#10B981;background:rgba(16,185,129,.15)}
+/* Pagination */
+.pagination{display:flex;justify-content:center;align-items:center;gap:1rem;margin:1rem 0;padding:.5rem}
+.page-btn{padding:.4rem 1rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.82rem;cursor:pointer;transition:all .15s}
+.page-btn:hover:not(:disabled){border-color:#10B981;color:#10B981}
+.page-btn:disabled{opacity:.35;cursor:default}
+.page-info{font-size:.82rem;color:var(--mt)}
+/* Odds */
+.odds-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;margin:.75rem 0}
+.odds-bk{font-weight:600;color:var(--fg);margin-bottom:.5rem;font-size:.85rem}
+.odds-bet{margin-bottom:.5rem}
+.odds-bet-name{font-size:.75rem;color:var(--mt);margin-bottom:.25rem}
+.odds-vals{display:flex;gap:.5rem;flex-wrap:wrap}
+.odds-val{padding:.25rem .5rem;border-radius:6px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);font-size:.75rem;font-weight:600;color:#10B981}
+.odds-val span{color:var(--mt);font-weight:400;margin-right:.25rem}
+/* Counters */
+.fixtures-count{font-size:.82rem;color:var(--mt);margin:.25rem 0}
+</style>
+</head>
+<body>
+<button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+<div class="app">
+  <nav class="sidebar" id="sidebar"></nav>
+  <main class="content fade-in" id="content">
+    <div class="page-header"><h1 style="color:#10B981">⚽ DUELAZO</h1><p>Contenido deportivo para apuestas con IA</p></div>
+    <div class="module-tabs" id="modTabs">
+      <button class="module-tab active" onclick="setModTab('generar')">Generar</button>
+      <button class="module-tab" onclick="setModTab('historial')">Historial</button>
+    </div>
+    <div id="modContent"></div>
+  </main>
+</div>
+<script>
+// ========== AUTH ==========
+const token=localStorage.getItem('token');
+if(!token){window.location.href='/index.html';}
+const user=JSON.parse(localStorage.getItem('user')||'{}');
+const hdrs={'Content-Type':'application/json','Authorization':'Bearer '+token};
+
+// ========== SIDEBAR ==========
+const BUSINESSES=[
+  {id:'nosotros',name:'NOSOTROS',icon:'📰',color:'#8B5CF6',url:'/nosotros.html'},
+  {id:'duelazo',name:'DUELAZO',icon:'⚽',color:'#10B981',url:'/duelazo.html'},
+  {id:'spacebox',name:'SPACEBOX',icon:'📦',color:'#3B82F6',url:'/spacebox.html'},
+  {id:'styly',name:'STYLY',icon:'💻',color:'#EC4899',url:'/styly.html'}
+];
+function renderSidebar(){
+  const bs=user.businesses||[];const isAdmin=user.role==='admin';
+  const items=BUSINESSES.filter(b=>isAdmin||bs.includes(b.id));
+  document.getElementById('sidebar').innerHTML=`
+    <button class="sidebar-close" onclick="toggleSidebar()">&times;</button>
+    <div class="sidebar-header"><h2>Panel <span>Central</span></h2></div>
+    <div class="sidebar-section"><div class="sidebar-label">General</div><a href="/dashboard.html" class="sidebar-item"><span class="icon">📊</span>Dashboard</a></div>
+    <div class="sidebar-section"><div class="sidebar-label">Negocios</div>
+      ${items.map(b=>`<a href="${b.url}" class="sidebar-item ${b.id==='duelazo'?'active':''}" style="--accent:${b.color}"><span class="icon">${b.icon}</span>${b.name}</a>`).join('')}
+    </div>
+    ${isAdmin?`<div class="sidebar-section"><div class="sidebar-label">Admin</div><a href="/admin.html" class="sidebar-item"><span class="icon">👥</span>Usuarios</a></div>`:''}
+    <div class="sidebar-footer">
+      <div class="sidebar-avatar">${(user.name||'U')[0].toUpperCase()}</div>
+      <div class="sidebar-user"><div class="name">${user.name||'Usuario'}</div><div class="role">${user.role||'editor'}</div></div>
+      <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+      <button class="theme-btn" onclick="logout()" style="font-size:.75rem">↪</button>
+    </div>`;
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
+function toggleTheme(){const t=document.documentElement.getAttribute('data-theme')==='light'?'':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t)}
+function logout(){localStorage.clear();window.location.href='/index.html'}
+if(localStorage.getItem('theme')==='light') document.documentElement.setAttribute('data-theme','light');
+renderSidebar();
+
+// ========== SPORT & LEAGUE CONFIG ==========
+const SPORTS=[
+  {id:'football',emoji:'⚽',name:'Futbol',leagues:[
+    {id:null,label:'Todas las ligas'},
+    {id:262,label:'Liga MX'},{id:39,label:'Premier League'},{id:140,label:'La Liga'},
+    {id:2,label:'Champions League'},{id:135,label:'Serie A'},{id:78,label:'Bundesliga'},
+    {id:61,label:'Ligue 1'},{id:253,label:'MLS'}
+  ]},
+  {id:'basketball',emoji:'🏀',name:'Basketball',leagues:[
+    {id:null,label:'Todas las ligas'},{id:12,label:'NBA'}
+  ]},
+  {id:'american-football',emoji:'🏈',name:'Am. Football',leagues:[
+    {id:null,label:'Todas las ligas'},{id:1,label:'NFL'}
+  ]},
+  {id:'baseball',emoji:'⚾',name:'Baseball',leagues:[
+    {id:null,label:'Todas las ligas'},{id:1,label:'MLB'}
+  ]},
+  {id:'mma',emoji:'🥊',name:'MMA',leagues:[
+    {id:null,label:'Todas'},{id:1,label:'UFC'}
+  ]},
+  {id:'formula-1',emoji:'🏎️',name:'F1',leagues:[
+    {id:null,label:'Todas'}
+  ]}
+];
+
+// ========== FORMATS ==========
+const FORMATS=[
+  {id:'partidos_dia',name:'Partidos del Dia',icon:'📅',color:'#3B82F6',
+   desc:'Resumen de partidos con momios y predicciones',
+   badges:['API-Sports','Momios'],flow:'fixtures',maxFix:5},
+  {id:'post_momios',name:'Post de Momios',icon:'💰',color:'#F59E0B',
+   desc:'Post visual con momios atractivos y CTA',
+   badges:['API-Sports','Momios'],flow:'fixtures',maxFix:3},
+  {id:'resultados_fomo',name:'Resultados + FOMO',icon:'🔥',color:'#EF4444',
+   desc:'Resultados con urgencia y enganche para apostar',
+   badges:['API-Sports'],flow:'fixtures',maxFix:4},
+  {id:'noticia_dep',name:'Noticia Deportiva',icon:'📰',color:'#8B5CF6',
+   desc:'Nota deportiva con angulo de apuestas',
+   badges:['Web Search','Angulos'],flow:'news',ns:1,ac:4,ma:2},
+  {id:'reel_tiktok',name:'Guion Reel/TikTok',icon:'🎬',color:'#EC4899',
+   desc:'Guion corto 30-60s para reel deportivo',
+   badges:['Texto'],flow:'text'},
+  {id:'carrusel_dep',name:'Carrusel Deportivo',icon:'📱',color:'#E1306C',
+   desc:'Carrusel IG con datos, momios y prediccion',
+   badges:['API-Sports','Momios'],flow:'fixtures',maxFix:1},
+  {id:'predicciones',name:'Predicciones/Picks',icon:'🎯',color:'#10B981',
+   desc:'Picks del dia con analisis y momios sugeridos',
+   badges:['API-Sports','Momios'],flow:'fixtures',maxFix:5},
+  {id:'preview_jornada',name:'Preview Jornada',icon:'🏟️',color:'#6366F1',
+   desc:'Analisis completo de la jornada con favoritos',
+   badges:['API-Sports','Momios'],flow:'fixtures',maxFix:8}
+];
+
+// ========== STATE ==========
+let S={view:'home',fid:null,phase:'input',ltxt:'',err:null,
+  // sport & league
+  sport:'football',league:null,
+  // fixtures
+  fixtures:[],selFix:new Set(),fixDate:'',page:0,
+  // odds
+  odds:{},
+  // news
+  news:[],sn:new Set(),angles:[],sa:new Set(),
+  // text
+  itxt:'',
+  // result
+  result:''
+};
+const PER_PAGE=8;
+let modTab='generar';
+
+// ========== HELPERS ==========
+function F(){return FORMATS.find(f=>f.id===S.fid)}
+function curSport(){return SPORTS.find(s=>s.id===S.sport)||SPORTS[0]}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function md(t){
+  return esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>')
+    .replace(/^### (.+)$/gm,'<h4>$1</h4>').replace(/^## (.+)$/gm,'<h3>$1</h3>').replace(/^# (.+)$/gm,'<h2>$1</h2>')
+    .replace(/^---$/gm,'<hr>').replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+}
+function pJ(t){const i=t.indexOf('{'),j=t.lastIndexOf('}');if(i===-1||j<=i)return null;try{return JSON.parse(t.substring(i,j+1))}catch{return null}}
+function today(){return new Date().toISOString().slice(0,10)}
+function addDays(d,n){const dt=new Date(d+'T12:00:00');dt.setDate(dt.getDate()+n);return dt.toISOString().slice(0,10)}
+function fmtTime(dateStr){if(!dateStr)return'';try{return new Date(dateStr).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:false})}catch{return''}}
+
+// ========== API ==========
+async function apiFixtures(sport,date,league){
+  let url=`/api/duelazo/fixtures?sport=${sport}&date=${date||today()}`;
+  if(league)url+=`&league=${league}`;
+  const r=await fetch(url,{headers:hdrs});
+  const d=await r.json();if(d.error)throw new Error(d.error);return d.fixtures||[];
+}
+async function apiOdds(fixtureId,sport){
+  const r=await fetch(`/api/duelazo/odds/${fixtureId}?sport=${sport||'football'}`,{headers:hdrs});
+  const d=await r.json();if(d.error)throw new Error(d.error);return d.odds||[];
+}
+async function apiNews(){
+  const r=await fetch('/api/duelazo/news',{method:'POST',headers:hdrs,body:JSON.stringify({})});
+  const d=await r.json();if(d.error)throw new Error(d.error);return d.news||[];
+}
+async function apiGen(prompt,format_type){
+  const r=await fetch('/api/duelazo/generate',{method:'POST',headers:hdrs,
+    body:JSON.stringify({prompt,format_type:format_type||undefined})});
+  const d=await r.json();if(d.error)throw new Error(d.error);return d.result||'';
+}
+
+// ========== MODULE TABS ==========
+function setModTab(t){
+  modTab=t;
+  document.querySelectorAll('.module-tab').forEach((b,i)=>b.classList.toggle('active',(t==='generar'&&i===0)||(t==='historial'&&i===1)));
+  if(t==='generar'){S.view='home';render()}
+  else if(t==='historial'){loadHistory()}
+}
+
+let histSel=new Set();
+async function loadHistory(){
+  histSel.clear();
+  const m=document.getElementById('modContent');
+  m.innerHTML='<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div></div>';
+  try{
+    const r=await fetch('/api/duelazo/history',{headers:hdrs});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    const items=d.history||[];
+    m.innerHTML=items.length?`
+      <div style="display:flex;gap:.5rem;margin-bottom:.75rem;align-items:center;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:.35rem;cursor:pointer;font-size:.8rem;color:var(--mt)"><input type="checkbox" onchange="toggleAllHist(this.checked,${JSON.stringify(items.map(i=>i.id))})"> Seleccionar todos</label>
+        <span id="histSelCount" style="font-size:.75rem;color:var(--mt)"></span>
+        <div style="margin-left:auto;display:flex;gap:.4rem">
+          <button id="btnBulkDel" onclick="bulkDelHistory()" style="display:none;background:#EF4444;color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:.75rem;cursor:pointer">Eliminar seleccionados</button>
+          <button onclick="delAllHistory()" style="background:none;border:1px solid #EF4444;color:#EF4444;border-radius:6px;padding:4px 12px;font-size:.75rem;cursor:pointer">Borrar todo</button>
+        </div>
+      </div>
+      <div class="history-list">${items.map(h=>`
+      <div class="history-item" style="position:relative">
+        <input type="checkbox" data-hid="${h.id}" onchange="toggleHistSel(${h.id},this.checked)" style="position:absolute;top:.6rem;left:.5rem;cursor:pointer;accent-color:#EF4444">
+        <div onclick="viewHistory(${h.id})" style="cursor:pointer;flex:1;padding-left:1.5rem">
+          <div class="history-meta"><span>${esc(h.format_type||'')}</span><span>${new Date(h.created_at).toLocaleString('es-MX')}</span></div>
+          <div class="history-preview">${esc(h.preview||'')}</div>
+        </div>
+        <button onclick="event.stopPropagation();delHistory(${h.id})" style="position:absolute;top:.5rem;right:.5rem;background:none;border:1px solid var(--border);border-radius:6px;color:var(--mt);cursor:pointer;padding:2px 6px;font-size:.7rem;transition:all .15s" onmouseover="this.style.borderColor='#EF4444';this.style.color='#EF4444'" onmouseout="this.style.borderColor='';this.style.color=''">🗑️</button>
+      </div>`).join('')}</div>`:'<p style="color:var(--mt);text-align:center;padding:2rem">No hay contenido generado aun.</p>';
+  }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
+}
+function toggleHistSel(id,checked){if(checked)histSel.add(id);else histSel.delete(id);updHistSelUI()}
+function toggleAllHist(checked,ids){histSel.clear();if(checked)ids.forEach(id=>histSel.add(id));document.querySelectorAll('[data-hid]').forEach(c=>c.checked=checked);updHistSelUI()}
+function updHistSelUI(){const n=histSel.size;const c=document.getElementById('histSelCount');const b=document.getElementById('btnBulkDel');if(c)c.textContent=n?n+' seleccionado'+(n>1?'s':''):'';if(b)b.style.display=n?'inline-block':'none'}
+async function bulkDelHistory(){if(!histSel.size)return;if(!confirm(`Eliminar ${histSel.size} elemento(s) del historial?`))return;try{const r=await fetch('/api/duelazo/history/bulk-delete',{method:'POST',headers:hdrs,body:JSON.stringify({ids:[...histSel]})});const d=await r.json();if(d.error)throw new Error(d.error);loadHistory()}catch(e){alert('Error: '+e.message)}}
+async function delAllHistory(){if(!confirm('Eliminar TODO el historial de Duelazo? Esta accion no se puede deshacer.'))return;try{const r=await fetch('/api/duelazo/history',{headers:hdrs});const d=await r.json();const ids=(d.history||[]).map(h=>h.id);if(!ids.length)return;const r2=await fetch('/api/duelazo/history/bulk-delete',{method:'POST',headers:hdrs,body:JSON.stringify({ids})});const d2=await r2.json();if(d2.error)throw new Error(d2.error);loadHistory()}catch(e){alert('Error: '+e.message)}}
+
+async function viewHistory(id){
+  const m=document.getElementById('modContent');
+  m.innerHTML='<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div></div>';
+  try{
+    const r=await fetch('/api/duelazo/history/'+id,{headers:hdrs});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    const h=d.item;
+    m.innerHTML=`<button class="btn-back" onclick="loadHistory()" style="margin-bottom:1rem">← Volver</button>
+      <div class="result-box"><button class="copy-btn" onclick="cpText(this)">📋 Copiar</button>
+      <div class="result-content" data-raw="${esc(h.output_text)}">${md(h.output_text)}</div></div>`;
+  }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
+}
+
+async function delHistory(id){
+  if(!confirm('Eliminar este contenido del historial?'))return;
+  try{
+    const r=await fetch('/api/duelazo/history/'+id,{method:'DELETE',headers:hdrs});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    loadHistory();
+  }catch(e){alert('Error: '+e.message)}
+}
+
+// ========== RENDER ==========
+function render(){
+  const m=document.getElementById('modContent');
+  m.className='fade-in';
+  m.innerHTML=S.view==='home'?rHome():rFlow();
+  void m.offsetWidth;
+}
+
+function rHome(){
+  return`<div class="fmt-grid">${FORMATS.map(f=>`
+    <div class="fmt-card" style="--c:${f.color}" onclick="goFmt('${f.id}')">
+      <div class="fmt-icon">${f.icon}</div>
+      <div class="fmt-name">${f.name}</div>
+      <div class="fmt-desc">${f.desc}</div>
+      ${f.badges.length?`<div class="fmt-badges">${f.badges.map(b=>`<span class="badge">${b}</span>`).join('')}</div>`:''}
+    </div>`).join('')}</div>`;
+}
+
+function rFlow(){
+  const f=F();
+  return`<div style="--accent:${f.color}">
+    <div class="flow-header">
+      <button class="btn-back" onclick="goHome()">← Volver</button>
+      <div class="flow-title"><span>${f.icon}</span> ${f.name}</div>
+    </div>
+    ${S.err?`<div class="error-bar"><span>${esc(S.err)}</span><button onclick="clErr()">×</button></div>`:''}
+    ${rFlowContent(f)}
+  </div>`;
+}
+
+function rFlowContent(f){
+  if(S.phase==='loading')return`<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div><div class="loader-text">${S.ltxt}</div></div>`;
+  if(S.phase==='result')return rResult();
+  if(f.flow==='fixtures')return rFixtures(f);
+  if(f.flow==='news')return rNewsFlow(f);
+  if(f.flow==='text')return rTextFlow();
+  return'';
+}
+
+// ========== FIXTURES FLOW ==========
+function rFixtures(f){
+  if(S.phase==='select_fixtures')return rFixSelect(f);
+  if(S.phase==='show_odds')return rOddsView(f);
+  return`<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div><div class="loader-text">Cargando partidos...</div></div>`;
+}
+
+function rFixSelect(f){
+  const max=f.maxFix;
+  const ok=S.selFix.size>=1&&S.selFix.size<=max;
+  const sp=curSport();
+  // Paginated fixtures
+  const total=S.fixtures.length;
+  const totalPages=Math.ceil(total/PER_PAGE)||1;
+  if(S.page>=totalPages)S.page=totalPages-1;
+  if(S.page<0)S.page=0;
+  const start=S.page*PER_PAGE;
+  const pageFixtures=S.fixtures.slice(start,start+PER_PAGE);
+
+  return`
+    <!-- Sport tabs -->
+    <div class="sport-tabs">
+      ${SPORTS.map(s=>`<button class="sport-tab ${S.sport===s.id?'active':''}" onclick="setSport('${s.id}')"><span class="sport-emoji">${s.emoji}</span>${s.name}</button>`).join('')}
+    </div>
+
+    <!-- League + Date row -->
+    <div class="league-row">
+      <select onchange="setLeague(this.value)">
+        ${sp.leagues.map(l=>`<option value="${l.id===null?'':l.id}" ${S.league==l.id?'selected':''}>${l.label}</option>`).join('')}
+      </select>
+    </div>
+    <div class="date-row">
+      <input type="date" value="${S.fixDate}" onchange="changeDate(this.value)">
+      <button class="date-btn ${S.fixDate===addDays(today(),-1)?'active':''}" onclick="changeDate(addDays(today(),-1))">Ayer</button>
+      <button class="date-btn ${S.fixDate===today()?'active':''}" onclick="changeDate(today())">Hoy</button>
+      <button class="date-btn ${S.fixDate===addDays(today(),1)?'active':''}" onclick="changeDate(addDays(today(),1))">Manana</button>
+    </div>
+
+    <p class="sel-hint">Selecciona 1-${max} partido${max>1?'s':''} (${S.selFix.size}/${max})</p>
+    <div class="fixtures-count">${total} partidos encontrados${total>PER_PAGE?` — Pagina ${S.page+1} de ${totalPages}`:''}</div>
+
+    <div class="fixtures-grid">
+      ${pageFixtures.length?pageFixtures.map(fx=>`
+        <div class="fixture-card ${S.selFix.has(fx.id)?'on':''}" onclick="tgFix(${fx.id})">
+          <div class="sel-check-fix">${S.selFix.has(fx.id)?'✓':''}</div>
+          <div class="fixture-teams">
+            <div class="fixture-team">
+              <img src="${fx.home.logo||''}" alt="" onerror="this.style.display='none'">
+              <span>${esc(fx.home.name)}</span>
+            </div>
+            <div class="fixture-vs">
+              ${fx.home.goals!==null&&fx.home.goals!==undefined?`<span class="fixture-score">${fx.home.goals} - ${fx.away.goals}</span>`:'<span>vs</span>'}
+              <div class="fixture-time">${fmtTime(fx.date)}</div>
+            </div>
+            <div class="fixture-team">
+              <img src="${fx.away.logo||''}" alt="" onerror="this.style.display='none'">
+              <span>${esc(fx.away.name)}</span>
+            </div>
+          </div>
+          <div class="fixture-meta">
+            <div class="fixture-league">
+              <img src="${fx.league.logo||''}" alt="" onerror="this.style.display='none'">
+              ${esc(fx.league.name)}
+            </div>
+            <span class="fixture-status ${fx.status==='1H'||fx.status==='2H'||fx.status==='HT'||fx.status==='LIVE'||fx.status==='Q1'||fx.status==='Q2'||fx.status==='Q3'||fx.status==='Q4'?'live':fx.status==='NS'||fx.status==='TBD'?'ns':'ft'}">${esc(fx.statusLong||fx.status)}</span>
+          </div>
+        </div>`).join(''):'<p style="color:var(--mt);padding:1rem;grid-column:1/-1;text-align:center">No hay partidos para esta fecha/liga. Intenta otra fecha o liga.</p>'}
+    </div>
+
+    ${total>PER_PAGE?`<div class="pagination">
+      <button class="page-btn" onclick="goPage(S.page-1)" ${S.page===0?'disabled':''}>← Anterior</button>
+      <span class="page-info">${S.page+1} / ${totalPages}</span>
+      <button class="page-btn" onclick="goPage(S.page+1)" ${S.page>=totalPages-1?'disabled':''}>Siguiente →</button>
+    </div>`:''}
+
+    <div class="actions">
+      <button class="btn" ${ok?'':'disabled'} onclick="loadOddsAndGenerate()">Cargar momios y generar</button>
+    </div>`;
+}
+
+function rOddsView(f){
+  const selFixtures=S.fixtures.filter(fx=>S.selFix.has(fx.id));
+  return`
+    <p class="sel-hint">Momios cargados para ${selFixtures.length} partido${selFixtures.length>1?'s':''}</p>
+    ${selFixtures.map(fx=>{
+      const fxOdds=S.odds[fx.id]||[];
+      return`<div class="odds-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+          <strong style="color:var(--fg)">${esc(fx.home.name)} vs ${esc(fx.away.name)}</strong>
+          <span class="fixture-status ${fx.status==='NS'?'ns':'ft'}" style="font-size:.7rem">${esc(fx.statusLong||fx.status)}</span>
+        </div>
+        ${fxOdds.length?fxOdds.map(bk=>`
+          <div class="odds-bk">${esc(bk.bookmaker)}</div>
+          ${bk.bets.map(b=>`<div class="odds-bet">
+            <div class="odds-bet-name">${esc(b.name)}</div>
+            <div class="odds-vals">${b.values.map(v=>`<div class="odds-val"><span>${esc(v.value)}</span> ${v.odd}</div>`).join('')}</div>
+          </div>`).join('')}`).join(''):'<p style="color:var(--mt);font-size:.8rem">Sin momios disponibles para este partido</p>'}
+      </div>`}).join('')}
+    <div class="actions">
+      <button class="btn" onclick="generateFromFixtures()">Generar contenido</button>
+      <button class="btn-outline btn" onclick="S.phase='select_fixtures';render()" style="margin-left:.5rem">← Cambiar partidos</button>
+    </div>`;
+}
+
+// ========== NEWS FLOW ==========
+function rNewsFlow(f){
+  if(S.phase==='select_news')return rNewsSel(f);
+  if(S.phase==='angles')return rAngSel(f);
+  return`<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div><div class="loader-text">Cargando noticias deportivas...</div></div>`;
+}
+
+function rNewsSel(f){
+  const n=f.ns,ok=S.sn.size===n;
+  return`<p class="sel-hint">Selecciona ${n} noticia${n>1?'s':''} (${S.sn.size}/${n})</p>
+    <div class="sel-list">${S.news.map((nw,i)=>`
+      <div class="sel-card ${S.sn.has(i)?'on':''}" onclick="tgN(${i})">
+        <div class="sel-check">${S.sn.has(i)?'✓':''}</div>
+        <div class="sel-body">
+          <div class="sel-title">${esc(nw.title)}</div>
+          <div class="sel-desc">${esc(nw.summary)}</div>
+          <div class="sel-source">${esc(nw.source)}</div>
+        </div></div>`).join('')}</div>
+    <div class="actions">
+      <button class="btn" ${ok?'':'disabled'} onclick="goAngles()">Generar angulos</button>
+    </div>`;
+}
+
+function rAngSel(f){
+  const ok=S.sa.size>=1&&S.sa.size<=f.ma;
+  return`<p class="sel-hint">Selecciona 1-${f.ma} angulo${f.ma>1?'s':''} (${S.sa.size}/${f.ma})</p>
+    <div class="sel-list">${S.angles.map((a,i)=>`
+      <div class="sel-card ${S.sa.has(i)?'on':''}" onclick="tgA(${i})">
+        <div class="sel-check">${S.sa.has(i)?'✓':''}</div>
+        <div class="sel-body"><div class="sel-title">${esc(a.name)}</div><div class="sel-desc">${esc(a.description)}</div></div>
+      </div>`).join('')}</div>
+    <div class="actions"><button class="btn" ${ok?'':'disabled'} onclick="generateFromNews()">Generar contenido</button></div>`;
+}
+
+// ========== TEXT FLOW ==========
+function rTextFlow(){
+  return`<textarea id="ti" class="ta" placeholder="Describe el tema, partido o situacion deportiva para generar el guion del reel..." oninput="S.itxt=this.value">${esc(S.itxt)}</textarea>
+    <div class="actions"><button class="btn" onclick="generateFromText()">Generar guion</button></div>`;
+}
+
+// ========== RESULT ==========
+function rResult(){
+  return`<div class="result-box">
+    <button class="copy-btn" onclick="cpRes()">📋 Copiar</button>
+    <div class="result-content">${md(S.result)}</div></div>
+    <div class="actions"><button class="btn-outline btn" onclick="goHome()">Nuevo contenido</button></div>`;
+}
+
+// ========== HANDLERS ==========
+function goHome(){
+  S={view:'home',fid:null,phase:'input',ltxt:'',err:null,
+    sport:S.sport,league:S.league,
+    fixtures:[],selFix:new Set(),fixDate:today(),page:0,
+    odds:{},news:[],sn:new Set(),angles:[],sa:new Set(),itxt:'',result:''};
+  render();
+}
+function clErr(){S.err=null;render()}
+
+function goFmt(id){
+  S.view='flow';S.fid=id;S.phase='loading';S.err=null;S.result='';
+  S.fixtures=[];S.selFix=new Set();S.fixDate=today();S.page=0;S.odds={};
+  S.news=[];S.sn=new Set();S.angles=[];S.sa=new Set();S.itxt='';
+  const f=F();
+  if(f.flow==='fixtures'){S.ltxt='Cargando partidos...';render();fetchFixtures()}
+  else if(f.flow==='news'){S.ltxt='Cargando noticias deportivas...';render();fetchNews()}
+  else if(f.flow==='text'){S.phase='input';render()}
+}
+
+// --- Sport / League ---
+function setSport(id){
+  S.sport=id;S.league=null;S.page=0;S.selFix=new Set();
+  S.phase='loading';S.ltxt='Cargando partidos...';S.err=null;render();fetchFixtures();
+}
+function setLeague(val){
+  S.league=val===''?null:Number(val);S.page=0;S.selFix=new Set();
+  S.phase='loading';S.ltxt='Cargando partidos...';S.err=null;render();fetchFixtures();
+}
+
+// --- Date ---
+function changeDate(d){S.fixDate=d;S.page=0;S.selFix=new Set();S.phase='loading';S.ltxt='Cargando partidos...';S.err=null;render();fetchFixtures()}
+
+// --- Pagination ---
+function goPage(p){S.page=p;render()}
+
+// --- Fixtures ---
+async function fetchFixtures(){
+  try{
+    const fixtures=await apiFixtures(S.sport,S.fixDate,S.league);
+    S.fixtures=fixtures;S.selFix=new Set();S.phase='select_fixtures';
+  }catch(e){S.err=e.message;S.phase='select_fixtures';S.fixtures=[]}
+  render();
+}
+
+function tgFix(id){
+  const f=F();
+  if(S.selFix.has(id)){S.selFix.delete(id)}
+  else{if(f.maxFix===1)S.selFix.clear();if(S.selFix.size<f.maxFix)S.selFix.add(id)}
+  render();
+}
+
+async function loadOddsAndGenerate(){
+  S.phase='loading';S.ltxt='Cargando momios...';render();
+  const ids=[...S.selFix];
+  try{
+    const results=await Promise.all(ids.map(id=>apiOdds(id,S.sport).catch(()=>[])));
+    ids.forEach((id,i)=>{S.odds[id]=results[i]});
+    S.phase='show_odds';
+  }catch(e){S.err=e.message;S.phase='select_fixtures'}
+  render();
+}
+
+async function generateFromFixtures(){
+  const f=F();
+  const selFixtures=S.fixtures.filter(fx=>S.selFix.has(fx.id));
+  S.phase='loading';S.ltxt='Generando contenido con IA...';render();
+  const prompt=buildFixturePrompt(f,selFixtures);
+  try{const txt=await apiGen(prompt,f.id);S.result=txt;S.phase='result'}
+  catch(e){S.err=e.message;S.phase='show_odds'}
+  render();
+}
+
+function buildFixturePrompt(f,fixtures){
+  const sportName=curSport().name;
+  const fixData=fixtures.map(fx=>{
+    const fxOdds=S.odds[fx.id]||[];
+    let oddsStr='Sin momios';
+    if(fxOdds.length){
+      oddsStr=fxOdds.map(bk=>`${bk.bookmaker}: ${bk.bets.map(b=>`${b.name}: ${b.values.map(v=>`${v.value}=${v.odd}`).join(', ')}`).join(' | ')}`).join('\n');
+    }
+    const scoreStr=fx.home.goals!==null&&fx.home.goals!==undefined?` — Resultado: ${fx.home.goals}-${fx.away.goals}`:` — Estado: ${fx.statusLong||fx.status}`;
+    return`${fx.home.name} vs ${fx.away.name} (${fx.league.name})${scoreStr}\nMomios: ${oddsStr}`;
+  }).join('\n\n');
+
+  switch(f.id){
+    case'partidos_dia':return`Deporte: ${sportName}\nPartidos:\n${fixData}\n\nGenera un resumen de "Partidos del Dia" con:\n- Hook atractivo\n- Cada partido con momios destacados y prediccion breve\n- CTA hacia Duelazo para apostar\n- Copy redes (280 chars con emojis)\n- Optimizado para IG, TikTok, Twitter/X y Facebook`;
+    case'post_momios':return`Deporte: ${sportName}\nPartidos:\n${fixData}\n\nGenera un post visual de momios con:\n- Titulo llamativo con momios destacados\n- Formato visual: Equipo 1 vs Equipo 2 con momios claros\n- Highlight del momio mas atractivo\n- CTA: "Apuesta en Duelazo"\n- Copy redes (280 chars)`;
+    case'resultados_fomo':return`Deporte: ${sportName}\nPartidos:\n${fixData}\n\nGenera un post de resultados con FOMO:\n- Resultados con enfasis emocional\n- "Te lo perdiste?" o "Los que apostaron con nosotros ya cobraron"\n- Crear urgencia para proximos partidos\n- CTA agresivo hacia Duelazo\n- Copy redes con urgencia (280 chars)`;
+    case'carrusel_dep':return`Deporte: ${sportName}\nPartido:\n${fixData}\n\nGenera un carrusel de Instagram deportivo:\n- Slide 1: Hook impactante del partido\n- Slide 2: Datos clave y momios\n- Slide 3: Prediccion con analisis breve\n- Slide 4: CTA "Apuesta en Duelazo"\n- Copy IG con hashtags deportivos (500 chars)\n- Copy Twitter/X (280 chars)`;
+    case'predicciones':return`Deporte: ${sportName}\nPartidos:\n${fixData}\n\nGenera picks/predicciones del dia:\n- Encabezado: "PICKS DEL DIA - DUELAZO"\n- Cada partido: prediccion clara + momio sugerido + nivel de confianza (1-5 estrellas)\n- Pick estrella del dia (el mas seguro)\n- Parlay sugerido con momio combinado\n- CTA hacia Duelazo\n- Copy redes (280 chars)`;
+    case'preview_jornada':return`Deporte: ${sportName}\nPartidos de la jornada:\n${fixData}\n\nGenera un preview completo de la jornada:\n- Titulo: "PREVIEW JORNADA"\n- Analisis de cada partido: forma reciente, contexto, datos clave\n- Favoritos de la jornada\n- Momios destacados\n- Parlay sugerido de la jornada\n- CTA: "Arma tu parlay en Duelazo"\n- Copy redes (280 chars)`;
+    default:return fixData;
+  }
+}
+
+// --- News ---
+async function fetchNews(){
+  try{
+    const news=await apiNews();
+    if(!news.length)throw new Error('No se encontraron noticias deportivas.');
+    S.news=news;S.sn=new Set();S.phase='select_news';
+  }catch(e){S.err=e.message;S.phase='select_news';S.news=[]}
+  render();
+}
+function tgN(i){const f=F();if(S.sn.has(i))S.sn.delete(i);else{if(f.ns===1)S.sn.clear();if(S.sn.size<f.ns)S.sn.add(i)}render()}
+function tgA(i){const f=F();if(S.sa.has(i))S.sa.delete(i);else{if(S.sa.size<f.ma)S.sa.add(i)}render()}
+
+async function goAngles(){
+  const f=F(),news=[...S.sn].map(i=>S.news[i]);
+  S.phase='loading';S.ltxt='Generando angulos deportivos...';render();
+  const nt=news.map(n=>`- ${n.title}: ${n.summary}`).join('\n');
+  const prompt=`Noticia deportiva:\n${nt}\n\nGenera ${f.ac} angulos narrativos para contenido de apuestas deportivas. Cada angulo debe conectar la noticia con oportunidades de apuesta.\nResponde SOLO con JSON valido:\n{"angles":[{"id":1,"name":"nombre corto","description":"descripcion en 1 linea"}]}`;
+  try{
+    const txt=await apiGen(prompt);const p=pJ(txt);
+    if(!p?.angles)throw new Error('No se pudieron parsear angulos');
+    S.angles=p.angles;S.sa=new Set();S.phase='angles';
+  }catch(e){S.err=e.message;S.phase='select_news'}
+  render();
+}
+
+async function generateFromNews(){
+  const f=F();
+  const news=[...S.sn].map(i=>S.news[i]);
+  const ang=[...S.sa].map(i=>S.angles[i]);
+  S.phase='loading';S.ltxt='Generando contenido deportivo...';render();
+  const nt=news.map(n=>`${n.title}: ${n.summary}`).join('\n');
+  const at=ang.map(a=>a.name).join(', ');
+  const prompt=`Noticia deportiva: ${nt}\nAngulos elegidos: ${at}\n\nGenera una nota deportiva con angulo de apuestas:\n- Hook impactante\n- Desarrollo de la noticia\n- Conexion con apuestas y momios potenciales\n- Opinion/prediccion de Duelazo\n- CTA hacia la plataforma\n- Copy redes (280 chars con emojis)`;
+  try{const txt=await apiGen(prompt,f.id);S.result=txt;S.phase='result'}
+  catch(e){S.err=e.message;S.phase='angles'}
+  render();
+}
+
+// --- Text ---
+async function generateFromText(){
+  const t=S.itxt.trim();if(!t)return;
+  const f=F();
+  S.phase='loading';S.ltxt='Generando guion del reel...';render();
+  const prompt=`Tema/situacion: ${t}\n\nGenera un guion para reel/TikTok deportivo de 30-60 segundos:\n- HOOK (primeros 3 segundos): frase que detenga el scroll\n- DESARROLLO (20-40 seg): datos, momios, prediccion\n- CTA (ultimos 5 seg): "Apuesta en Duelazo"\n- Indicaciones visuales para edicion\n- Texto en pantalla sugerido\n- Audio/musica sugerida\n- Copy para caption (280 chars)\n- Hashtags relevantes`;
+  try{const txt=await apiGen(prompt,f.id);S.result=txt;S.phase='result'}
+  catch(e){S.err=e.message;S.phase='input'}
+  render();
+}
+
+// ========== COPY ==========
+function cpRes(){
+  const text=S.result;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>showCopied()).catch(()=>fallbackCopy(text));
+  }else{fallbackCopy(text)}
+}
+function cpText(btn){
+  const text=btn.parentElement.querySelector('.result-content').getAttribute('data-raw')||btn.parentElement.querySelector('.result-content').textContent;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>{btn.textContent='Copiado!';setTimeout(()=>btn.textContent='📋 Copiar',2000)}).catch(()=>fallbackCopy(text));
+  }else{fallbackCopy(text)}
+}
+function fallbackCopy(text){
+  const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0';
+  document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showCopied();
+}
+function showCopied(){const b=document.querySelector('.copy-btn');if(b){b.textContent='Copiado!';setTimeout(()=>b.textContent='📋 Copiar',2000)}}
+
+// ========== INIT ==========
+S.fixDate=today();
+render();
+</script>
+</body>
+</html>

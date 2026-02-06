@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Central — Dashboard</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+<div class="app">
+  <nav class="sidebar" id="sidebar"></nav>
+  <main class="content" id="content"></main>
+</div>
+
+<!-- Report Modal -->
+<div id="reportOverlay" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeReport()">
+  <div class="report-modal">
+    <div id="reportBody"></div>
+    <div class="report-actions">
+      <button onclick="closeReport()">Cerrar</button>
+      <button onclick="copyReport()">📋 Copiar</button>
+      <button onclick="downloadReport()">📥 Descargar</button>
+      <button class="primary" onclick="closeReport()">Listo</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const BUSINESSES=[
+  {id:'nosotros',name:'NOSOTROS',icon:'📰',color:'#8B5CF6',desc:'Plataforma de contenido digital con IA',url:'/nosotros.html'},
+  {id:'duelazo',name:'DUELAZO',icon:'⚽',color:'#10B981',desc:'Contenido deportivo y apuestas',url:'/duelazo.html'},
+  {id:'spacebox',name:'SPACEBOX',icon:'📦',color:'#3B82F6',desc:'Mini bodegas y almacenaje',url:'/spacebox.html'},
+  {id:'styly',name:'STYLY',icon:'💻',color:'#EC4899',desc:'Software para belleza y bienestar',url:'/styly.html'}
+];
+const BIZ_COLORS={nosotros:'#8B5CF6',duelazo:'#10B981',spacebox:'#3B82F6',styly:'#EC4899'};
+const BIZ_ICONS={nosotros:'📰',duelazo:'⚽',spacebox:'📦',styly:'💻'};
+const EMP_COLORS=['#8B5CF6','#10B981','#3B82F6','#EC4899','#F59E0B','#EF4444','#06B6D4','#84CC16'];
+
+let user=null, token='';
+const hdrs={};
+
+function init(){
+  token=localStorage.getItem('token');
+  if(!token){window.location.href='/index.html';return}
+  user=JSON.parse(localStorage.getItem('user')||'{}');
+  hdrs['Authorization']='Bearer '+token;
+  hdrs['Content-Type']='application/json';
+  renderSidebar('dashboard');
+  renderDashboard();
+}
+
+// ========== SIDEBAR ==========
+function renderSidebar(active){
+  const bs=user.businesses||[];
+  const isAdmin=user.role==='admin';
+  const items=BUSINESSES.filter(b=>isAdmin||bs.includes(b.id));
+  document.getElementById('sidebar').innerHTML=`
+    <button class="sidebar-close" onclick="toggleSidebar()">&times;</button>
+    <div class="sidebar-header"><h2>Panel <span>Central</span></h2></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">General</div>
+      <a href="/dashboard.html" class="sidebar-item ${active==='dashboard'?'active':''}"><span class="icon">📊</span>Dashboard</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Negocios</div>
+      ${items.map(b=>`<a href="${b.url}" class="sidebar-item ${active===b.id?'active':''}" style="--accent:${b.color}"><span class="icon">${b.icon}</span>${b.name}</a>`).join('')}
+    </div>
+    ${isAdmin?`<div class="sidebar-section"><div class="sidebar-label">Admin</div><a href="/admin.html" class="sidebar-item ${active==='admin'?'active':''}"><span class="icon">👥</span>Usuarios</a></div>`:''}
+    <div class="sidebar-footer">
+      <div class="sidebar-avatar">${(user.name||'U')[0].toUpperCase()}</div>
+      <div class="sidebar-user"><div class="name">${user.name||'Usuario'}</div><div class="role">${user.role||'editor'}</div></div>
+      <button class="theme-btn" onclick="toggleTheme()" title="Cambiar tema">🌙</button>
+      <button class="theme-btn" onclick="logout()" title="Cerrar sesion" style="font-size:.75rem">↪</button>
+    </div>`;
+}
+
+// ========== MAIN RENDER ==========
+function renderDashboard(){
+  const c=document.getElementById('content');
+  c.innerHTML=`
+    <div class="page-header"><h1>Dashboard</h1><p>Resumen general de actividad</p></div>
+
+    <!-- AI PANEL -->
+    <div class="dash-section" id="aiSection">
+      <div class="ai-bar">
+        <input type="text" id="aiInput" placeholder="Pregunta algo..." onkeydown="if(event.key==='Enter')askAI()">
+        <button onclick="askAI()" id="aiBtn">🧠 Preguntar</button>
+      </div>
+      <div class="ai-chips" id="aiChips"></div>
+      <div id="aiAnswer" style="display:none"></div>
+      <span class="chat-toggle" id="chatToggle" onclick="toggleChat()">💬 Abrir chat completo con IA</span>
+      <div id="chatPanel" style="display:none"></div>
+    </div>
+
+    <!-- STATS ROW -->
+    <div class="stats-row" id="statsRow">
+      <div class="stat-box"><div class="s-label">Contenido esta semana</div><div class="s-value">--</div></div>
+      <div class="stat-box"><div class="s-label">Groq requests hoy</div><div class="s-value">--</div></div>
+      <div class="stat-box"><div class="s-label">Aprobados</div><div class="s-value">--</div></div>
+      <div class="stat-box"><div class="s-label">Pendientes</div><div class="s-value">--</div></div>
+    </div>
+
+    <!-- TWO COLUMNS -->
+    <div class="dash-cols">
+      <div>
+        <div class="dash-section-title">👥 Equipo — Esta semana</div>
+        <div class="emp-card" id="empCard"><div style="color:var(--mt);font-size:.82rem;padding:1rem;text-align:center">Cargando...</div></div>
+      </div>
+      <div>
+        <div class="dash-section-title">📅 Proximos 7 dias</div>
+        <div class="cal-mini" id="calMini"><div style="color:var(--mt);font-size:.82rem;padding:1rem;text-align:center">Cargando...</div></div>
+      </div>
+    </div>
+
+    <!-- BIZ INTEL GRID -->
+    <div class="dash-section">
+      <div class="dash-section-title">📈 Inteligencia por Negocio</div>
+      <div class="biz-intel-grid" id="bizGrid"></div>
+    </div>
+
+    <!-- TRENDS -->
+    <div class="dash-section">
+      <div class="dash-section-title">🔥 Tendencias Detectadas</div>
+      <div id="trendsArea"></div>
+    </div>
+
+    <!-- WEEKLY REPORT -->
+    <button class="report-btn" onclick="genReport()" id="reportBtn">📊 Generar Reporte Semanal</button>
+  `;
+
+  // Start placeholder rotation
+  rotatePlaceholder();
+  // Load all data
+  loadSuggestions();
+  loadStats();
+  loadTeam();
+  loadCalendar();
+  loadBizIntel();
+  loadTrends();
+}
+
+// ========== PLACEHOLDER ROTATION ==========
+const PLACEHOLDERS=['Que genero el equipo esta semana?','Que negocio necesita atencion?','Dame tendencias de hoy','Como va el rendimiento?','Hay huecos en el calendario?'];
+let phIdx=0, phInterval;
+function rotatePlaceholder(){
+  const inp=document.getElementById('aiInput');if(!inp)return;
+  phInterval=setInterval(()=>{
+    phIdx=(phIdx+1)%PLACEHOLDERS.length;
+    inp.style.opacity='0';
+    setTimeout(()=>{inp.placeholder=PLACEHOLDERS[phIdx];inp.style.opacity='1'},200);
+  },3500);
+}
+
+// ========== AI QUICK ASK ==========
+async function askAI(q){
+  const inp=document.getElementById('aiInput');
+  const question=q||inp.value.trim();
+  if(!question)return;
+  inp.value='';
+  const btn=document.getElementById('aiBtn');
+  btn.disabled=true;btn.textContent='Pensando...';
+  const ansDiv=document.getElementById('aiAnswer');
+  ansDiv.style.display='block';
+  ansDiv.innerHTML='<div class="ai-answer"><div class="loader-dots" style="display:flex;gap:4px"><span></span><span></span><span></span></div></div>';
+  try{
+    const r=await fetch('/api/ai/ask',{method:'POST',headers:hdrs,body:JSON.stringify({question})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    ansDiv.innerHTML=`<div class="ai-answer"><button class="close-btn" onclick="document.getElementById('aiAnswer').style.display='none'">&times;</button>${md(d.answer)}</div>`;
+    // Typing effect
+    typeEffect(ansDiv.querySelector('.ai-answer'));
+  }catch(e){ansDiv.innerHTML=`<div class="ai-answer" style="border-left-color:#EF4444">Error: ${esc(e.message)}<button class="close-btn" onclick="this.parentElement.parentElement.style.display='none'">&times;</button></div>`}
+  btn.disabled=false;btn.textContent='🧠 Preguntar';
+}
+
+function typeEffect(el){
+  const html=el.innerHTML;
+  const closeBtn=html.match(/<button.*?<\/button>/)?.[0]||'';
+  const content=html.replace(/<button.*?<\/button>/,'');
+  el.innerHTML=closeBtn;
+  let i=0;
+  const raw=content;
+  el.insertAdjacentHTML('beforeend','<span id="typeTarget"></span>');
+  const target=document.getElementById('typeTarget');
+  // For performance, insert in chunks
+  const chunkSize=5;
+  const timer=setInterval(()=>{
+    if(i>=raw.length){clearInterval(timer);target.outerHTML=raw;return}
+    target.innerHTML=raw.slice(0,i+chunkSize);
+    i+=chunkSize;
+  },10);
+}
+
+// ========== AI SUGGESTIONS ==========
+async function loadSuggestions(){
+  try{
+    const r=await fetch('/api/ai/suggestions',{headers:hdrs});
+    const d=await r.json();
+    const el=document.getElementById('aiChips');if(!el)return;
+    el.innerHTML=(d.suggestions||[]).map((s,i)=>
+      `<span class="ai-chip" onclick="askAI('${esc(s.question)}')" style="animation:stagger .3s ease ${i*100}ms both">${s.icon} ${esc(s.text)}</span>`
+    ).join('');
+  }catch(_){}
+}
+
+// ========== CHAT ==========
+let chatOpen=false, chatConvId=null, chatConvs=[];
+function toggleChat(){
+  chatOpen=!chatOpen;
+  const panel=document.getElementById('chatPanel');
+  const toggle=document.getElementById('chatToggle');
+  if(chatOpen){
+    panel.style.display='block';
+    toggle.textContent='💬 Cerrar chat';
+    renderChat();
+    loadConversations();
+  }else{
+    panel.style.display='none';
+    toggle.textContent='💬 Abrir chat completo con IA';
+  }
+}
+
+async function loadConversations(){
+  try{
+    const r=await fetch('/api/ai/conversations',{headers:hdrs});
+    const d=await r.json();chatConvs=d.conversations||[];
+    renderChatSelector();
+  }catch(_){}
+}
+
+function renderChatSelector(){
+  const sel=document.getElementById('chatConvSel');if(!sel)return;
+  sel.innerHTML=`<option value="">Nueva conversacion</option>`+chatConvs.map(c=>{
+    const exp=Math.ceil((new Date(c.expires_at)-Date.now())/(86400000));
+    return`<option value="${c.id}" ${c.id===chatConvId?'selected':''}>${esc(c.title)} (${exp}d)</option>`;
+  }).join('');
+}
+
+function renderChat(){
+  document.getElementById('chatPanel').innerHTML=`
+    <div class="chat-panel">
+      <div class="chat-header">
+        <span>🧠 Asistente IA</span>
+        <select id="chatConvSel" onchange="switchConv(this.value)"><option value="">Nueva conversacion</option></select>
+        <button onclick="newConv()">+ Nueva</button>
+        <div style="margin-left:auto"><button onclick="toggleChat()">Cerrar</button></div>
+      </div>
+      <div class="chat-messages" id="chatMsgs"><div style="color:var(--mt);text-align:center;padding:2rem;font-size:.82rem">Inicia una conversacion...</div></div>
+      <div class="chat-input">
+        <input type="text" id="chatInput" placeholder="Escribe un mensaje..." onkeydown="if(event.key==='Enter')sendChat()">
+        <button onclick="sendChat()">Enviar</button>
+      </div>
+      <div class="chat-notice">Las conversaciones se guardan 7 dias. ${chatConvId?`<a onclick="downloadConv()">📥 Descargar esta conversacion</a>`:''}</div>
+    </div>`;
+}
+
+async function newConv(){
+  try{
+    const r=await fetch('/api/ai/conversations',{method:'POST',headers:hdrs,body:JSON.stringify({title:'Chat '+ new Date().toLocaleDateString('es-MX')})});
+    const d=await r.json();chatConvId=d.conversation.id;
+    await loadConversations();renderChat();renderChatSelector();
+  }catch(_){}
+}
+
+async function switchConv(id){
+  if(!id){chatConvId=null;renderChat();return}
+  chatConvId=parseInt(id);
+  try{
+    const r=await fetch('/api/ai/conversations/'+chatConvId,{headers:hdrs});
+    const d=await r.json();
+    const msgs=d.conversation.messages||[];
+    const el=document.getElementById('chatMsgs');
+    el.innerHTML=msgs.length?msgs.map(m=>`<div class="chat-msg ${m.role==='user'?'user':'bot'}">${m.role==='user'?esc(m.content):md(m.content)}</div>`).join(''):'<div style="color:var(--mt);text-align:center;padding:2rem;font-size:.82rem">Conversacion vacia</div>';
+    el.scrollTop=el.scrollHeight;
+    renderChatNotice();
+  }catch(_){}
+}
+
+function renderChatNotice(){
+  const n=document.querySelector('.chat-notice');
+  if(n)n.innerHTML=`Las conversaciones se guardan 7 dias. ${chatConvId?`<a onclick="downloadConv()">📥 Descargar esta conversacion</a>`:''}`;
+}
+
+async function sendChat(){
+  const inp=document.getElementById('chatInput');
+  const q=inp.value.trim();if(!q)return;
+  inp.value='';
+
+  // Create conversation if needed
+  if(!chatConvId)await newConv();
+
+  const el=document.getElementById('chatMsgs');
+  // Clear placeholder
+  if(el.querySelector('div[style]'))el.innerHTML='';
+  el.innerHTML+=`<div class="chat-msg user">${esc(q)}</div>`;
+  el.innerHTML+=`<div class="chat-msg bot" id="botTyping"><div class="loader-dots" style="display:flex;gap:4px"><span></span><span></span><span></span></div></div>`;
+  el.scrollTop=el.scrollHeight;
+
+  try{
+    const r=await fetch('/api/ai/ask',{method:'POST',headers:hdrs,body:JSON.stringify({question:q,conversation_id:chatConvId})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    const typing=document.getElementById('botTyping');
+    if(typing)typing.outerHTML=`<div class="chat-msg bot">${md(d.answer)}</div>`;
+    el.scrollTop=el.scrollHeight;
+  }catch(e){
+    const typing=document.getElementById('botTyping');
+    if(typing)typing.outerHTML=`<div class="chat-msg bot" style="border-color:#EF4444">Error: ${esc(e.message)}</div>`;
+  }
+}
+
+function downloadConv(){
+  if(!chatConvId)return;
+  window.open('/api/ai/conversations/'+chatConvId+'/download?token='+token,'_blank');
+}
+
+// ========== STATS ROW ==========
+async function loadStats(){
+  try{
+    const r=await fetch('/api/admin/business-stats',{headers:hdrs});
+    const d=await r.json();
+    if(d.error)return;
+    const pending=d.pendingApproval||[];
+    const totalPending=pending.reduce((s,p)=>s+p.count,0);
+    const totalApproved=d.businesses.reduce((s,b)=>s+b.approved,0);
+    const el=document.getElementById('statsRow');
+    el.innerHTML=`
+      <div class="stat-box">
+        <div class="s-label">Contenido esta semana</div>
+        <div class="s-value">${d.totalThisWeek}<span class="stat-change ${d.weekChange>=0?'up':'down'}">${d.weekChange>=0?'↑':'↓'}${Math.abs(d.weekChange)}%</span></div>
+        <div class="s-sub">vs ${d.totalLastWeek} semana pasada</div>
+      </div>
+      <div class="stat-box">
+        <div class="s-label">Aprobados</div>
+        <div class="s-value">${totalApproved}</div>
+        <div class="s-sub">${d.totalThisWeek?Math.round(totalApproved/d.totalThisWeek*100):0}% ratio aprobacion</div>
+      </div>
+      <div class="stat-box">
+        <div class="s-label">Negocios activos</div>
+        <div class="s-value">${d.businesses.length}<span style="font-size:.8rem;color:var(--mt)"> / 4</span></div>
+        <div class="s-sub">${d.businesses.map(b=>BIZ_ICONS[b.business]||'').join(' ')}</div>
+      </div>
+      <div class="stat-box">
+        <div class="s-label">Pendientes por aprobar</div>
+        <div class="s-value">${totalPending}</div>
+        <div class="s-sub">${pending.map(p=>(BIZ_ICONS[p.business]||'')+p.count).join(' ')}</div>
+      </div>`;
+  }catch(_){}
+}
+
+// ========== TEAM STATS ==========
+async function loadTeam(){
+  const el=document.getElementById('empCard');if(!el)return;
+  if(user.role!=='admin'){el.innerHTML='<div style="color:var(--mt);font-size:.82rem;padding:1rem;text-align:center">Solo admins ven stats del equipo</div>';return}
+  try{
+    const r=await fetch('/api/admin/team-stats',{headers:hdrs});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    const team=d.team||[];
+    if(!team.length){el.innerHTML='<div style="color:var(--mt);font-size:.82rem;padding:1rem;text-align:center">No hay empleados activos</div>';return}
+
+    let alerts=[];
+    const now=Date.now();
+
+    el.innerHTML=team.map((t,i)=>{
+      const ratio=t.generated>0?Math.round(t.approved/t.generated*100):0;
+      const lastMs=t.last_activity?now-new Date(t.last_activity).getTime():Infinity;
+      const lastDays=Math.floor(lastMs/86400000);
+      let lastLabel=t.last_activity?(lastDays===0?'Hoy':lastDays===1?'Ayer':`Hace ${lastDays}d`):'Sin actividad';
+      const isInactive=lastDays>=3;
+      if(isInactive)alerts.push({type:'red',text:`${t.name} no ha generado contenido en ${lastDays}+ dias`});
+      if(t.generated>=3&&ratio<50)alerts.push({type:'yellow',text:`${t.name} tiene ratio de aprobacion bajo (${ratio}%)`});
+      if(t.generated>=5)alerts.push({type:'green',text:`${t.name} lleva buena racha generando contenido`});
+
+      const byBiz=t.by_business||{};
+      return`<div class="emp-row">
+        <div class="emp-avatar" style="background:${EMP_COLORS[i%EMP_COLORS.length]}">${(t.name||'?')[0].toUpperCase()}</div>
+        <div class="emp-info">
+          <div class="emp-name">${esc(t.name)} <span style="font-size:.65rem;color:var(--mt)">${esc(t.role)}</span></div>
+          <div class="emp-biz-chips">${Object.entries(byBiz).map(([b,n])=>`<span class="emp-biz-chip" style="background:${BIZ_COLORS[b]||'#666'}">${BIZ_ICONS[b]||''} ${n}</span>`).join('')}</div>
+        </div>
+        <div class="emp-stats">
+          <div class="emp-num"><div class="n">${t.generated}</div><div class="l">Gen</div></div>
+          <div class="emp-num"><div class="n">${t.approved}</div><div class="l">Apr</div></div>
+          <div class="emp-num"><div class="n">${ratio}%</div><div class="l">Ratio</div></div>
+          <div class="emp-num"><div class="n" style="font-size:.72rem;${isInactive?'color:#EF4444':''}">${lastLabel}</div><div class="l">Ultima</div></div>
+        </div>
+      </div>`;
+    }).join('')+
+    (alerts.length?'<div style="margin-top:.5rem">'+alerts.slice(0,5).map(a=>`<div class="emp-alert ${a.type}">${a.type==='red'?'🔴':a.type==='yellow'?'🟡':'🟢'} ${esc(a.text)}</div>`).join('')+'</div>':'');
+  }catch(e){el.innerHTML=`<div style="color:var(--mt);font-size:.82rem;padding:1rem">${esc(e.message)}</div>`}
+}
+
+// ========== CALENDAR 7 DAYS ==========
+async function loadCalendar(){
+  const el=document.getElementById('calMini');if(!el)return;
+  try{
+    const r=await fetch('/api/admin/upcoming-content',{headers:hdrs});
+    const d=await r.json();
+    const items=d.items||[];
+    const days=[];
+    const today=new Date();today.setHours(0,0,0,0);
+    const dayNames=['Dom','Lun','Mar','Mie','Jue','Vie','Sab'];
+    for(let i=0;i<7;i++){
+      const dt=new Date(today);dt.setDate(dt.getDate()+i);
+      const ds=dt.toISOString().slice(0,10);
+      days.push({
+        label:i===0?'Hoy':i===1?'Manana':dayNames[dt.getDay()]+' '+dt.getDate(),
+        date:ds,
+        items:items.filter(it=>(it.scheduled_date||'').slice(0,10)===ds)
+      });
+    }
+    el.innerHTML=days.map(day=>`
+      <div class="cal-day">
+        <div class="cal-day-header"><span>${day.label}</span><span class="date">${day.date.slice(5)}</span></div>
+        ${day.items.length?day.items.map(it=>`
+          <div class="cal-day-item" style="background:${BIZ_COLORS[it.business]||'#666'}22">
+            <span>${BIZ_ICONS[it.business]||'📝'}</span>
+            <span>${esc(it.format_type||'')}</span>
+            <span style="margin-left:auto;opacity:.6">${it.scheduled_platform||''}</span>
+          </div>`).join('')
+          :`<div class="cal-day-empty">Sin contenido agendado</div>`}
+      </div>`).join('');
+  }catch(e){el.innerHTML=`<div style="color:var(--mt);font-size:.82rem;padding:1rem">${esc(e.message)}</div>`}
+}
+
+// ========== BUSINESS INTELLIGENCE ==========
+async function loadBizIntel(){
+  const grid=document.getElementById('bizGrid');if(!grid)return;
+  try{
+    const [statsR, fmtR, upR]=await Promise.all([
+      fetch('/api/admin/business-stats',{headers:hdrs}).then(r=>r.json()),
+      fetch('/api/admin/format-usage',{headers:hdrs}).then(r=>r.json()),
+      fetch('/api/admin/upcoming-content',{headers:hdrs}).then(r=>r.json())
+    ]);
+
+    const bizStats={};(statsR.businesses||[]).forEach(b=>bizStats[b.business]=b);
+    const usage=fmtR.usage||{};
+    const upcoming=upR.items||[];
+
+    // Ideas count
+    let ideasByBiz={};
+    try{
+      // We don't have a direct endpoint for ideas count per biz, calculate from suggestions context
+    }catch(_){}
+
+    grid.innerHTML=BUSINESSES.map(biz=>{
+      const st=bizStats[biz.id]||{total:0,approved:0,drafts:0};
+      const u=usage[biz.id]||{used:[],unused:[]};
+      const upCount=upcoming.filter(i=>i.business===biz.id).length;
+      return`<div class="biz-intel-card" style="--c:${biz.color}">
+        <div class="bi-header"><span class="bi-icon">${biz.icon}</span><span class="bi-name">${biz.name}</span></div>
+        <div class="bi-stat"><span class="k">Generado esta semana</span><span>${st.total}</span></div>
+        <div class="bi-stat"><span class="k">Aprobados</span><span>${st.approved}</span></div>
+        <div class="bi-stat"><span class="k">Agendado prox 7d</span><span>${upCount}</span></div>
+        <div class="bi-formats">
+          ${u.used.map(f=>`<span class="bi-fmt used">${f.format_type} (${f.times_used})</span>`).join('')}
+          ${u.unused.map(f=>`<span class="bi-fmt unused">${f}</span>`).join('')}
+        </div>
+        ${upCount===0?'<span class="bi-no-sched">Sin agendar esta semana</span>':''}
+        <a class="bi-go" href="${biz.url}">Ir al modulo →</a>
+      </div>`;
+    }).join('');
+  }catch(e){grid.innerHTML=`<div style="color:var(--mt)">${esc(e.message)}</div>`}
+}
+
+// ========== TRENDS ==========
+async function loadTrends(){
+  const el=document.getElementById('trendsArea');if(!el)return;
+  try{
+    const r=await fetch('/api/admin/trends',{headers:hdrs});
+    const d=await r.json();
+    const trends=d.trends||[];
+    el.innerHTML=trends.length?trends.map(t=>`
+      <div class="trend-card">
+        <span class="trend-icon">${t.icon||'🔥'}</span>
+        <span class="trend-text">${esc(t.text)}</span>
+        <a class="trend-action" href="${t.action||'#'}">Crear contenido →</a>
+      </div>`).join(''):'<div style="color:var(--mt);font-size:.82rem;text-align:center;padding:1rem">No hay tendencias detectadas hoy</div>';
+  }catch(_){}
+}
+
+// ========== WEEKLY REPORT ==========
+let lastReport='';
+async function genReport(){
+  const btn=document.getElementById('reportBtn');
+  btn.disabled=true;btn.textContent='📊 Analizando datos de la semana...';
+  try{
+    const r=await fetch('/api/ai/weekly-report',{method:'POST',headers:hdrs});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    lastReport=d.report;
+    document.getElementById('reportBody').innerHTML=`<div class="report-content">${md(d.report)}</div>`;
+    document.getElementById('reportOverlay').style.display='flex';
+  }catch(e){alert('Error: '+e.message)}
+  btn.disabled=false;btn.textContent='📊 Generar Reporte Semanal';
+}
+
+function closeReport(){document.getElementById('reportOverlay').style.display='none'}
+function copyReport(){navigator.clipboard.writeText(lastReport).then(()=>alert('Copiado al portapapeles'))}
+function downloadReport(){
+  const blob=new Blob([lastReport],{type:'text/plain'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='reporte-semanal-'+new Date().toISOString().slice(0,10)+'.txt';
+  a.click();URL.revokeObjectURL(a.href);
+}
+
+// ========== UTILITIES ==========
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+function md(text){
+  return String(text||'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/^### (.+)$/gm,'<h4>$1</h4>')
+    .replace(/^## (.+)$/gm,'<h3>$1</h3>')
+    .replace(/^# (.+)$/gm,'<h2>$1</h2>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/^- (.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/gs,'<ul>$1</ul>')
+    .replace(/^---$/gm,'<hr>')
+    .replace(/\n{2,}/g,'<br><br>')
+    .replace(/\n/g,'<br>');
+}
+
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
+function toggleTheme(){
+  const t=document.documentElement.getAttribute('data-theme')==='light'?'':'light';
+  document.documentElement.setAttribute('data-theme',t);
+  localStorage.setItem('theme',t);
+}
+function logout(){localStorage.clear();window.location.href='/index.html'}
+
+// Apply saved theme
+if(localStorage.getItem('theme')==='light') document.documentElement.setAttribute('data-theme','light');
+init();
+</script>
+</body>
+</html>

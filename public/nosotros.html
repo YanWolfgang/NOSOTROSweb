@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Central — NOSOTROS</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+<div class="app">
+  <nav class="sidebar" id="sidebar"></nav>
+  <main class="content fade-in" id="content">
+    <div class="page-header"><h1 style="color:var(--nosotros)">📰 NOSOTROS</h1><p>Plataforma de contenido digital con IA</p></div>
+    <div class="module-tabs" id="modTabs">
+      <button class="module-tab active" onclick="setModTab('generar')">Generar</button>
+      <button class="module-tab" onclick="setModTab('historial')">Historial</button>
+    </div>
+    <div id="modContent"></div>
+  </main>
+</div>
+<script>
+// ========== AUTH ==========
+const token=localStorage.getItem('token');
+if(!token){window.location.href='/index.html';}
+const user=JSON.parse(localStorage.getItem('user')||'{}');
+const hdrs={'Content-Type':'application/json','Authorization':'Bearer '+token};
+
+// ========== SIDEBAR ==========
+const BUSINESSES=[
+  {id:'nosotros',name:'NOSOTROS',icon:'📰',color:'#8B5CF6',url:'/nosotros.html'},
+  {id:'duelazo',name:'DUELAZO',icon:'⚽',color:'#10B981',url:'/duelazo.html'},
+  {id:'spacebox',name:'SPACEBOX',icon:'📦',color:'#3B82F6',url:'/spacebox.html'},
+  {id:'styly',name:'STYLY',icon:'💻',color:'#EC4899',url:'/styly.html'}
+];
+function renderSidebar(){
+  const bs=user.businesses||[];const isAdmin=user.role==='admin';
+  const items=BUSINESSES.filter(b=>isAdmin||bs.includes(b.id));
+  document.getElementById('sidebar').innerHTML=`
+    <button class="sidebar-close" onclick="toggleSidebar()">&times;</button>
+    <div class="sidebar-header"><h2>Panel <span>Central</span></h2></div>
+    <div class="sidebar-section"><div class="sidebar-label">General</div><a href="/dashboard.html" class="sidebar-item"><span class="icon">📊</span>Dashboard</a></div>
+    <div class="sidebar-section"><div class="sidebar-label">Negocios</div>
+      ${items.map(b=>`<a href="${b.url}" class="sidebar-item ${b.id==='nosotros'?'active':''}" style="--accent:${b.color}"><span class="icon">${b.icon}</span>${b.name}</a>`).join('')}
+    </div>
+    ${isAdmin?`<div class="sidebar-section"><div class="sidebar-label">Admin</div><a href="/admin.html" class="sidebar-item"><span class="icon">👥</span>Usuarios</a></div>`:''}
+    <div class="sidebar-footer">
+      <div class="sidebar-avatar">${(user.name||'U')[0].toUpperCase()}</div>
+      <div class="sidebar-user"><div class="name">${user.name||'Usuario'}</div><div class="role">${user.role||'editor'}</div></div>
+      <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+      <button class="theme-btn" onclick="logout()" style="font-size:.75rem">↪</button>
+    </div>`;
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
+function toggleTheme(){const t=document.documentElement.getAttribute('data-theme')==='light'?'':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t)}
+function logout(){localStorage.clear();window.location.href='/index.html'}
+if(localStorage.getItem('theme')==='light') document.documentElement.setAttribute('data-theme','light');
+renderSidebar();
+
+// ========== CONFIG ==========
+const SYS='Eres el equipo creativo de NOSOTROS, un medio digital mexicano. Lenguaje coloquial mexicano pero sin perder seriedad. Solo usa lenguaje muy casual para ejemplificar o enfatizar. Ganchos constantes y atractivo.';
+
+const FORMATS=[
+  {id:'carrusel',name:'Carrusel IG',icon:'📱',color:'#E1306C',
+   desc:'Slides con hook, contexto y CTA para Instagram',
+   badges:['Web Search','Angulos'],steps:['Noticias','Angulos','Contenido'],
+   scope:'mx',ns:1,ac:5,ma:2},
+  {id:'noticias_hoy',name:'Noticias de Hoy',icon:'🌍',color:'#1DA1F2',
+   desc:'Resumen diario de noticias internacionales y Mexico',
+   badges:['Web Search'],steps:['Noticias','Contenido'],
+   scope:'both',ns:4,ac:0,ma:0},
+  {id:'noticias_mx',name:'Noticias Mexico',icon:'🇲🇽',color:'#006847',
+   desc:'Noticias exclusivamente de Mexico',
+   badges:['Web Search'],steps:['Noticias','Contenido'],
+   scope:'mx',ns:4,ac:0,ma:0},
+  {id:'sketch',name:'Sketch',icon:'🎭',color:'#FF6B35',
+   desc:'Sketch con humor, satira e indicaciones visuales',
+   badges:['Web Search','Angulos'],steps:['Noticias','Angulos','Contenido'],
+   scope:'mx',ns:1,ac:5,ma:2},
+  {id:'nr',name:'NR Investigacion',icon:'📰',color:'#8B5CF6',
+   desc:'Investigacion a profundidad con multiples posturas',
+   badges:['Web Search','Angulos'],steps:['Noticias','Angulos','Contenido'],
+   scope:'mx',ns:1,ac:5,ma:2},
+  {id:'youtube',name:'YouTube Largo',icon:'🎥',color:'#FF0000',
+   desc:'Guion completo 12-15 min con timestamps y clips',
+   badges:['Web Search','Angulos','Estructuras'],steps:['Noticias','Angulos','Estructura','Contenido'],
+   scope:'mx',ns:1,ac:6,ma:3},
+  {id:'copy',name:'Copy & Titulo',icon:'✍️',color:'#F59E0B',
+   desc:'Copy para redes y titulo YouTube desde cualquier texto',
+   badges:[],steps:['Texto','Contenido'],
+   scope:null,ns:0,ac:0,ma:0}
+];
+
+const CATS=[
+  {id:null,label:'Todas'},{id:'politica',label:'Politica'},{id:'economia',label:'Economia'},
+  {id:'tecnologia',label:'Tecnologia'},{id:'deportes',label:'Deportes'},
+  {id:'entretenimiento',label:'Entretenimiento'},{id:'guerra',label:'Guerra'},{id:'ciencia',label:'Ciencia'}
+];
+
+// ========== STATE ==========
+let S={view:'home',fid:null,step:0,phase:'input',ltxt:'',
+  sq:'',cat:null,news:[],sn:new Set(),angles:[],sa:new Set(),
+  structs:[],ss:null,result:'',itxt:'',err:null};
+let modTab='generar';
+
+// ========== HELPERS ==========
+function F(){return FORMATS.find(f=>f.id===S.fid)}
+function selN(){return[...S.sn].map(i=>S.news[i])}
+function selA(){return[...S.sa].map(i=>S.angles[i])}
+function pJ(t){const i=t.indexOf('{'),j=t.lastIndexOf('}');if(i===-1||j<=i)return null;try{return JSON.parse(t.substring(i,j+1))}catch{return null}}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function md(t){
+  return esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>')
+    .replace(/^### (.+)$/gm,'<h4>$1</h4>').replace(/^## (.+)$/gm,'<h3>$1</h3>').replace(/^# (.+)$/gm,'<h2>$1</h2>')
+    .replace(/^---$/gm,'<hr>').replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+}
+
+// ========== API ==========
+async function apiNews(scope,query,category){
+  const r=await fetch('/api/nosotros/news',{method:'POST',headers:hdrs,body:JSON.stringify({scope,query:query||undefined,category:category||undefined})});
+  const d=await r.json();if(d.error)throw new Error(d.error);return d.news||[];
+}
+async function apiGen(prompt,system,format_type){
+  const r=await fetch('/api/nosotros/generate',{method:'POST',headers:hdrs,
+    body:JSON.stringify({prompt,system:system||undefined,format_type:format_type||undefined})});
+  const d=await r.json();if(d.error)throw new Error(d.error);return d.result||'';
+}
+
+// ========== MODULE TABS ==========
+function setModTab(t){
+  modTab=t;
+  document.querySelectorAll('.module-tab').forEach((b,i)=>b.classList.toggle('active',(t==='generar'&&i===0)||(t==='historial'&&i===1)));
+  if(t==='generar'){S.view='home';render()}
+  else if(t==='historial'){loadHistory()}
+}
+
+let histSel=new Set();
+async function loadHistory(){
+  histSel.clear();
+  const m=document.getElementById('modContent');
+  m.innerHTML='<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div></div>';
+  try{
+    const r=await fetch('/api/nosotros/history',{headers:hdrs});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    const items=d.history||[];
+    m.innerHTML=items.length?`
+      <div style="display:flex;gap:.5rem;margin-bottom:.75rem;align-items:center;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:.35rem;cursor:pointer;font-size:.8rem;color:var(--mt)"><input type="checkbox" onchange="toggleAllHist(this.checked,${JSON.stringify(items.map(i=>i.id))})"> Seleccionar todos</label>
+        <span id="histSelCount" style="font-size:.75rem;color:var(--mt)"></span>
+        <div style="margin-left:auto;display:flex;gap:.4rem">
+          <button id="btnBulkDel" onclick="bulkDelHistory()" style="display:none;background:#EF4444;color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:.75rem;cursor:pointer">Eliminar seleccionados</button>
+          <button onclick="delAllHistory()" style="background:none;border:1px solid #EF4444;color:#EF4444;border-radius:6px;padding:4px 12px;font-size:.75rem;cursor:pointer">Borrar todo</button>
+        </div>
+      </div>
+      <div class="history-list">${items.map(h=>`
+      <div class="history-item" style="position:relative">
+        <input type="checkbox" data-hid="${h.id}" onchange="toggleHistSel(${h.id},this.checked)" style="position:absolute;top:.6rem;left:.5rem;cursor:pointer;accent-color:#EF4444">
+        <div onclick="viewHistory(${h.id})" style="cursor:pointer;flex:1;padding-left:1.5rem">
+          <div class="history-meta"><span>${h.format_type}</span><span>${new Date(h.created_at).toLocaleString('es-MX')}</span></div>
+          <div class="history-preview">${esc(h.preview||'')}</div>
+        </div>
+        <button onclick="event.stopPropagation();delHistory(${h.id})" style="position:absolute;top:.5rem;right:.5rem;background:none;border:1px solid var(--border);border-radius:6px;color:var(--mt);cursor:pointer;padding:2px 6px;font-size:.7rem;transition:all .15s" onmouseover="this.style.borderColor='#EF4444';this.style.color='#EF4444'" onmouseout="this.style.borderColor='';this.style.color=''">🗑️</button>
+      </div>`).join('')}</div>`:'<p style="color:var(--mt);text-align:center;padding:2rem">No hay contenido generado aun.</p>';
+  }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
+}
+function toggleHistSel(id,checked){if(checked)histSel.add(id);else histSel.delete(id);updHistSelUI()}
+function toggleAllHist(checked,ids){histSel.clear();if(checked)ids.forEach(id=>histSel.add(id));document.querySelectorAll('[data-hid]').forEach(c=>c.checked=checked);updHistSelUI()}
+function updHistSelUI(){const n=histSel.size;const c=document.getElementById('histSelCount');const b=document.getElementById('btnBulkDel');if(c)c.textContent=n?n+' seleccionado'+(n>1?'s':''):'';if(b)b.style.display=n?'inline-block':'none'}
+async function bulkDelHistory(){if(!histSel.size)return;if(!confirm(`Eliminar ${histSel.size} elemento(s) del historial?`))return;try{const r=await fetch('/api/nosotros/history/bulk-delete',{method:'POST',headers:hdrs,body:JSON.stringify({ids:[...histSel]})});const d=await r.json();if(d.error)throw new Error(d.error);loadHistory()}catch(e){alert('Error: '+e.message)}}
+async function delAllHistory(){if(!confirm('Eliminar TODO el historial de Nosotros? Esta accion no se puede deshacer.'))return;try{const r=await fetch('/api/nosotros/history',{headers:hdrs});const d=await r.json();const ids=(d.history||[]).map(h=>h.id);if(!ids.length)return;const r2=await fetch('/api/nosotros/history/bulk-delete',{method:'POST',headers:hdrs,body:JSON.stringify({ids})});const d2=await r2.json();if(d2.error)throw new Error(d2.error);loadHistory()}catch(e){alert('Error: '+e.message)}}
+
+async function viewHistory(id){
+  const m=document.getElementById('modContent');
+  m.innerHTML='<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div></div>';
+  try{
+    const r=await fetch('/api/nosotros/history/'+id,{headers:hdrs});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    const h=d.item;
+    m.innerHTML=`<button class="btn-back" onclick="loadHistory()" style="margin-bottom:1rem">← Volver</button>
+      <div class="result-box"><button class="copy-btn" onclick="cpText(this)">📋 Copiar</button>
+      <div class="result-content" data-raw="${esc(h.output_text)}">${md(h.output_text)}</div></div>`;
+  }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
+}
+
+async function delHistory(id){
+  if(!confirm('Eliminar este contenido del historial?'))return;
+  try{
+    const r=await fetch('/api/nosotros/history/'+id,{method:'DELETE',headers:hdrs});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    loadHistory();
+  }catch(e){alert('Error: '+e.message)}
+}
+
+// ========== RENDER ==========
+function render(){
+  const m=document.getElementById('modContent');
+  m.className='fade-in';
+  m.innerHTML=S.view==='home'?rHome():rFlow();
+  void m.offsetWidth;
+  const si=document.getElementById('si');if(si)si.value=S.sq;
+  const ti=document.getElementById('ti');if(ti)ti.value=S.itxt;
+}
+
+function rHome(){
+  return`<div class="fmt-grid">${FORMATS.map(f=>`
+    <div class="fmt-card" style="--c:${f.color}" onclick="goFmt('${f.id}')">
+      <div class="fmt-icon">${f.icon}</div>
+      <div class="fmt-name">${f.name}</div>
+      <div class="fmt-desc">${f.desc}</div>
+      ${f.badges.length?`<div class="fmt-badges">${f.badges.map(b=>`<span class="badge">${b}</span>`).join('')}</div>`:''}
+    </div>`).join('')}</div>`;
+}
+
+function rFlow(){
+  const f=F();
+  return`<div style="--accent:${f.color}">
+    <div class="flow-header">
+      <button class="btn-back" onclick="goHome()">← Volver</button>
+      <div class="flow-title"><span>${f.icon}</span> ${f.name}</div>
+    </div>
+    ${rSteps(f)}
+    <div class="step-label">Paso ${S.step+1}: ${f.steps[S.step]}</div>
+    ${S.err?`<div class="error-bar"><span>${esc(S.err)}</span><button onclick="clErr()">×</button></div>`:''}
+    ${rContent(f)}
+  </div>`;
+}
+
+function rSteps(f){
+  let h='<div class="steps">';
+  f.steps.forEach((s,i)=>{
+    if(i>0)h+=`<div class="step-line ${i<=S.step?'done':''}"></div>`;
+    h+=`<div class="step-dot ${i<S.step?'done':i===S.step?'active':''}">${i+1}</div>`;
+  });
+  return h+'</div>';
+}
+
+function rContent(f){
+  if(S.phase==='loading')return`<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div><div class="loader-text">${S.ltxt}</div></div>`;
+  if(S.phase==='result')return rResult();
+  const st=f.steps[S.step];
+  if(st==='Noticias'){
+    if(S.news.length>0)return rNewsSel(f);
+    return`<div class="actions"><button class="btn" onclick="retryFetch()">Reintentar carga de noticias</button></div>`;
+  }
+  if(st==='Angulos')return rAngSel(f);
+  if(st==='Estructura')return rStrSel();
+  if(st==='Texto')return rTextIn();
+  return'';
+}
+
+function rNewsSel(f){
+  const n=f.ns,ok=S.sn.size===n;
+  const cats=`<div class="cats">${CATS.map(c=>`<button class="cat-btn ${S.cat===c.id?'active':''}" onclick="setCat(${c.id===null?'null':"'"+c.id+"'"})">${c.label}</button>`).join('')}</div>`;
+  return`${cats}<p class="sel-hint">Selecciona ${n} noticia${n>1?'s':''} (${S.sn.size}/${n})</p>
+    <div class="sel-list">${S.news.map((nw,i)=>`
+      <div class="sel-card ${S.sn.has(i)?'on':''}" onclick="tgN(${i})">
+        <div class="sel-check">${S.sn.has(i)?'✓':''}</div>
+        <div class="sel-body">
+          <div class="sel-title">${esc(nw.title)}</div>
+          <div class="sel-desc">${esc(nw.summary)}</div>
+          <div class="sel-source">${esc(nw.source)}</div>
+        </div></div>`).join('')}</div>
+    <div class="actions"><button class="btn" ${ok?'':'disabled'} onclick="${f.steps[S.step+1]==='Contenido'?'goDirectContent()':'goAngles()'}">
+      ${f.steps[S.step+1]==='Contenido'?'Generar contenido':'Generar angulos'}</button></div>`;
+}
+
+function rAngSel(f){
+  const ok=S.sa.size>=1&&S.sa.size<=f.ma;
+  const lbl=f.id==='youtube'?'Generar estructuras':'Generar contenido';
+  return`<p class="sel-hint">Selecciona 1-${f.ma} angulo${f.ma>1?'s':''} (${S.sa.size}/${f.ma})</p>
+    <div class="sel-list">${S.angles.map((a,i)=>`
+      <div class="sel-card ${S.sa.has(i)?'on':''}" onclick="tgA(${i})">
+        <div class="sel-check">${S.sa.has(i)?'✓':''}</div>
+        <div class="sel-body"><div class="sel-title">${esc(a.name)}</div><div class="sel-desc">${esc(a.description)}</div></div>
+      </div>`).join('')}</div>
+    <div class="actions"><button class="btn" ${ok?'':'disabled'} onclick="goNext()">${lbl}</button></div>`;
+}
+
+function rStrSel(){
+  const ok=S.ss!==null;
+  return`<p class="sel-hint">Selecciona 1 estructura</p>
+    <div class="sel-list">${S.structs.map((s,i)=>`
+      <div class="sel-card ${S.ss===i?'on':''}" onclick="selStr(${i})">
+        <div class="sel-radio"></div>
+        <div class="sel-body"><div class="sel-title">${esc(s.name)}</div><div class="sel-desc">${esc(s.description)}</div>
+          ${s.sections?`<div class="sel-desc" style="margin-top:.25rem;opacity:.6;font-size:.75rem">${s.sections.map(x=>esc(x)).join(' → ')}</div>`:''}
+        </div></div>`).join('')}</div>
+    <div class="actions"><button class="btn" ${ok?'':'disabled'} onclick="goFinal()">Generar guion completo</button></div>`;
+}
+
+function rTextIn(){
+  return`<textarea id="ti" class="ta" placeholder="Pega aqui el texto para generar copy y titulo..." oninput="S.itxt=this.value"></textarea>
+    <div class="actions"><button class="btn" onclick="goCopy()">Generar copy y titulo</button></div>`;
+}
+
+function rResult(){
+  return`<div class="result-box">
+    <button class="copy-btn" onclick="cpRes()">📋 Copiar</button>
+    <div class="result-content">${md(S.result)}</div></div>
+    <div class="actions"><button class="btn-outline btn" onclick="goHome()">Nuevo contenido</button></div>`;
+}
+
+// ========== HANDLERS ==========
+function goHome(){S={view:'home',fid:null,step:0,phase:'input',ltxt:'',sq:'',cat:null,news:[],sn:new Set(),angles:[],sa:new Set(),structs:[],ss:null,result:'',itxt:'',err:null};render()}
+function clErr(){S.err=null;render()}
+function setCat(c){if(S.cat===c)return;S.cat=c;S.sn=new Set();S.err=null;fetchN(F().scope,S.sq||undefined)}
+function goFmt(id){
+  S.view='flow';S.fid=id;S.step=0;S.news=[];S.sn=new Set();S.angles=[];S.sa=new Set();
+  S.structs=[];S.ss=null;S.result='';S.err=null;S.sq='';S.cat=null;S.itxt='';
+  const f=F();
+  if(f.id==='copy'){S.phase='input';render();return}
+  S.phase='loading';S.ltxt='Cargando noticias del dia...';render();fetchN(f.scope);
+}
+function retryFetch(){S.err=null;const f=F();S.phase='loading';S.ltxt='Cargando noticias...';render();fetchN(f.scope,S.sq||undefined)}
+async function fetchN(scope,query){
+  S.phase='loading';S.ltxt='Buscando noticias...';render();
+  try{const news=await apiNews(scope,query,S.cat);if(!news.length)throw new Error('No se encontraron noticias.');S.news=news;S.sn=new Set();S.phase='select'}
+  catch(e){S.err=e.message;S.phase='input';S.news=[]}render();
+}
+function tgN(i){const f=F();if(S.sn.has(i))S.sn.delete(i);else{if(f.ns===1)S.sn.clear();if(S.sn.size<f.ns)S.sn.add(i)}render()}
+function tgA(i){const f=F();if(S.sa.has(i))S.sa.delete(i);else{if(S.sa.size<f.ma)S.sa.add(i)}render()}
+function selStr(i){S.ss=i;render()}
+
+async function goAngles(){
+  const f=F(),news=selN();
+  S.step=f.steps.indexOf('Angulos');S.phase='loading';S.ltxt='Generando angulos narrativos...';render();
+  const nt=news.map(n=>`- ${n.title}: ${n.summary}`).join('\n');
+  const prompt=news.length===1
+    ?`Noticia:\n${nt}\n\nGenera ${f.ac} angulos narrativos distintos. Responde SOLO con JSON valido:\n{"angles":[{"id":1,"name":"nombre corto","description":"descripcion en 1 linea"}]}`
+    :`Noticias:\n${nt}\n\nGenera ${f.ac} angulos narrativos generales para este conjunto. Responde SOLO con JSON valido:\n{"angles":[{"id":1,"name":"nombre corto","description":"descripcion en 1 linea"}]}`;
+  try{const txt=await apiGen(prompt);const p=pJ(txt);if(!p?.angles)throw new Error('No se pudieron parsear angulos');S.angles=p.angles;S.phase='select'}
+  catch(e){S.err=e.message;S.step=0;S.phase='select'}render();
+}
+
+async function goNext(){if(F().id==='youtube')await goStructs();else await goFinalContent()}
+
+async function goStructs(){
+  const f=F(),news=selN(),ang=selA();
+  S.step=f.steps.indexOf('Estructura');S.phase='loading';S.ltxt='Generando estructuras...';render();
+  const n=news[0],at=ang.map(a=>a.name).join(', ');
+  const prompt=`Noticia: ${n.title} - ${n.summary}\nAngulos: ${at}\n\nGenera 4 estructuras de storytelling para video YouTube 12-15 min. Responde SOLO con JSON valido:\n{"structures":[{"id":1,"name":"nombre","description":"descripcion breve","sections":["seccion1","seccion2","seccion3"]}]}`;
+  try{const txt=await apiGen(prompt);const p=pJ(txt);if(!p?.structures)throw new Error('No se pudieron parsear estructuras');S.structs=p.structures;S.phase='select'}
+  catch(e){S.err=e.message;S.step=f.steps.indexOf('Angulos');S.phase='select'}render();
+}
+
+async function goDirectContent(){
+  const f=F(),news=selN();S.step=f.steps.length-1;S.phase='loading';S.ltxt='Generando contenido final...';render();
+  try{const txt=await apiGen(buildFinal(f,news,[],null),SYS,f.id);S.result=txt;S.phase='result'}
+  catch(e){S.err=e.message;S.step=0;S.phase='select'}render();
+}
+
+async function goFinalContent(){
+  const f=F(),news=selN(),ang=selA();S.step=f.steps.length-1;S.phase='loading';S.ltxt='Generando contenido final...';render();
+  try{const txt=await apiGen(buildFinal(f,news,ang,null),SYS,f.id);S.result=txt;S.phase='result'}
+  catch(e){S.err=e.message;S.step=f.steps.indexOf('Angulos');S.phase='select'}render();
+}
+
+async function goFinal(){
+  const f=F(),news=selN(),ang=selA(),str=S.structs[S.ss];
+  S.step=f.steps.length-1;S.phase='loading';S.ltxt='Generando guion completo...';render();
+  try{const txt=await apiGen(buildFinal(f,news,ang,str),SYS,f.id);S.result=txt;S.phase='result'}
+  catch(e){S.err=e.message;S.step=f.steps.indexOf('Estructura');S.phase='select'}render();
+}
+
+async function goCopy(){
+  const t=S.itxt.trim();if(!t)return;const f=F();
+  S.step=f.steps.length-1;S.phase='loading';S.ltxt='Generando copy y titulo...';render();
+  const prompt=`Texto:\n${t}\n\nGenera:\n- Copy redes sociales (280 caracteres maximo, con emojis)\n- Titulo YouTube SEO`;
+  try{const txt=await apiGen(prompt,SYS,f.id);S.result=txt;S.phase='result'}
+  catch(e){S.err=e.message;S.step=0;S.phase='input'}render();
+}
+
+function buildFinal(f,news,ang,str){
+  const nt=news.map(n=>`${n.title}: ${n.summary}`).join('\n');
+  const at=ang.map(a=>a.name).join(', ');
+  switch(f.id){
+    case'carrusel':return`Noticia: ${nt}\nAngulos elegidos: ${at}\n\nGenera un carrusel de Instagram con estos elementos exactos:\n- Slide 1: Hook (gancho impactante)\n- Slide 2: Contexto breve\n- Slide 3: Contexto amplio (maximo 200 caracteres)\n- Slide 4: CTA (llamada a la accion)\n- Copy Instagram: 500 caracteres con emojis y hashtags\n- Copy Twitter/X: maximo 280 caracteres`;
+    case'noticias_hoy':case'noticias_mx':return`Noticias seleccionadas:\n${nt}\n\nGenera un guion de noticias con esta estructura FIJA (respetala exactamente):\n\n## HOOK\nUna linea por cada noticia, maximo 6 palabras cada una, estilo palabras clave impactantes. Van una tras otra, sin introduccion, sin contexto, sin saludo. Solo los hooks.\n\n## NOTICIAS\nINMEDIATAMENTE despues del hook, sin ninguna introduccion ni transicion, salta directo al desarrollo de cada noticia:\n- Noticia 1: desarrollo breve\n- Noticia 2: desarrollo breve\n- Noticia 3: desarrollo breve\n- Noticia 4: desarrollo breve\n\n## CIERRE\nSiempre termina con este CTA exacto: "No olvides seguirnos para mas noticias. Te enteraste con Nosotros."\n\n## COPY Y TITULO\n- Copy redes sociales: 280 caracteres\n- Titulo YouTube`;
+    case'sketch':return`Noticia: ${nt}\nAngulos elegidos: ${at}\n\nGenera un sketch con estos elementos:\n- Parte 1: Humor y satira\n- Parte 2: Contexto serio\n- Indicaciones visuales para produccion\n- Copy redes sociales: 280 caracteres\n- Titulo YouTube`;
+    case'nr':return`Noticia: ${nt}\nAngulos elegidos: ${at}\n\nGenera una Nota de Investigacion con estos elementos:\n- Hook (gancho que atrape)\n- Contexto general\n- Contexto a fondo\n- Diferentes posturas sobre el tema\n- Cierre\n- Copy redes sociales: 280 caracteres\n- Titulo YouTube`;
+    case'youtube':{
+      const secs=str.sections.map((s,i)=>`Seccion ${i+1} — "${s}": Escribe TODO el texto narrado completo. Desarrolla el contenido real: datos, contexto, analisis, argumentos. Minimo 3 parrafos.`).join('\n');
+      return`Noticia: ${nt}\nAngulos elegidos: ${at}\nEstructura elegida: ${str.name}\n\nIMPORTANTE: Escribe el guion COMPLETO, palabra por palabra. Cada seccion debe tener el texto DESARROLLADO.\n\nEstructura del guion (12-15 minutos):\n${secs}\n\nFormato de entrega:\n\n# TITULO YOUTUBE (SEO optimizado)\n\n## [00:00] Seccion 1\n(Texto narrado completo)\n\n## [MM:SS] Seccion 2\n(Texto narrado completo)\n\n---\n## DESCRIPCION YOUTUBE\n(200-300 palabras)\n\n---\n## CLIPS CORTOS\n4 clips con: titulo, duracion, extracto y copy para redes (280 caracteres)`;}
+    default:return'';
+  }
+}
+
+function cpRes(){
+  const text=S.result;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>showCopied()).catch(()=>fallbackCopy(text));
+  }else{fallbackCopy(text)}
+}
+function cpText(btn){
+  const text=btn.parentElement.querySelector('.result-content').getAttribute('data-raw')||btn.parentElement.querySelector('.result-content').textContent;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>{btn.textContent='Copiado!';setTimeout(()=>btn.textContent='📋 Copiar',2000)}).catch(()=>fallbackCopy(text));
+  }else{fallbackCopy(text)}
+}
+function fallbackCopy(text){
+  const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0';
+  document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showCopied();
+}
+function showCopied(){const b=document.querySelector('.copy-btn');if(b){b.textContent='Copiado!';setTimeout(()=>b.textContent='📋 Copiar',2000)}}
+
+// ========== INIT ==========
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Central — STYLY</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css">
+<style>
+:root{--sy:#EC4899;--sy-bg:rgba(236,72,153,.08);--sy-border:rgba(236,72,153,.25);--sy-dark:#BE185D}
+.section-label{font-size:.78rem;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.5px;margin:1.25rem 0 .5rem;padding-bottom:.35rem;border-bottom:1px solid var(--border)}
+/* Format cards */
+.sy-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:.65rem;margin:.5rem 0}
+.sy-fmt{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:1rem .85rem;cursor:pointer;transition:all .2s;text-align:center}
+.sy-fmt:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(236,72,153,.1)}
+.sy-fmt.on{border-color:var(--sy);background:var(--sy-bg)}
+.sy-fmt .ico{font-size:1.8rem;margin-bottom:.35rem}
+.sy-fmt .nm{font-weight:700;font-size:.85rem;color:var(--fg);margin-bottom:.2rem}
+.sy-fmt .ds{font-size:.72rem;color:var(--mt);line-height:1.3}
+/* Topic area */
+.sy-topic{margin:.75rem 0}
+.sy-topic textarea{width:100%;min-height:80px;padding:.65rem;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.85rem;font-family:inherit;resize:vertical}
+.sy-topic textarea:focus{border-color:var(--sy);outline:none}
+.sy-topic select{width:100%;padding:.5rem .75rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.85rem;margin-bottom:.5rem}
+.sy-topic select:focus{border-color:var(--sy);outline:none}
+/* Result */
+.sy-result{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin:.75rem 0;position:relative}
+.sy-sec{margin-bottom:.85rem;padding-bottom:.85rem;border-bottom:1px solid var(--border);position:relative}
+.sy-sec:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.sy-sec-title{font-size:.72rem;font-weight:700;color:var(--sy);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.35rem}
+.sy-sec-body{font-size:.85rem;color:var(--fg);line-height:1.6;white-space:pre-wrap}
+.sy-sec .cp-s{position:absolute;top:0;right:0;padding:2px 6px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--mt);font-size:.68rem;cursor:pointer}
+.sy-sec .cp-s:hover{border-color:var(--sy);color:var(--sy)}
+/* Tools */
+.sy-tools{display:flex;flex-wrap:wrap;gap:.4rem;margin:.65rem 0}
+.sy-tool{padding:.4rem .75rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.78rem;cursor:pointer;transition:all .15s}
+.sy-tool:hover{border-color:var(--sy);color:var(--sy);background:var(--sy-bg)}
+/* Edit bar */
+.sy-edit{border-top:1px solid var(--border);padding-top:.65rem;margin-top:.65rem;display:flex;gap:.5rem}
+.sy-edit input{flex:1;padding:.45rem .65rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.82rem}
+.sy-edit input:focus{border-color:var(--sy);outline:none}
+.sy-edit button{padding:.45rem .85rem;border-radius:8px;border:none;background:var(--sy);color:#fff;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap}
+/* Ideas */
+.ideas-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem}
+.ideas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.65rem}
+.idea-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.85rem;transition:all .2s}
+.idea-card.discarded{opacity:.3}.idea-card.used{opacity:.5}
+.idea-bdg{display:inline-block;padding:2px 7px;border-radius:4px;font-size:.68rem;font-weight:700;margin-bottom:.35rem;margin-right:.25rem}
+.idea-bdg.new{background:var(--sy-bg);color:var(--sy)}
+.idea-bdg.used{background:rgba(107,114,128,.15);color:#6B7280}
+.idea-bdg.discarded{background:rgba(107,114,128,.1);color:#9CA3AF}
+.idea-bdg.clients{background:var(--sy-bg);color:var(--sy)}
+.idea-bdg.affiliates{background:rgba(190,24,93,.12);color:var(--sy-dark)}
+.idea-txt{font-size:.85rem;color:var(--fg);margin-bottom:.4rem;line-height:1.4}
+.idea-tags{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.4rem}
+.idea-tag{padding:2px 6px;border-radius:4px;font-size:.68rem;background:var(--sy-bg);color:var(--sy);font-weight:600}
+.idea-acts{display:flex;gap:.3rem;flex-wrap:wrap}
+.idea-btn{padding:.25rem .5rem;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.7rem;cursor:pointer}
+.idea-btn:hover{border-color:var(--sy);color:var(--sy)}
+.idea-btn.danger:hover{border-color:#EF4444;color:#EF4444}
+/* Tools tab cards */
+.tool-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.75rem;margin:.75rem 0}
+.tool-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;cursor:pointer;transition:all .2s}
+.tool-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(236,72,153,.08)}
+.tool-card.active{border-color:var(--sy);background:var(--sy-bg)}
+.tool-card .t-ico{font-size:2rem;margin-bottom:.5rem}
+.tool-card .t-nm{font-weight:700;font-size:1rem;color:var(--fg);margin-bottom:.2rem}
+.tool-card .t-ds{font-size:.78rem;color:var(--mt)}
+/* Calculator */
+.calc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.75rem;margin:.75rem 0}
+.calc-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;text-align:center}
+.calc-card .c-ico{font-size:1.5rem}
+.calc-card .c-lbl{font-size:.72rem;color:var(--mt);margin:.25rem 0}
+.calc-card .c-val{font-size:1.4rem;font-weight:800;color:var(--sy)}
+.calc-card .c-sub{font-size:.7rem;color:var(--mt);margin-top:.15rem}
+.calc-card.gold{border-color:#F59E0B;background:rgba(245,158,11,.06)}
+.calc-card.gold .c-val{color:#F59E0B}
+.slider-row{margin:.65rem 0}
+.slider-row label{display:flex;justify-content:space-between;font-size:.82rem;color:var(--fg);margin-bottom:.25rem}
+.slider-row label span{font-weight:700;color:var(--sy)}
+.slider-row input[type="range"]{width:100%;accent-color:var(--sy)}
+/* Academy */
+.acad-list{display:flex;flex-direction:column;gap:.65rem;margin:.75rem 0}
+.acad-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem}
+.acad-num{display:inline-block;width:28px;height:28px;border-radius:50%;background:var(--sy);color:#fff;text-align:center;line-height:28px;font-size:.82rem;font-weight:700;margin-right:.5rem}
+.acad-title{font-weight:700;color:var(--fg);font-size:.92rem}
+.acad-dur{font-size:.72rem;color:var(--mt);margin-left:.35rem}
+.acad-desc{font-size:.8rem;color:var(--mt);margin:.35rem 0;line-height:1.4}
+.acad-btn{padding:.3rem .7rem;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.75rem;cursor:pointer}
+.acad-btn:hover{border-color:var(--sy);color:var(--sy)}
+/* Calendar */
+.cal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem}
+.cal-nav{display:flex;align-items:center;gap:.65rem}
+.cal-btn{padding:.35rem .7rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.8rem;cursor:pointer}
+.cal-btn:hover{border-color:var(--sy);color:var(--sy)}
+.cal-title{font-size:.92rem;font-weight:600;color:var(--fg)}
+.cal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:.4rem}
+.cal-day{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.65rem .4rem;min-height:110px}
+.cal-day.today{border-color:var(--sy);background:var(--sy-bg)}
+.cal-day-name{font-size:.68rem;font-weight:700;color:var(--mt);text-transform:uppercase;text-align:center}
+.cal-day-num{font-size:1rem;font-weight:700;color:var(--fg);text-align:center;margin:.15rem 0}
+.cal-item{padding:.25rem .4rem;border-radius:6px;background:var(--sy-bg);border:1px solid var(--sy-border);font-size:.68rem;color:var(--sy);margin-top:.3rem;cursor:pointer}
+/* History */
+.hist-filters{display:flex;gap:.4rem;margin-bottom:.75rem;flex-wrap:wrap}
+.hist-filters select{padding:.35rem .65rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.8rem}
+.hist-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.75rem .85rem;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap}
+.hist-left{display:flex;align-items:center;gap:.4rem;flex:1;min-width:0}
+.hist-emoji{font-size:1.1rem}
+.hist-info{min-width:0}
+.hist-title{font-size:.82rem;font-weight:600;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px}
+.hist-meta{font-size:.7rem;color:var(--mt)}
+.hist-right{display:flex;align-items:center;gap:.35rem;flex-shrink:0}
+.hist-st{padding:2px 7px;border-radius:4px;font-size:.68rem;font-weight:700}
+.hist-st.draft{background:rgba(107,114,128,.15);color:#6B7280}
+.hist-st.approved{background:rgba(16,185,129,.15);color:#10B981}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;max-width:500px;width:100%;max-height:80vh;overflow-y:auto}
+.modal-title{font-size:1.05rem;font-weight:700;color:var(--fg);margin-bottom:.85rem}
+.modal-field{margin-bottom:.65rem}
+.modal-field label{display:block;font-size:.75rem;font-weight:600;color:var(--mt);margin-bottom:.2rem}
+.modal-field input,.modal-field select,.modal-field textarea{width:100%;padding:.45rem .65rem;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--fg);font-size:.82rem;box-sizing:border-box}
+.modal-actions{display:flex;justify-content:flex-end;gap:.4rem;margin-top:.85rem}
+.modal-actions button{padding:.45rem 1rem;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;border:1px solid var(--border)}
+.modal-actions .m-cancel{background:var(--card);color:var(--fg)}
+.modal-actions .m-ok{background:var(--sy);color:#fff;border-color:var(--sy)}
+/* Toast */
+.toast{position:fixed;bottom:2rem;right:2rem;padding:.65rem 1.1rem;border-radius:10px;background:#10B981;color:#fff;font-size:.85rem;font-weight:600;z-index:2000;animation:tIn .3s ease;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+@keyframes tIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+@media(max-width:768px){
+  .cal-week{grid-template-columns:1fr}.ideas-grid,.tool-cards,.calc-grid{grid-template-columns:1fr}
+  .sy-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+  .sy-edit,.hist-item{flex-direction:column;align-items:stretch}
+}
+</style>
+</head>
+<body>
+<button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+<div class="app">
+  <nav class="sidebar" id="sidebar"></nav>
+  <main class="content fade-in" id="content">
+    <div class="page-header"><h1 style="color:var(--sy)">💻 STYLY</h1><p>Software de gestion para negocios de belleza y bienestar</p></div>
+    <div class="module-tabs" id="modTabs">
+      <button class="module-tab active" onclick="setTab('generar')">Generar</button>
+      <button class="module-tab" onclick="setTab('ideas')">Ideas</button>
+      <button class="module-tab" onclick="setTab('herramientas')">Herramientas</button>
+      <button class="module-tab" onclick="setTab('calendario')">Calendario</button>
+      <button class="module-tab" onclick="setTab('historial')">Historial</button>
+    </div>
+    <div id="modContent"></div>
+  </main>
+</div>
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+<script>
+// ========== AUTH ==========
+const token=localStorage.getItem('token');
+if(!token){window.location.href='/index.html';}
+const user=JSON.parse(localStorage.getItem('user')||'{}');
+const hdrs={'Content-Type':'application/json','Authorization':'Bearer '+token};
+
+// ========== SIDEBAR ==========
+const BUSINESSES=[
+  {id:'nosotros',name:'NOSOTROS',icon:'📰',color:'#8B5CF6',url:'/nosotros.html'},
+  {id:'duelazo',name:'DUELAZO',icon:'⚽',color:'#10B981',url:'/duelazo.html'},
+  {id:'spacebox',name:'SPACEBOX',icon:'📦',color:'#3B82F6',url:'/spacebox.html'},
+  {id:'styly',name:'STYLY',icon:'💻',color:'#EC4899',url:'/styly.html'}
+];
+function renderSidebar(){
+  const bs=user.businesses||[];const isAdmin=user.role==='admin';
+  const items=BUSINESSES.filter(b=>isAdmin||bs.includes(b.id));
+  document.getElementById('sidebar').innerHTML=`
+    <button class="sidebar-close" onclick="toggleSidebar()">&times;</button>
+    <div class="sidebar-header"><h2>Panel <span>Central</span></h2></div>
+    <div class="sidebar-section"><div class="sidebar-label">General</div><a href="/dashboard.html" class="sidebar-item"><span class="icon">📊</span>Dashboard</a></div>
+    <div class="sidebar-section"><div class="sidebar-label">Negocios</div>
+      ${items.map(b=>`<a href="${b.url}" class="sidebar-item ${b.id==='styly'?'active':''}" style="--accent:${b.color}"><span class="icon">${b.icon}</span>${b.name}</a>`).join('')}
+    </div>
+    ${isAdmin?`<div class="sidebar-section"><div class="sidebar-label">Admin</div><a href="/admin.html" class="sidebar-item"><span class="icon">👥</span>Usuarios</a></div>`:''}
+    <div class="sidebar-footer">
+      <div class="sidebar-avatar">${(user.name||'U')[0].toUpperCase()}</div>
+      <div class="sidebar-user"><div class="name">${user.name||'Usuario'}</div><div class="role">${user.role||'editor'}</div></div>
+      <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+      <button class="theme-btn" onclick="logout()" style="font-size:.75rem">↪</button>
+    </div>`;
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
+function toggleTheme(){const t=document.documentElement.getAttribute('data-theme')==='light'?'':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t)}
+function logout(){localStorage.clear();window.location.href='/index.html'}
+if(localStorage.getItem('theme')==='light') document.documentElement.setAttribute('data-theme','light');
+renderSidebar();
+
+// ========== CONFIG ==========
+const CLIENT_FMTS=[
+  {id:'reel_educativo',name:'Reel Educativo',icon:'🎬',desc:'Tips, errores comunes, antes/despues',aud:'clients'},
+  {id:'carrusel_valor',name:'Carrusel de Valor',icon:'📱',desc:'Antes vs despues, tips de gestion',aud:'clients'},
+  {id:'caso_exito',name:'Caso de Exito',icon:'⭐',desc:'Historia de cliente transformado',aud:'clients'},
+  {id:'post_feature',name:'Post de Feature',icon:'🚀',desc:'Funcion especifica de Styly',aud:'clients'},
+  {id:'inspiracional',name:'Post Inspiracional',icon:'💡',desc:'Datos + motivacion para digitalizar',aud:'clients'}
+];
+const AFF_FMTS=[
+  {id:'reclutamiento',name:'Reclutamiento',icon:'💰',desc:'Unete al programa Afiliadas Elite',aud:'affiliates'},
+  {id:'exito_afiliadas',name:'Exito de Afiliadas',icon:'🏆',desc:'Historias de ganancias reales',aud:'affiliates'},
+  {id:'capacitacion',name:'Capacitacion',icon:'📚',desc:'Tips para vender Styly',aud:'affiliates'}
+];
+const ALL_FMTS=[...CLIENT_FMTS,...AFF_FMTS];
+const FMT_EMOJI={};ALL_FMTS.forEach(f=>{FMT_EMOJI[f.id]=f.icon});
+const INDUSTRIES=['Estetica/Salon','Barberia','Spa/Bienestar','Nail salon','Tatuador/Piercing','Psicologo/Terapeuta','Dentista/Consultorio','Nutriologo','Entrenador personal/Gym','Yoga/Pilates','General/Otro'];
+const FEATURES=['Agenda digital (adios libreta)','Website de reservas (tu-negocio.styly.mx)','CRM (historial de clientes)','Cobro de suscripciones (membresias 0% comision)','WhatsApp masivo (promos 1 click)','Cerebro IA (predicciones, precios)','Multi-sucursal (todos tus locales)','Metricas (empleados, nominas, reportes)'];
+const ACADEMY=[
+  {num:1,name:'El Efecto Styly (La Vision)',dur:'3 min',desc:'Que es Styly, propuesta de valor unica, el "wow" de automatizar cobros. PDF infografia.',exam:'Propuesta de valor'},
+  {num:2,name:'Tu Maquina de Rentas',dur:'4 min',desc:'Plan de comisiones completo, extensiones, como ser consultora de negocios. Tabla ganancias.',exam:'Calculos de comisiones'},
+  {num:3,name:'Demo Panel de Afiliada',dur:'5 min',desc:'Como usar tu panel de aliada, registrar negocios, ver prospectos. Guia rapida.',exam:'Simulacion de pasos'},
+  {num:4,name:'Demo Panel de Styly',dur:'5 min',desc:'Como funciona Styly como negocio, todas las funciones. Guia rapida.',exam:'Funcionalidades del panel'},
+  {num:5,name:'El Universo Styly (Ventas)',dur:'5 min',desc:'Speech maestro por nicho, objeciones, herramientas de prospeccion. Diccionario nichos.',exam:'Casos de estudio'}
+];
+
+// ========== STATE ==========
+let tab='generar';
+let G={fmt:null,aud:null,industry:'',feature:'',topic:'',phase:'pick',result:'',resultId:null};
+let toolView=null,toolResult='',toolLoading=false;
+let calcInputs={locales:5,modules:2,partners:3},calcResult=null;
+let calWeekStart=getMonday(new Date());
+let histFilter={format:'',audience:'',status:''};
+
+// ========== HELPERS ==========
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function md(t){return esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>').replace(/^### (.+)$/gm,'<h4>$1</h4>').replace(/^## (.+)$/gm,'<h3>$1</h3>').replace(/^# (.+)$/gm,'<h2>$1</h2>').replace(/^---$/gm,'<hr>').replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>')}
+function today(){return new Date().toISOString().slice(0,10)}
+function getMonday(d){const dt=new Date(d);const day=dt.getDay();dt.setDate(dt.getDate()-day+(day===0?-6:1));dt.setHours(0,0,0,0);return dt}
+function addDays(d,n){const dt=new Date(d);dt.setDate(dt.getDate()+n);return dt}
+function fmtDate(d){return d.toISOString().slice(0,10)}
+function fmtDateEs(d){return d.toLocaleDateString('es-MX',{day:'numeric',month:'long'})}
+function fmtDT(s){if(!s)return'';try{return new Date(s).toLocaleString('es-MX',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}catch{return s}}
+function toast(msg){const el=document.createElement('div');el.className='toast';el.textContent=msg;document.getElementById('toastRoot').appendChild(el);setTimeout(()=>el.remove(),3000)}
+function pJ(t){const i=t.indexOf('{'),j=t.lastIndexOf('}');if(i===-1||j<=i)return null;try{return JSON.parse(t.substring(i,j+1))}catch{return null}}
+function parseSections(text){
+  const lines=text.split('\n'),sections=[];let cur=null;
+  for(const line of lines){
+    const eh=line.match(/^([\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}][\uFE0F]?\s*.+?):\s*$/u);
+    const sh=line.match(/^(?:#{1,3}\s+)?(.+?):\s*$/);
+    const uc=line.trim()===line.trim().toUpperCase()&&line.trim().length>3&&line.trim().length<80;
+    if(uc&&!line.startsWith(' ')){if(cur)sections.push(cur);cur={title:line.replace(/^#+\s*/,'').replace(/:$/,'').trim(),body:''};}
+    else if(eh){if(cur)sections.push(cur);cur={title:eh[1].trim(),body:''};}
+    else if(sh&&!line.startsWith(' ')&&line.trim().length<80){if(cur)sections.push(cur);cur={title:sh[1].trim(),body:''};}
+    else{if(!cur)cur={title:'Contenido',body:''};cur.body+=(cur.body?'\n':'')+line;}
+  }
+  if(cur)sections.push(cur);
+  return sections.filter(s=>s.body.trim()).map(s=>({title:s.title,body:s.body.trim()}));
+}
+function fmt$(n){return'$'+Number(n).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}
+
+// ========== TABS ==========
+function setTab(t){
+  tab=t;
+  document.querySelectorAll('.module-tab').forEach((b,i)=>b.classList.toggle('active',['generar','ideas','herramientas','calendario','historial'][i]===t));
+  renderTab();
+}
+function renderTab(){
+  const m=document.getElementById('modContent');m.className='fade-in';void m.offsetWidth;
+  if(tab==='generar')renderGenerar(m);
+  else if(tab==='ideas')renderIdeas(m);
+  else if(tab==='herramientas')renderHerramientas(m);
+  else if(tab==='calendario')renderCalendario(m);
+  else if(tab==='historial')renderHistorial(m);
+}
+
+// ================================================================
+// TAB 1: GENERAR
+// ================================================================
+function renderGenerar(m){
+  if(G.phase==='pick')m.innerHTML=rFmtPick();
+  else if(G.phase==='topic')m.innerHTML=rTopicInput();
+  else if(G.phase==='loading')m.innerHTML=`<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div><div class="loader-text">Generando contenido para Styly...</div></div>`;
+  else if(G.phase==='result')m.innerHTML=rGenResult();
+}
+function rFmtPick(){
+  return`<div class="section-label">PARA CLIENTES (60%)</div>
+    <div class="sy-grid">${CLIENT_FMTS.map(f=>`<div class="sy-fmt ${G.fmt===f.id?'on':''}" onclick="pickFmt('${f.id}','clients')"><div class="ico">${f.icon}</div><div class="nm">${f.name}</div><div class="ds">${f.desc}</div></div>`).join('')}</div>
+    <div class="section-label">PARA AFILIADAS ELITE (40%)</div>
+    <div class="sy-grid">${AFF_FMTS.map(f=>`<div class="sy-fmt ${G.fmt===f.id?'on':''}" onclick="pickFmt('${f.id}','affiliates')"><div class="ico">${f.icon}</div><div class="nm">${f.name}</div><div class="ds">${f.desc}</div></div>`).join('')}</div>
+    ${G.fmt?`<div class="actions" style="margin-top:.75rem"><button class="btn" onclick="G.phase='topic';renderTab()">Siguiente →</button></div>`:''}`;
+}
+function rTopicInput(){
+  const f=ALL_FMTS.find(x=>x.id===G.fmt);
+  const isClient=G.aud==='clients';
+  const placeholders={reel_educativo:'Tema del reel. Ej: errores al agendar, perder clientes por WhatsApp...',carrusel_valor:'Tema. Ej: antes vs despues, tips de gestion...',caso_exito:'Describe el negocio: tipo, problema, resultados...',post_feature:'Contexto adicional (opcional)...',inspiracional:'Dato o tema (opcional)...',reclutamiento:'Enfoque. Ej: mamas emprendedoras, ingreso extra, libertad...',exito_afiliadas:'Detalle de la historia (opcional)...',capacitacion:'Tema. Ej: pitch, objeciones, seguimiento...'};
+  return`<div class="flow-header"><button class="btn-back" onclick="G.phase='pick';renderTab()">← Volver</button><div class="flow-title"><span>${f.icon}</span> ${f.name}</div></div>
+    <div class="sy-topic">
+      ${isClient?`<select id="indSel" onchange="G.industry=this.value"><option value="">Selecciona industria...</option>${INDUSTRIES.map(i=>`<option value="${i}" ${G.industry===i?'selected':''}>${i}</option>`).join('')}</select>`:''}
+      ${G.fmt==='post_feature'?`<select id="featSel" onchange="G.feature=this.value"><option value="">Selecciona feature...</option>${FEATURES.map(f=>`<option value="${f}" ${G.feature===f?'selected':''}>${f}</option>`).join('')}</select>`:''}
+      <textarea id="topicTa" placeholder="${placeholders[G.fmt]||'Describe el tema...'}" oninput="G.topic=this.value">${esc(G.topic)}</textarea>
+    </div>
+    <div class="actions"><button class="btn" onclick="doGenerate()">Generar contenido →</button></div>`;
+}
+function rGenResult(){
+  const f=ALL_FMTS.find(x=>x.id===G.fmt);
+  const secs=parseSections(G.result);
+  return`<div class="flow-header"><button class="btn-back" onclick="resetGen()">← Nuevo contenido</button><div class="flow-title"><span>${f.icon}</span> ${f.name} <span class="idea-bdg ${G.aud}" style="font-size:.7rem;margin-left:.5rem">${G.aud==='clients'?'CLIENTES':'AFILIADAS'}</span></div></div>
+    <div class="sy-result">${secs.map((s,i)=>`<div class="sy-sec"><button class="cp-s" onclick="cpSec(${i})">📋</button><div class="sy-sec-title">${esc(s.title)}</div><div class="sy-sec-body" id="sec${i}">${md(s.body)}</div></div>`).join('')}</div>
+    <div class="sy-tools">
+      <button class="sy-tool" onclick="aiAction('Revisa el contenido. Corrige errores, mejora claridad, asegurate de que CTA y beneficios esten presentes.')">📝 Revisar con IA</button>
+      <button class="sy-tool" onclick="aiAction('Adapta para 3 plataformas: 1. Instagram Feed (500 chars + hashtags) 2. TikTok (corto + hashtags) 3. LinkedIn (profesional). Manten el mensaje central.')">🔄 Multi-formato</button>
+      <button class="sy-tool" onclick="aiAction('Genera 2 variantes A/B. Variante A: tono profesional. Variante B: tono cercano/casual. Ambas con CTA.')">🔀 Variantes A/B</button>
+      <button class="sy-tool" onclick="openApproveModal()">✅ Aprobar y Agendar</button>
+      <button class="sy-tool" onclick="doGenerate()">🔃 Regenerar</button>
+    </div>
+    <div class="sy-edit"><input id="editIn" placeholder="Ej: Hazlo mas corto, enfocalo a barberias, tono mas urgente, cambia CTA..."><button onclick="doRegenEdit()">🔄 Regenerar con cambios</button></div>`;
+}
+
+function pickFmt(id,aud){G.fmt=id;G.aud=aud;renderTab()}
+function resetGen(){G={fmt:null,aud:null,industry:'',feature:'',topic:'',phase:'pick',result:'',resultId:null};renderTab()}
+
+async function doGenerate(){
+  G.phase='loading';renderTab();
+  const topicFull=G.fmt==='post_feature'&&G.feature?`Feature: ${G.feature}. ${G.topic}`:G.topic;
+  try{
+    const r=await fetch('/api/styly/generate',{method:'POST',headers:hdrs,body:JSON.stringify({format:G.fmt,audience:G.aud,topic:topicFull||undefined,industry:G.industry||undefined})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    G.result=d.content;G.resultId=d.id;G.phase='result';
+  }catch(e){G.phase='topic';toast('Error: '+e.message)}
+  renderTab();
+}
+async function doRegenEdit(){
+  const txt=document.getElementById('editIn')?.value?.trim();if(!txt)return;
+  G.phase='loading';renderTab();
+  try{
+    const r=await fetch('/api/styly/generate',{method:'POST',headers:hdrs,body:JSON.stringify({format:G.fmt,audience:G.aud,previousContent:G.result,editInstructions:txt})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    G.result=d.content;G.resultId=d.id;G.phase='result';toast('Regenerado con cambios');
+  }catch(e){G.phase='result';toast('Error: '+e.message)}
+  renderTab();
+}
+async function aiAction(instr){
+  G.phase='loading';renderTab();
+  try{
+    const r=await fetch('/api/styly/generate',{method:'POST',headers:hdrs,body:JSON.stringify({format:G.fmt,audience:G.aud,previousContent:G.result,editInstructions:instr})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    G.result=d.content;G.resultId=d.id;G.phase='result';toast('Listo');
+  }catch(e){G.phase='result';toast('Error: '+e.message)}
+  renderTab();
+}
+function cpSec(i){const el=document.getElementById('sec'+i);if(!el)return;cpClip(el.textContent||el.innerText);el.closest('.sy-sec').querySelector('.cp-s').textContent='✓';setTimeout(()=>{const b=document.querySelector(`#sec${i}`)?.closest('.sy-sec')?.querySelector('.cp-s');if(b)b.textContent='📋'},1500)}
+
+// ================================================================
+// TAB 2: IDEAS
+// ================================================================
+async function renderIdeas(m){
+  m.innerHTML='<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div></div>';
+  try{
+    const r=await fetch('/api/styly/ideas',{headers:hdrs});const d=await r.json();if(d.error)throw new Error(d.error);
+    const ideas=d.ideas||[];
+    m.innerHTML=`<div class="ideas-hdr"><div><h3 style="color:var(--fg);margin:0">💡 Ideas Semanales</h3><span style="font-size:.75rem;color:var(--mt)">Balance: 60% clientes · 40% afiliadas</span></div><button class="btn" onclick="genIdeas()">🧠 Generar 4 ideas de la semana</button></div>
+      ${ideas.length?`<div class="ideas-grid">${ideas.map(renderIdeaCard).join('')}</div>`:'<p style="color:var(--mt);text-align:center;padding:2rem">No hay ideas. Genera las primeras 4.</p>'}`;
+  }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
+}
+function renderIdeaCard(idea){
+  const s=idea.status,aud=idea.season_relevance||'clients';
+  const fObj=ALL_FMTS.find(f=>f.id===idea.format);
+  return`<div class="idea-card ${s}">
+    <span class="idea-bdg ${s==='new'?'new':s==='used'?'used':'discarded'}">${s==='new'?'NUEVA':s==='used'?'USADA':'DESCARTADA'}</span>
+    <span class="idea-bdg ${aud==='affiliates'?'affiliates':'clients'}">${aud==='affiliates'?'AFILIADAS':'CLIENTES'}</span>
+    <div class="idea-txt">${esc(idea.idea_text)}</div>
+    <div class="idea-tags"><span class="idea-tag">${fObj?.icon||'📝'} ${fObj?.name||idea.format}</span></div>
+    ${s==='new'?`<div class="idea-acts">
+      <button class="idea-btn" onclick="useIdea(${idea.id},'${idea.format}','${aud}',\`${esc(idea.idea_text).replace(/`/g,'')}\`)">✍️ Generar</button>
+      <button class="idea-btn danger" onclick="discardIdea(${idea.id})">❌ Descartar</button>
+    </div>`:''}
+  </div>`;
+}
+async function genIdeas(){
+  const m=document.getElementById('modContent');
+  m.innerHTML='<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div><div class="loader-text">Generando 4 ideas semanales...</div></div>';
+  try{await fetch('/api/styly/ideas/generate',{method:'POST',headers:hdrs,body:'{}'});toast('4 ideas generadas');renderIdeas(m)}catch(e){toast('Error: '+e.message);renderIdeas(m)}
+}
+function useIdea(id,format,aud,text){
+  G.fmt=format;G.aud=aud==='affiliates'?'affiliates':'clients';G.topic=text;G.phase='topic';G.result='';G.resultId=null;
+  fetch('/api/styly/ideas/'+id,{method:'PUT',headers:hdrs,body:JSON.stringify({status:'used'})});
+  setTab('generar');
+}
+async function discardIdea(id){
+  await fetch('/api/styly/ideas/'+id,{method:'PUT',headers:hdrs,body:JSON.stringify({status:'discarded'})});
+  toast('Descartada');renderIdeas(document.getElementById('modContent'));
+}
+
+// ================================================================
+// TAB 3: HERRAMIENTAS
+// ================================================================
+function renderHerramientas(m){
+  if(!toolView) m.innerHTML=rToolPick();
+  else if(toolView==='script') m.innerHTML=rScriptTool();
+  else if(toolView==='calc') m.innerHTML=rCalcTool();
+  else if(toolView==='academy') m.innerHTML=rAcademyTool();
+}
+function rToolPick(){
+  return`<div class="tool-cards">
+    <div class="tool-card" onclick="toolView='script';renderTab()"><div class="t-ico">📝</div><div class="t-nm">Script de Venta</div><div class="t-ds">Pitch, objeciones, WhatsApp, emails por industria</div></div>
+    <div class="tool-card" onclick="toolView='calc';renderTab()"><div class="t-ico">📊</div><div class="t-nm">Calculadora de Comisiones</div><div class="t-ds">Simula ganancias como Afiliada Elite</div></div>
+    <div class="tool-card" onclick="toolView='academy';renderTab()"><div class="t-ico">📚</div><div class="t-nm">Biblioteca Academy</div><div class="t-ds">5 modulos de capacitacion Styly Academy</div></div>
+  </div>`;
+}
+
+// --- Script tool ---
+let scriptCfg={type:'pitch',industry:'General/Otro',stage:'first_contact'};
+function rScriptTool(){
+  return`<div class="flow-header"><button class="btn-back" onclick="toolView=null;toolResult='';renderTab()">← Herramientas</button><div class="flow-title">📝 Script de Venta</div></div>
+    <div class="sy-topic">
+      <select onchange="scriptCfg.type=this.value;renderTab()">
+        <option value="pitch" ${scriptCfg.type==='pitch'?'selected':''}>Pitch 30 segundos</option>
+        <option value="objections" ${scriptCfg.type==='objections'?'selected':''}>Respuesta a objeciones</option>
+        <option value="whatsapp" ${scriptCfg.type==='whatsapp'?'selected':''}>Mensaje WhatsApp</option>
+        <option value="email" ${scriptCfg.type==='email'?'selected':''}>Email</option>
+      </select>
+      <select onchange="scriptCfg.industry=this.value">${INDUSTRIES.map(i=>`<option value="${i}" ${scriptCfg.industry===i?'selected':''}>${i}</option>`).join('')}</select>
+      ${scriptCfg.type==='email'?`<select onchange="scriptCfg.stage=this.value">
+        <option value="first_contact" ${scriptCfg.stage==='first_contact'?'selected':''}>Primer contacto</option>
+        <option value="post_demo" ${scriptCfg.stage==='post_demo'?'selected':''}>Post-demo</option>
+        <option value="follow_up" ${scriptCfg.stage==='follow_up'?'selected':''}>Follow up</option>
+        <option value="close" ${scriptCfg.stage==='close'?'selected':''}>Cierre</option>
+      </select>`:''}
+    </div>
+    <div class="actions"><button class="btn" onclick="genScript()">Generar →</button></div>
+    ${toolLoading?'<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div></div>':''}
+    ${toolResult?`<div class="sy-result"><button class="cp-s" onclick="cpClip(toolResult);toast('Copiado')" style="position:absolute;top:.75rem;right:.75rem">📋 Copiar todo</button><div class="sy-sec-body">${md(toolResult)}</div></div>
+    <div class="sy-edit"><input id="scriptEdit" placeholder="Ej: Hazlo mas casual, enfocalo a dentistas..."><button onclick="regenScript()">🔄 Con cambios</button></div>`:''}`;
+}
+async function genScript(){
+  toolLoading=true;toolResult='';renderTab();
+  try{
+    const r=await fetch('/api/styly/generate-script',{method:'POST',headers:hdrs,body:JSON.stringify(scriptCfg)});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    toolResult=d.content;
+  }catch(e){toast('Error: '+e.message)}
+  toolLoading=false;renderTab();
+}
+async function regenScript(){
+  const txt=document.getElementById('scriptEdit')?.value?.trim();if(!txt)return;
+  toolLoading=true;renderTab();
+  try{
+    const r=await fetch('/api/styly/generate',{method:'POST',headers:hdrs,body:JSON.stringify({format:'script_'+scriptCfg.type,audience:'clients',previousContent:toolResult,editInstructions:txt})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    toolResult=d.content;toast('Regenerado');
+  }catch(e){toast('Error: '+e.message)}
+  toolLoading=false;renderTab();
+}
+
+// --- Calculator ---
+function rCalcTool(){
+  const c=calcInputs;
+  doCalc();
+  const r=calcResult;
+  return`<div class="flow-header"><button class="btn-back" onclick="toolView=null;renderTab()">← Herramientas</button><div class="flow-title">📊 Calculadora de Comisiones</div></div>
+    <div class="slider-row"><label>Locales directos afiliados <span>${c.locales}</span></label><input type="range" min="1" max="50" value="${c.locales}" oninput="calcInputs.locales=+this.value;renderTab()"></div>
+    <div class="slider-row"><label>Modulos extra promedio por local <span>${c.modules}</span></label><input type="range" min="0" max="8" value="${c.modules}" oninput="calcInputs.modules=+this.value;renderTab()"></div>
+    <div class="slider-row"><label>Partners invitadas <span>${c.partners}</span></label><input type="range" min="0" max="20" value="${c.partners}" oninput="calcInputs.partners=+this.value;renderTab()"></div>
+    ${r?`<div class="calc-grid">
+      <div class="calc-card"><div class="c-ico">💰</div><div class="c-lbl">MES 1 (Bono activacion)</div><div class="c-val">${fmt$(r.month1)}</div><div class="c-sub">${c.locales} locales × $599 × 50%</div></div>
+      <div class="calc-card"><div class="c-ico">📈</div><div class="c-lbl">INGRESO MENSUAL (Mes 2+)</div><div class="c-val">${fmt$(r.monthlyRecurring)}</div><div class="c-sub">Residual: ${fmt$(r.residualSaas)} · Upsell: ${fmt$(r.bonusUpsell)} · Red: ${fmt$(r.networkIncome)}</div></div>
+      <div class="calc-card"><div class="c-ico">📅</div><div class="c-lbl">INGRESO ANUAL PROYECTADO</div><div class="c-val">${fmt$(r.annualProjected)}</div><div class="c-sub">Mes 1 + (mensual × 12)</div></div>
+      <div class="calc-card"><div class="c-ico">⭐</div><div class="c-lbl">MILLAS MENSUALES</div><div class="c-val">${r.monthlyMiles} pts</div><div class="c-sub">${c.locales}×15 + ${c.locales*c.modules}×5 + ${c.partners}×10</div></div>
+      <div class="calc-card gold"><div class="c-ico">🏆</div><div class="c-lbl">RANGO (acumulado anual)</div><div class="c-val">${r.rank}</div><div class="c-sub">${r.annualMiles} millas/ano${r.rankBonus?` · Bono: ${fmt$(r.rankBonus)}`:''}</div></div>
+      <div class="calc-card"><div class="c-ico">🚢</div><div class="c-lbl">COPA ANUAL</div><div class="c-val">${r.copaAnual?'Calificas':'No calificas'}</div><div class="c-sub">${r.annualMiles}/500 pts minimo para crucero</div></div>
+    </div>
+    <div class="actions" style="margin-top:.5rem">
+      <button class="btn" onclick="cpCalc()">📋 Copiar resumen</button>
+      <button class="btn" style="margin-left:.5rem;background:#25D366" onclick="shareWA()">📲 Compartir por WhatsApp</button>
+    </div>`:''}`;
+}
+function doCalc(){
+  const c=calcInputs,core=599,addon=149;
+  const month1=c.locales*core*0.5;
+  const residualSaas=c.locales*core*0.15;
+  const bonusUpsell=c.locales*c.modules*addon*0.10;
+  const networkIncome=c.partners*3*core*0.03;
+  const monthlyRecurring=residualSaas+bonusUpsell+networkIncome;
+  const annualProjected=month1+(monthlyRecurring*12);
+  const monthlyMiles=(c.locales*15)+(c.locales*c.modules*5)+(c.partners*10);
+  const annualMiles=monthlyMiles*12;
+  let rank='Sin rango',rankBonus=0;
+  if(annualMiles>=12000){rank='Oraculo';rankBonus=300000}
+  else if(annualMiles>=6000){rank='Leyenda';rankBonus=100000}
+  else if(annualMiles>=2500){rank='Shark';rankBonus=35000}
+  else if(annualMiles>=1000){rank='Oro';rankBonus=10000}
+  else if(annualMiles>=200){rank='Plata';rankBonus=2500}
+  calcResult={month1,residualSaas,bonusUpsell,networkIncome,monthlyRecurring,annualProjected,monthlyMiles,annualMiles,rank,rankBonus,copaAnual:annualMiles>=500};
+}
+function cpCalc(){
+  const r=calcResult,c=calcInputs;
+  cpClip(`STYLY — Simulacion de Ganancias Afiliada Elite\n\nLocales directos: ${c.locales}\nModulos extra/local: ${c.modules}\nPartners: ${c.partners}\n\nMes 1 (Bono): ${fmt$(r.month1)}\nIngreso mensual recurrente: ${fmt$(r.monthlyRecurring)}\n  Residual SaaS: ${fmt$(r.residualSaas)}\n  Bonos Upsell: ${fmt$(r.bonusUpsell)}\n  Comision Red: ${fmt$(r.networkIncome)}\nIngreso anual: ${fmt$(r.annualProjected)}\nMillas mensuales: ${r.monthlyMiles} pts\nRango: ${r.rank}${r.rankBonus?' (Bono: '+fmt$(r.rankBonus)+')':''}\nCopa Anual: ${r.copaAnual?'Calificas':'No calificas'}\n\nUnete → styly.mx/afiliados`);
+  toast('Copiado');
+}
+function shareWA(){
+  const r=calcResult,c=calcInputs;
+  const txt=encodeURIComponent(`*STYLY — Afiliadas Elite*\n\nCon solo ${c.locales} locales directos:\n💰 Mes 1: ${fmt$(r.month1)}\n📈 Mensual recurrente: ${fmt$(r.monthlyRecurring)}\n📅 Anual: ${fmt$(r.annualProjected)}\n🏆 Rango: ${r.rank}\n\nSin inversion, sin horario. Unete → styly.mx/afiliados`);
+  window.open('https://wa.me/?text='+txt,'_blank');
+}
+
+// --- Academy ---
+function rAcademyTool(){
+  return`<div class="flow-header"><button class="btn-back" onclick="toolView=null;toolResult='';renderTab()">← Herramientas</button><div class="flow-title">📚 Styly Academy</div></div>
+    <div class="acad-list">${ACADEMY.map(a=>`<div class="acad-item">
+      <div><span class="acad-num">${a.num}</span><span class="acad-title">${a.name}</span><span class="acad-dur">${a.dur}</span></div>
+      <div class="acad-desc">${a.desc}</div>
+      <div class="acad-desc" style="font-size:.72rem">Examen: ${a.exam}</div>
+      <button class="acad-btn" onclick="genGuide(${a.num})" style="margin-top:.4rem">🧠 Generar guia de estudio</button>
+      <div id="acad${a.num}"></div>
+    </div>`).join('')}</div>`;
+}
+async function genGuide(num){
+  const a=ACADEMY[num-1];const el=document.getElementById('acad'+num);
+  el.innerHTML='<div class="loader" style="padding:.5rem"><div class="loader-dots"><span></span><span></span><span></span></div></div>';
+  try{
+    const prompt=`Genera una guia de estudio para el Modulo ${a.num} de Styly Academy: "${a.name}" (${a.dur}).\nContenido: ${a.desc}\nTemas de examen: ${a.exam}\n\nIncluye:\n1. Resumen ejecutivo (3-4 puntos clave)\n2. Tips para recordar\n3. 5 posibles preguntas de examen con respuestas`;
+    const r=await fetch('/api/styly/generate',{method:'POST',headers:hdrs,body:JSON.stringify({format:'academy_guide',audience:'affiliates',topic:prompt})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    el.innerHTML=`<div class="sy-result" style="margin-top:.5rem"><button class="cp-s" onclick="cpClip(this.parentElement.querySelector('.sy-sec-body').textContent);toast('Copiado')" style="position:absolute;top:.5rem;right:.5rem">📋</button><div class="sy-sec-body">${md(d.content)}</div></div>`;
+  }catch(e){el.innerHTML=`<p style="color:#EF4444;font-size:.8rem">Error: ${esc(e.message)}</p>`}
+}
+
+// ================================================================
+// TAB 4: CALENDARIO
+// ================================================================
+async function renderCalendario(m){
+  const start=fmtDate(calWeekStart),end=fmtDate(addDays(calWeekStart,6));
+  m.innerHTML='<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div></div>';
+  try{
+    const r=await fetch(`/api/styly/calendar?start=${start}&end=${end}`,{headers:hdrs});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    const items=d.items||[];const todayStr=today();
+    const days=[],dn=['Lun','Mar','Mie','Jue','Vie','Sab','Dom'];
+    for(let i=0;i<7;i++){const dt=addDays(calWeekStart,i);const ds=fmtDate(dt);days.push({name:dn[i],num:dt.getDate(),date:ds,isToday:ds===todayStr,items:items.filter(it=>(it.scheduled_date||'').slice(0,10)===ds)})}
+    m.innerHTML=`<div class="cal-hdr"><div class="cal-nav"><button class="cal-btn" onclick="calWeekStart=addDays(calWeekStart,-7);renderCalendario(document.getElementById('modContent'))">←</button><span class="cal-title">Semana del ${fmtDateEs(calWeekStart)} al ${fmtDateEs(addDays(calWeekStart,6))}</span><button class="cal-btn" onclick="calWeekStart=addDays(calWeekStart,7);renderCalendario(document.getElementById('modContent'))">→</button></div></div>
+      <div class="cal-week">${days.map(day=>`<div class="cal-day ${day.isToday?'today':''}"><div class="cal-day-name">${day.name}</div><div class="cal-day-num">${day.num}</div>${day.items.map(it=>{const inp=typeof it.input_data==='string'?JSON.parse(it.input_data||'{}'):it.input_data||{};const aud=inp.audience;return`<div class="cal-item" onclick="viewCalItem(${it.id})">${FMT_EMOJI[it.format_type]||'📝'} ${esc((it.preview||'').slice(0,25))}${aud?'<br><span style=\"font-size:.6rem\">'+(aud==='affiliates'?'AFILIADAS':'CLIENTES')+'</span>':''}</div>`}).join('')}</div>`).join('')}</div>
+      ${items.length===0?'<p style="color:var(--mt);text-align:center;padding:1.5rem">No hay contenido agendado esta semana.</p>':''}`;
+  }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
+}
+async function viewCalItem(id){
+  try{
+    const r=await fetch('/api/styly/history/'+id,{headers:hdrs});const d=await r.json();if(d.error)throw new Error(d.error);
+    showModal(`<div class="modal-title">${FMT_EMOJI[d.item.format_type]||'📝'} ${esc(d.item.format_type)} — ${fmtDT(d.item.scheduled_date)}</div><div style="max-height:50vh;overflow-y:auto;margin-bottom:.75rem"><div class="sy-sec-body">${md(d.item.output_text)}</div></div><div class="modal-actions"><button class="m-cancel" onclick="closeModal()">Cerrar</button><button class="m-ok" onclick="cpClip(\`${esc(d.item.output_text).replace(/`/g,"'")}\`);toast('Copiado')">📋 Copiar</button></div>`);
+  }catch(e){toast('Error: '+e.message)}
+}
+
+// ================================================================
+// TAB 5: HISTORIAL
+// ================================================================
+let histSel=new Set();
+async function renderHistorial(m){
+  histSel.clear();
+  m.innerHTML='<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div></div>';
+  try{
+    const r=await fetch('/api/styly/history',{headers:hdrs});const d=await r.json();if(d.error)throw new Error(d.error);
+    let allItems=d.history||[];
+    let items=[...allItems];
+    if(histFilter.format)items=items.filter(i=>i.format_type===histFilter.format);
+    if(histFilter.audience)items=items.filter(i=>{const inp=typeof i.input_data==='string'?JSON.parse(i.input_data||'{}'):i.input_data||{};return inp.audience===histFilter.audience});
+    if(histFilter.status)items=items.filter(i=>i.status===histFilter.status);
+    const visibleIds=items.map(i=>i.id);
+    m.innerHTML=`<div class="hist-filters">
+      <select onchange="histFilter.format=this.value;renderHistorial(document.getElementById('modContent'))"><option value="">Todos los formatos</option>${ALL_FMTS.map(f=>`<option value="${f.id}" ${histFilter.format===f.id?'selected':''}>${f.name}</option>`).join('')}<option value="script_pitch" ${histFilter.format==='script_pitch'?'selected':''}>Script Pitch</option><option value="script_objections" ${histFilter.format==='script_objections'?'selected':''}>Script Objeciones</option><option value="script_whatsapp" ${histFilter.format==='script_whatsapp'?'selected':''}>Script WhatsApp</option><option value="script_email" ${histFilter.format==='script_email'?'selected':''}>Script Email</option></select>
+      <select onchange="histFilter.audience=this.value;renderHistorial(document.getElementById('modContent'))"><option value="">Todas las audiencias</option><option value="clients" ${histFilter.audience==='clients'?'selected':''}>Clientes</option><option value="affiliates" ${histFilter.audience==='affiliates'?'selected':''}>Afiliadas</option></select>
+      <select onchange="histFilter.status=this.value;renderHistorial(document.getElementById('modContent'))"><option value="">Todos los status</option><option value="draft" ${histFilter.status==='draft'?'selected':''}>Draft</option><option value="approved" ${histFilter.status==='approved'?'selected':''}>Approved</option></select>
+    </div>
+    ${items.length?`
+    <div style="display:flex;gap:.5rem;margin-bottom:.5rem;align-items:center;flex-wrap:wrap">
+      <label style="display:flex;align-items:center;gap:.35rem;cursor:pointer;font-size:.8rem;color:var(--mt)"><input type="checkbox" onchange="toggleAllHist(this.checked,${JSON.stringify(visibleIds)})"> Seleccionar todos</label>
+      <span id="histSelCount" style="font-size:.75rem;color:var(--mt)"></span>
+      <div style="margin-left:auto;display:flex;gap:.4rem">
+        <button id="btnBulkDel" onclick="bulkDelHist()" style="display:none;background:#EF4444;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:.75rem;cursor:pointer">Eliminar seleccionados</button>
+        <button onclick="delAllHist(${JSON.stringify(allItems.map(i=>i.id))})" style="background:none;border:1px solid #EF4444;color:#EF4444;border-radius:6px;padding:4px 10px;font-size:.75rem;cursor:pointer">Borrar todo</button>
+      </div>
+    </div>
+    ${items.map(it=>{const inp=typeof it.input_data==='string'?JSON.parse(it.input_data||'{}'):it.input_data||{};const aud=inp.audience;
+      return`<div class="hist-item"><input type="checkbox" data-hid="${it.id}" onchange="toggleHistSel(${it.id},this.checked)" style="cursor:pointer;accent-color:#EF4444;margin-right:.3rem"><div class="hist-left"><span class="hist-emoji">${FMT_EMOJI[it.format_type]||'📝'}</span><div class="hist-info"><div class="hist-title">${esc((it.preview||'').slice(0,60))}</div><div class="hist-meta">${aud?'<span class="idea-bdg '+(aud==='affiliates'?'affiliates':'clients')+'" style="font-size:.6rem;margin-right:.25rem">'+(aud==='affiliates'?'AFILIADAS':'CLIENTES')+'</span>':''}${esc(it.user_name||'Usuario')} · ${fmtDT(it.created_at)}${it.status==='approved'&&it.scheduled_date?' · '+fmtDT(it.scheduled_date):''}</div></div></div>
+        <div class="hist-right"><span class="hist-st ${it.status==='approved'?'approved':'draft'}">${it.status==='approved'?'Approved':'Draft'}</span><button class="idea-btn" onclick="viewHistItem(${it.id})">Ver</button><button class="idea-btn" onclick="cpHistItem(${it.id})">📋</button><button class="idea-btn danger" onclick="delHistItem(${it.id})">🗑️</button></div></div>`}).join('')}`:'<p style="color:var(--mt);text-align:center;padding:2rem">No hay contenido generado.</p>'}`;
+  }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
+}
+function toggleHistSel(id,checked){if(checked)histSel.add(id);else histSel.delete(id);updHistSelUI()}
+function toggleAllHist(checked,ids){histSel.clear();if(checked)ids.forEach(id=>histSel.add(id));document.querySelectorAll('[data-hid]').forEach(c=>c.checked=checked);updHistSelUI()}
+function updHistSelUI(){const n=histSel.size;const c=document.getElementById('histSelCount');const b=document.getElementById('btnBulkDel');if(c)c.textContent=n?n+' seleccionado'+(n>1?'s':''):'';if(b)b.style.display=n?'inline-block':'none'}
+async function bulkDelHist(){if(!histSel.size)return;if(!confirm(`Eliminar ${histSel.size} elemento(s) del historial?`))return;try{const r=await fetch('/api/styly/history/bulk-delete',{method:'POST',headers:hdrs,body:JSON.stringify({ids:[...histSel]})});const d=await r.json();if(d.error)throw new Error(d.error);toast(d.deleted+' eliminado(s)');renderHistorial(document.getElementById('modContent'))}catch(e){toast('Error: '+e.message)}}
+async function delAllHist(ids){if(!ids||!ids.length)return toast('No hay elementos');if(!confirm('Eliminar TODO el historial de Styly? Esta accion no se puede deshacer.'))return;try{const r=await fetch('/api/styly/history/bulk-delete',{method:'POST',headers:hdrs,body:JSON.stringify({ids})});const d=await r.json();if(d.error)throw new Error(d.error);toast(d.deleted+' eliminado(s)');renderHistorial(document.getElementById('modContent'))}catch(e){toast('Error: '+e.message)}}
+async function viewHistItem(id){
+  try{const r=await fetch('/api/styly/history/'+id,{headers:hdrs});const d=await r.json();if(d.error)throw new Error(d.error);
+    showModal(`<div class="modal-title">${FMT_EMOJI[d.item.format_type]||'📝'} ${esc(d.item.format_type)}</div><div style="max-height:60vh;overflow-y:auto;margin-bottom:.75rem"><div class="sy-sec-body">${md(d.item.output_text)}</div></div><div class="modal-actions"><button class="m-cancel" onclick="closeModal()">Cerrar</button><button class="m-ok" onclick="cpClip(\`${esc(d.item.output_text).replace(/`/g,"'")}\`);toast('Copiado')">📋 Copiar</button></div>`);
+  }catch(e){toast('Error: '+e.message)}
+}
+async function cpHistItem(id){try{const r=await fetch('/api/styly/history/'+id,{headers:hdrs});const d=await r.json();cpClip(d.item.output_text);toast('Copiado')}catch(e){toast('Error')}}
+async function delHistItem(id){if(!confirm('Eliminar del historial?'))return;try{await fetch('/api/styly/history/'+id,{method:'DELETE',headers:hdrs});toast('Eliminado');renderHistorial(document.getElementById('modContent'))}catch(e){toast('Error')}}
+
+// ================================================================
+// APPROVE MODAL
+// ================================================================
+function openApproveModal(){
+  if(!G.resultId)return toast('Genera contenido primero');
+  showModal(`<div class="modal-title">✅ Aprobar y Agendar</div>
+    <div class="modal-field"><label>Fecha</label><input type="date" id="appDate" value="${today()}"></div>
+    <div class="modal-field"><label>Hora</label><input type="time" id="appTime" value="10:00"></div>
+    <div class="modal-field"><label>Plataforma</label><select id="appPlat"><option value="instagram">Instagram</option><option value="tiktok">TikTok</option><option value="facebook">Facebook</option><option value="linkedin">LinkedIn</option></select></div>
+    <div class="modal-field"><label>Notas (opcional)</label><textarea id="appNotes" rows="2"></textarea></div>
+    <div class="modal-actions"><button class="m-cancel" onclick="closeModal()">Cancelar</button><button class="m-ok" onclick="doApprove()">✅ Aprobar</button></div>`);
+}
+async function doApprove(){
+  const date=document.getElementById('appDate')?.value,time=document.getElementById('appTime')?.value,plat=document.getElementById('appPlat')?.value,notes=document.getElementById('appNotes')?.value;
+  if(!date)return toast('Selecciona fecha');
+  try{const r=await fetch('/api/styly/approve',{method:'POST',headers:hdrs,body:JSON.stringify({content_id:G.resultId,scheduled_date:date,scheduled_time:time,scheduled_platform:plat,notes:notes||undefined})});const d=await r.json();if(d.error)throw new Error(d.error);closeModal();toast('✅ Aprobado y agendado')}catch(e){toast('Error: '+e.message)}
+}
+
+// ================================================================
+// SHARED
+// ================================================================
+function showModal(html){document.getElementById('modalRoot').innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-box">${html}</div></div>`}
+function closeModal(){document.getElementById('modalRoot').innerHTML=''}
+function cpClip(text){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).catch(()=>fbCp(text))}else{fbCp(text)}}
+function fbCp(text){const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta)}
+
+renderTab();
+</script>
+</body>
+</html>

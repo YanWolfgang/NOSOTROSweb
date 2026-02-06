@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Central — SPACEBOX</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css">
+<style>
+:root{--sb:#3B82F6;--sb-bg:rgba(59,130,246,.08);--sb-border:rgba(59,130,246,.25)}
+/* Format cards */
+.sb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.75rem;margin:1rem 0}
+.sb-fmt{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:1.25rem 1rem;cursor:pointer;transition:all .2s;text-align:center}
+.sb-fmt:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(59,130,246,.12)}
+.sb-fmt.on{border-color:var(--sb);background:var(--sb-bg)}
+.sb-fmt .ico{font-size:2rem;margin-bottom:.5rem}
+.sb-fmt .nm{font-weight:700;font-size:.95rem;color:var(--fg);margin-bottom:.25rem}
+.sb-fmt .ds{font-size:.78rem;color:var(--mt)}
+/* Topic area */
+.sb-topic{margin:1rem 0}
+.sb-topic textarea{width:100%;min-height:90px;padding:.75rem;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.88rem;font-family:inherit;resize:vertical}
+.sb-topic textarea:focus{border-color:var(--sb);outline:none}
+/* Result sections */
+.sb-result{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin:.75rem 0;position:relative}
+.sb-section{margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border);position:relative}
+.sb-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.sb-section-title{font-size:.75rem;font-weight:700;color:var(--sb);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem}
+.sb-section-body{font-size:.88rem;color:var(--fg);line-height:1.6;white-space:pre-wrap}
+.sb-section .copy-sec{position:absolute;top:0;right:0;padding:.2rem .5rem;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--mt);font-size:.7rem;cursor:pointer;transition:all .15s}
+.sb-section .copy-sec:hover{border-color:var(--sb);color:var(--sb)}
+/* AI Tools bar */
+.sb-tools{display:flex;flex-wrap:wrap;gap:.5rem;margin:.75rem 0}
+.sb-tool{padding:.45rem .85rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.8rem;cursor:pointer;transition:all .15s}
+.sb-tool:hover{border-color:var(--sb);color:var(--sb);background:var(--sb-bg)}
+/* Edit bar */
+.sb-edit{border-top:1px solid var(--border);padding-top:.75rem;margin-top:.75rem;display:flex;gap:.5rem}
+.sb-edit input{flex:1;padding:.5rem .75rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.85rem}
+.sb-edit input:focus{border-color:var(--sb);outline:none}
+.sb-edit button{padding:.5rem 1rem;border-radius:8px;border:none;background:var(--sb);color:#fff;font-size:.82rem;font-weight:600;cursor:pointer;white-space:nowrap}
+.sb-edit button:hover{opacity:.9}
+/* Ideas */
+.ideas-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
+.ideas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.75rem}
+.idea-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;transition:all .2s}
+.idea-card.discarded{opacity:.3}.idea-card.used{opacity:.5}
+.idea-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.7rem;font-weight:700;margin-bottom:.5rem}
+.idea-badge.new{background:rgba(59,130,246,.15);color:var(--sb)}
+.idea-badge.used{background:rgba(107,114,128,.15);color:#6B7280}
+.idea-badge.discarded{background:rgba(107,114,128,.1);color:#9CA3AF}
+.idea-text{font-size:.88rem;color:var(--fg);margin-bottom:.5rem;line-height:1.5}
+.idea-tags{display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.5rem}
+.idea-tag{padding:2px 6px;border-radius:4px;font-size:.7rem;background:var(--sb-bg);color:var(--sb);font-weight:600}
+.idea-tag.season{background:rgba(245,158,11,.1);color:#F59E0B}
+.idea-actions{display:flex;gap:.35rem;flex-wrap:wrap}
+.idea-btn{padding:.3rem .6rem;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.72rem;cursor:pointer;transition:all .15s}
+.idea-btn:hover{border-color:var(--sb);color:var(--sb)}
+.idea-btn.danger:hover{border-color:#EF4444;color:#EF4444}
+/* Calendar */
+.cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
+.cal-nav{display:flex;align-items:center;gap:.75rem}
+.cal-btn{padding:.4rem .8rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.82rem;cursor:pointer}
+.cal-btn:hover{border-color:var(--sb);color:var(--sb)}
+.cal-title{font-size:.95rem;font-weight:600;color:var(--fg)}
+.cal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:.5rem;margin-top:.5rem}
+.cal-day{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.75rem .5rem;min-height:120px}
+.cal-day-name{font-size:.7rem;font-weight:700;color:var(--mt);text-transform:uppercase;text-align:center}
+.cal-day-num{font-size:1.1rem;font-weight:700;color:var(--fg);text-align:center;margin:.25rem 0}
+.cal-day.today{border-color:var(--sb);background:var(--sb-bg)}
+.cal-item{padding:.3rem .5rem;border-radius:6px;background:var(--sb-bg);border:1px solid var(--sb-border);font-size:.7rem;color:var(--sb);margin-top:.35rem;cursor:pointer}
+.cal-item:hover{opacity:.8}
+/* History */
+.hist-filters{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
+.hist-filters select{padding:.4rem .75rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.82rem}
+.hist-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap}
+.hist-left{display:flex;align-items:center;gap:.5rem;flex:1;min-width:0}
+.hist-emoji{font-size:1.2rem}
+.hist-info{min-width:0}
+.hist-title{font-size:.85rem;font-weight:600;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px}
+.hist-meta{font-size:.72rem;color:var(--mt)}
+.hist-right{display:flex;align-items:center;gap:.5rem;flex-shrink:0}
+.hist-status{padding:2px 8px;border-radius:4px;font-size:.7rem;font-weight:700}
+.hist-status.draft{background:rgba(107,114,128,.15);color:#6B7280}
+.hist-status.approved{background:rgba(16,185,129,.15);color:#10B981}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;max-width:480px;width:100%;max-height:80vh;overflow-y:auto}
+.modal-title{font-size:1.1rem;font-weight:700;color:var(--fg);margin-bottom:1rem}
+.modal-field{margin-bottom:.75rem}
+.modal-field label{display:block;font-size:.78rem;font-weight:600;color:var(--mt);margin-bottom:.25rem}
+.modal-field input,.modal-field select,.modal-field textarea{width:100%;padding:.5rem .75rem;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--fg);font-size:.85rem;box-sizing:border-box}
+.modal-actions{display:flex;justify-content:flex-end;gap:.5rem;margin-top:1rem}
+.modal-actions button{padding:.5rem 1.2rem;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;border:1px solid var(--border)}
+.modal-actions .m-cancel{background:var(--card);color:var(--fg)}
+.modal-actions .m-ok{background:var(--sb);color:#fff;border-color:var(--sb)}
+/* Toast */
+.toast{position:fixed;bottom:2rem;right:2rem;padding:.75rem 1.25rem;border-radius:10px;background:#10B981;color:#fff;font-size:.88rem;font-weight:600;z-index:2000;animation:toastIn .3s ease;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+@keyframes toastIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+/* Responsive */
+@media(max-width:768px){
+  .cal-week{grid-template-columns:1fr;gap:.35rem}
+  .ideas-grid{grid-template-columns:1fr}
+  .sb-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+  .sb-edit{flex-direction:column}
+  .hist-item{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+<button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+<div class="app">
+  <nav class="sidebar" id="sidebar"></nav>
+  <main class="content fade-in" id="content">
+    <div class="page-header"><h1 style="color:var(--sb)">📦 SPACEBOX</h1><p>Mini bodegas · Contenido Instagram semanal</p></div>
+    <div class="module-tabs" id="modTabs">
+      <button class="module-tab active" onclick="setTab('generar')">Generar</button>
+      <button class="module-tab" onclick="setTab('ideas')">Ideas</button>
+      <button class="module-tab" onclick="setTab('calendario')">Calendario</button>
+      <button class="module-tab" onclick="setTab('historial')">Historial</button>
+    </div>
+    <div id="modContent"></div>
+  </main>
+</div>
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+<script>
+// ========== AUTH ==========
+const token=localStorage.getItem('token');
+if(!token){window.location.href='/index.html';}
+const user=JSON.parse(localStorage.getItem('user')||'{}');
+const hdrs={'Content-Type':'application/json','Authorization':'Bearer '+token};
+
+// ========== SIDEBAR ==========
+const BUSINESSES=[
+  {id:'nosotros',name:'NOSOTROS',icon:'📰',color:'#8B5CF6',url:'/nosotros.html'},
+  {id:'duelazo',name:'DUELAZO',icon:'⚽',color:'#10B981',url:'/duelazo.html'},
+  {id:'spacebox',name:'SPACEBOX',icon:'📦',color:'#3B82F6',url:'/spacebox.html'},
+  {id:'styly',name:'STYLY',icon:'💻',color:'#EC4899',url:'/styly.html'}
+];
+function renderSidebar(){
+  const bs=user.businesses||[];const isAdmin=user.role==='admin';
+  const items=BUSINESSES.filter(b=>isAdmin||bs.includes(b.id));
+  document.getElementById('sidebar').innerHTML=`
+    <button class="sidebar-close" onclick="toggleSidebar()">&times;</button>
+    <div class="sidebar-header"><h2>Panel <span>Central</span></h2></div>
+    <div class="sidebar-section"><div class="sidebar-label">General</div><a href="/dashboard.html" class="sidebar-item"><span class="icon">📊</span>Dashboard</a></div>
+    <div class="sidebar-section"><div class="sidebar-label">Negocios</div>
+      ${items.map(b=>`<a href="${b.url}" class="sidebar-item ${b.id==='spacebox'?'active':''}" style="--accent:${b.color}"><span class="icon">${b.icon}</span>${b.name}</a>`).join('')}
+    </div>
+    ${isAdmin?`<div class="sidebar-section"><div class="sidebar-label">Admin</div><a href="/admin.html" class="sidebar-item"><span class="icon">👥</span>Usuarios</a></div>`:''}
+    <div class="sidebar-footer">
+      <div class="sidebar-avatar">${(user.name||'U')[0].toUpperCase()}</div>
+      <div class="sidebar-user"><div class="name">${user.name||'Usuario'}</div><div class="role">${user.role||'editor'}</div></div>
+      <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+      <button class="theme-btn" onclick="logout()" style="font-size:.75rem">↪</button>
+    </div>`;
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
+function toggleTheme(){const t=document.documentElement.getAttribute('data-theme')==='light'?'':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t)}
+function logout(){localStorage.clear();window.location.href='/index.html'}
+if(localStorage.getItem('theme')==='light') document.documentElement.setAttribute('data-theme','light');
+renderSidebar();
+
+// ========== CONFIG ==========
+const FMTS=[
+  {id:'video',name:'Video Promocional',icon:'🎬',desc:'Guion reel 30-60 seg'},
+  {id:'carrusel',name:'Carrusel Informativo',icon:'📱',desc:'Tips educativos 4-5 slides'},
+  {id:'promocional',name:'Post Promocional',icon:'📸',desc:'Ofertas y descuentos'},
+  {id:'estacional',name:'Post Estacional',icon:'🗓️',desc:'Contenido de temporada'},
+  {id:'confianza',name:'Post de Confianza',icon:'⭐',desc:'Seguridad y testimonios'}
+];
+const FMT_EMOJI={video:'🎬',carrusel:'📱',promocional:'📸',estacional:'🗓️',confianza:'⭐'};
+
+// ========== STATE ==========
+let tab='generar';
+let G={fmt:null,topic:'',phase:'pick',result:'',resultId:null,editTxt:''};
+let calWeekStart=getMonday(new Date());
+
+// ========== HELPERS ==========
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function md(t){
+  return esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>')
+    .replace(/^### (.+)$/gm,'<h4>$1</h4>').replace(/^## (.+)$/gm,'<h3>$1</h3>').replace(/^# (.+)$/gm,'<h2>$1</h2>')
+    .replace(/^---$/gm,'<hr>').replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+}
+function today(){return new Date().toISOString().slice(0,10)}
+function getMonday(d){const dt=new Date(d);const day=dt.getDay();const diff=dt.getDate()-day+(day===0?-6:1);dt.setDate(diff);dt.setHours(0,0,0,0);return dt}
+function addDays(d,n){const dt=new Date(d);dt.setDate(dt.getDate()+n);return dt}
+function fmtDate(d){return d.toISOString().slice(0,10)}
+function fmtDateEs(d){return d.toLocaleDateString('es-MX',{day:'numeric',month:'long'})}
+function fmtDateTime(s){if(!s)return'';try{return new Date(s).toLocaleString('es-MX',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}catch{return s}}
+function toast(msg){
+  const el=document.createElement('div');el.className='toast';el.textContent=msg;
+  document.getElementById('toastRoot').appendChild(el);
+  setTimeout(()=>el.remove(),3000);
+}
+
+// ========== TABS ==========
+function setTab(t){
+  tab=t;
+  document.querySelectorAll('.module-tab').forEach((b,i)=>{
+    b.classList.toggle('active',['generar','ideas','calendario','historial'][i]===t);
+  });
+  renderTab();
+}
+
+function renderTab(){
+  const m=document.getElementById('modContent');
+  m.className='fade-in';void m.offsetWidth;
+  if(tab==='generar') renderGenerar(m);
+  else if(tab==='ideas') renderIdeas(m);
+  else if(tab==='calendario') renderCalendario(m);
+  else if(tab==='historial') renderHistorial(m);
+}
+
+// ========== TAB 1: GENERAR ==========
+function renderGenerar(m){
+  if(G.phase==='pick') m.innerHTML=rFmtPick();
+  else if(G.phase==='topic') m.innerHTML=rTopicInput();
+  else if(G.phase==='loading') m.innerHTML=`<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div><div class="loader-text">Generando contenido para Spacebox...</div></div>`;
+  else if(G.phase==='result') m.innerHTML=rGenResult();
+}
+
+function rFmtPick(){
+  return`<p class="sel-hint">Selecciona un formato de contenido</p>
+    <div class="sb-grid">${FMTS.map(f=>`
+      <div class="sb-fmt ${G.fmt===f.id?'on':''}" onclick="pickFmt('${f.id}')">
+        <div class="ico">${f.icon}</div>
+        <div class="nm">${f.name}</div>
+        <div class="ds">${f.desc}</div>
+      </div>`).join('')}</div>
+    ${G.fmt?`<div class="actions" style="margin-top:1rem"><button class="btn" onclick="G.phase='topic';renderTab()">Siguiente →</button></div>`:''}`;
+}
+
+function rTopicInput(){
+  const f=FMTS.find(x=>x.id===G.fmt);
+  return`<div class="flow-header">
+      <button class="btn-back" onclick="G.phase='pick';renderTab()">← Volver</button>
+      <div class="flow-title"><span>${f.icon}</span> ${f.name}</div>
+    </div>
+    <div class="sb-topic">
+      <textarea id="topicTa" placeholder="Describe el tema o contexto (opcional). Ej: Promoción de febrero, tips para guardar ropa, seguridad de las instalaciones..." oninput="G.topic=this.value">${esc(G.topic)}</textarea>
+    </div>
+    <div class="actions"><button class="btn" onclick="doGenerate()">Generar contenido →</button></div>`;
+}
+
+function rGenResult(){
+  const f=FMTS.find(x=>x.id===G.fmt);
+  // Parse sections from result
+  const sections=parseSections(G.result);
+  return`<div class="flow-header">
+      <button class="btn-back" onclick="resetGen()">← Nuevo contenido</button>
+      <div class="flow-title"><span>${f.icon}</span> ${f.name}</div>
+    </div>
+    <div class="sb-result">
+      ${sections.map((s,i)=>`<div class="sb-section">
+        <button class="copy-sec" onclick="cpSection(${i})">📋 Copiar</button>
+        <div class="sb-section-title">${esc(s.title)}</div>
+        <div class="sb-section-body" id="sec${i}">${md(s.body)}</div>
+      </div>`).join('')}
+    </div>
+    <div class="sb-tools">
+      <button class="sb-tool" onclick="aiReview()">📝 Revisar con IA</button>
+      <button class="sb-tool" onclick="aiMulti()">🔄 Multi-formato</button>
+      <button class="sb-tool" onclick="aiVariants()">🔀 Variantes A/B</button>
+      <button class="sb-tool" onclick="openApproveModal()">✅ Aprobar y Agendar</button>
+      <button class="sb-tool" onclick="doGenerate()">🔃 Regenerar</button>
+    </div>
+    <div class="sb-edit">
+      <input id="editInput" placeholder="Ej: Hazlo más corto, cambia el CTA, hazlo más informal, agrega dato de seguridad..." value="${esc(G.editTxt)}">
+      <button onclick="doRegenEdit()">🔄 Regenerar con cambios</button>
+    </div>`;
+}
+
+function parseSections(text){
+  // Split by common section headers
+  const lines=text.split('\n');
+  const sections=[];
+  let cur=null;
+  for(const line of lines){
+    // Detect section headers: lines with all caps keywords, colons, or emoji prefixes
+    const headerMatch=line.match(/^(?:#{1,3}\s*)?(?:[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}]\uFE0F?\s*)?([A-ZÁÉÍÓÚÑ\s\d—\-:()]+)(?:\s*:?\s*)$/u);
+    const simpleHeader=line.match(/^(?:#{1,3}\s+)?(.+?):\s*$/);
+    const emojiHeader=line.match(/^([\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}][\uFE0F]?\s*.+?):\s*$/u);
+    if(headerMatch && line.trim().length>3 && line.trim().length<80 && line.trim()===line.trim().toUpperCase()){
+      if(cur)sections.push(cur);
+      cur={title:line.replace(/^#+\s*/,'').replace(/:$/,'').trim(),body:''};
+    }else if(emojiHeader){
+      if(cur)sections.push(cur);
+      cur={title:emojiHeader[1].trim(),body:''};
+    }else if(simpleHeader && !line.startsWith(' ') && line.trim().length<80){
+      if(cur)sections.push(cur);
+      cur={title:simpleHeader[1].trim(),body:''};
+    }else{
+      if(!cur)cur={title:'Contenido',body:''};
+      cur.body+=(cur.body?'\n':'')+line;
+    }
+  }
+  if(cur)sections.push(cur);
+  // Clean up empty sections
+  return sections.filter(s=>s.body.trim()).map(s=>({title:s.title,body:s.body.trim()}));
+}
+
+// ========== GENERAR ACTIONS ==========
+function pickFmt(id){G.fmt=id;renderTab()}
+function resetGen(){G={fmt:null,topic:'',phase:'pick',result:'',resultId:null,editTxt:''};renderTab()}
+
+async function doGenerate(){
+  G.phase='loading';renderTab();
+  try{
+    const r=await fetch('/api/spacebox/generate',{method:'POST',headers:hdrs,
+      body:JSON.stringify({format:G.fmt,topic:G.topic||undefined})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    G.result=d.content;G.resultId=d.id;G.phase='result';G.editTxt='';
+  }catch(e){G.phase='topic';toast('Error: '+e.message)}
+  renderTab();
+}
+
+async function doRegenEdit(){
+  const txt=document.getElementById('editInput')?.value?.trim();
+  if(!txt)return;
+  G.phase='loading';renderTab();
+  try{
+    const r=await fetch('/api/spacebox/generate',{method:'POST',headers:hdrs,
+      body:JSON.stringify({format:G.fmt,previousContent:G.result,editInstructions:txt})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    G.result=d.content;G.resultId=d.id;G.phase='result';G.editTxt='';
+    toast('Contenido regenerado con cambios');
+  }catch(e){G.phase='result';toast('Error: '+e.message)}
+  renderTab();
+}
+
+async function aiReview(){
+  G.phase='loading';renderTab();
+  try{
+    const r=await fetch('/api/spacebox/generate',{method:'POST',headers:hdrs,
+      body:JSON.stringify({format:G.fmt,previousContent:G.result,editInstructions:'Revisa el contenido. Corrige errores de ortografía, mejora la claridad, asegúrate de que el CTA esté claro y los beneficios de SPACEBOX estén presentes. Devuelve la versión mejorada.'})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    G.result=d.content;G.resultId=d.id;G.phase='result';
+    toast('Contenido revisado por IA');
+  }catch(e){G.phase='result';toast('Error: '+e.message)}
+  renderTab();
+}
+
+async function aiMulti(){
+  G.phase='loading';renderTab();
+  try{
+    const r=await fetch('/api/spacebox/generate',{method:'POST',headers:hdrs,
+      body:JSON.stringify({format:G.fmt,previousContent:G.result,editInstructions:'Adapta este contenido para 3 plataformas:\n1. Instagram Feed (copy 500 chars + hashtags)\n2. Instagram Stories (texto corto + CTA)\n3. Instagram Reels (guion 30 seg)\nMantén el mensaje central pero adapta el formato a cada plataforma.'})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    G.result=d.content;G.resultId=d.id;G.phase='result';
+    toast('Multi-formato generado');
+  }catch(e){G.phase='result';toast('Error: '+e.message)}
+  renderTab();
+}
+
+async function aiVariants(){
+  G.phase='loading';renderTab();
+  try{
+    const r=await fetch('/api/spacebox/generate',{method:'POST',headers:hdrs,
+      body:JSON.stringify({format:G.fmt,previousContent:G.result,editInstructions:'Genera 2 variantes (A y B) de este contenido para test A/B. Variante A: tono más profesional/corporativo. Variante B: tono más cercano/casual. Ambas deben mantener el CTA y los beneficios de SPACEBOX.'})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    G.result=d.content;G.resultId=d.id;G.phase='result';
+    toast('Variantes A/B generadas');
+  }catch(e){G.phase='result';toast('Error: '+e.message)}
+  renderTab();
+}
+
+function cpSection(i){
+  const el=document.getElementById('sec'+i);
+  if(!el)return;
+  const text=el.textContent||el.innerText;
+  cpToClip(text,el.closest('.sb-section').querySelector('.copy-sec'));
+}
+
+// ========== TAB 2: IDEAS ==========
+async function renderIdeas(m){
+  m.innerHTML='<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div></div>';
+  try{
+    const r=await fetch('/api/spacebox/ideas',{headers:hdrs});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    const ideas=d.ideas||[];
+    m.innerHTML=`
+      <div class="ideas-header">
+        <h3 style="color:var(--fg);margin:0">💡 Banco de Ideas</h3>
+        <button class="btn" onclick="generateIdeas()">🧠 Generar 4 ideas del mes</button>
+      </div>
+      ${ideas.length?`<div class="ideas-grid">${ideas.map(renderIdeaCard).join('')}</div>`
+        :'<p style="color:var(--mt);text-align:center;padding:2rem">No hay ideas aún. Genera las primeras 4 ideas del mes.</p>'}`;
+  }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
+}
+
+function renderIdeaCard(idea){
+  const s=idea.status;
+  const emoji=FMT_EMOJI[idea.format]||'📝';
+  const fmtName=FMTS.find(f=>f.id===idea.format)?.name||idea.format;
+  return`<div class="idea-card ${s}">
+    <span class="idea-badge ${s}">${s==='new'?'NUEVA':s==='used'?'USADA'+(idea.used_at?' — '+fmtDateTime(idea.used_at):''):'DESCARTADA'}</span>
+    <div class="idea-text">${esc(idea.idea_text)}</div>
+    <div class="idea-tags">
+      <span class="idea-tag">${emoji} ${fmtName}</span>
+      ${idea.season_relevance?`<span class="idea-tag season">🗓️ ${esc(idea.season_relevance)}</span>`:''}
+    </div>
+    ${s==='new'?`<div class="idea-actions">
+      <button class="idea-btn" onclick="useIdea(${idea.id},'${idea.format}',\`${esc(idea.idea_text).replace(/`/g,'')}\`)">✍️ Generar contenido</button>
+      <button class="idea-btn danger" onclick="discardIdea(${idea.id})">❌ Descartar</button>
+    </div>`:''}
+  </div>`;
+}
+
+async function generateIdeas(){
+  const m=document.getElementById('modContent');
+  m.innerHTML='<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div><div class="loader-text">Generando 4 ideas para el mes...</div></div>';
+  try{
+    const r=await fetch('/api/spacebox/ideas/generate',{method:'POST',headers:hdrs,body:'{}'});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    toast('4 ideas generadas');
+    renderIdeas(m);
+  }catch(e){toast('Error: '+e.message);renderIdeas(m)}
+}
+
+function useIdea(id,format,text){
+  // Switch to generate tab with pre-filled data
+  G.fmt=format;G.topic=text;G.phase='topic';G.result='';G.resultId=null;G.editTxt='';
+  // Mark as used
+  fetch('/api/spacebox/ideas/'+id,{method:'PUT',headers:hdrs,body:JSON.stringify({status:'used'})});
+  setTab('generar');
+}
+
+async function discardIdea(id){
+  try{
+    await fetch('/api/spacebox/ideas/'+id,{method:'PUT',headers:hdrs,body:JSON.stringify({status:'discarded'})});
+    toast('Idea descartada');
+    renderIdeas(document.getElementById('modContent'));
+  }catch(e){toast('Error: '+e.message)}
+}
+
+// ========== TAB 3: CALENDARIO ==========
+async function renderCalendario(m){
+  const start=fmtDate(calWeekStart);
+  const end=fmtDate(addDays(calWeekStart,6));
+  m.innerHTML='<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div></div>';
+  try{
+    const r=await fetch(`/api/spacebox/calendar?start=${start}&end=${end}`,{headers:hdrs});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    const items=d.items||[];
+    const todayStr=today();
+    const days=[];
+    const dayNames=['Lun','Mar','Mie','Jue','Vie','Sab','Dom'];
+    for(let i=0;i<7;i++){
+      const dt=addDays(calWeekStart,i);
+      const ds=fmtDate(dt);
+      days.push({name:dayNames[i],num:dt.getDate(),date:ds,isToday:ds===todayStr,
+        items:items.filter(it=>(it.scheduled_date||'').slice(0,10)===ds)});
+    }
+    const weekLabel=`Semana del ${fmtDateEs(calWeekStart)} al ${fmtDateEs(addDays(calWeekStart,6))}`;
+    m.innerHTML=`
+      <div class="cal-header">
+        <div class="cal-nav">
+          <button class="cal-btn" onclick="calPrev()">← Anterior</button>
+          <span class="cal-title">${weekLabel}</span>
+          <button class="cal-btn" onclick="calNext()">Siguiente →</button>
+        </div>
+      </div>
+      <div class="cal-week">
+        ${days.map(day=>`<div class="cal-day ${day.isToday?'today':''}">
+          <div class="cal-day-name">${day.name}</div>
+          <div class="cal-day-num">${day.num}</div>
+          ${day.items.length?day.items.map(it=>`<div class="cal-item" onclick="viewCalItem(${it.id})">
+            ${FMT_EMOJI[it.format_type]||'📝'} ${esc((it.preview||'').slice(0,30))}
+            ${it.scheduled_date?'<br>'+new Date(it.scheduled_date).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}):''}
+          </div>`).join(''):''}
+        </div>`).join('')}
+      </div>
+      ${items.length===0?'<p style="color:var(--mt);text-align:center;padding:1.5rem">No hay contenido agendado esta semana. Ve al Banco de Ideas o genera contenido nuevo.</p>':''}`;
+  }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
+}
+
+function calPrev(){calWeekStart=addDays(calWeekStart,-7);renderCalendario(document.getElementById('modContent'))}
+function calNext(){calWeekStart=addDays(calWeekStart,7);renderCalendario(document.getElementById('modContent'))}
+
+async function viewCalItem(id){
+  try{
+    const r=await fetch('/api/spacebox/history/'+id,{headers:hdrs});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    const it=d.item;
+    showModal(`
+      <div class="modal-title">${FMT_EMOJI[it.format_type]||'📝'} ${esc(it.format_type)} — ${fmtDateTime(it.scheduled_date)}</div>
+      <div style="max-height:50vh;overflow-y:auto;margin-bottom:1rem">
+        <div class="sb-section-body">${md(it.output_text)}</div>
+      </div>
+      ${it.notes?`<p style="font-size:.82rem;color:var(--mt)">Notas: ${esc(it.notes)}</p>`:''}
+      <div class="modal-actions">
+        <button class="m-cancel" onclick="closeModal()">Cerrar</button>
+        <button class="m-ok" onclick="cpToClip(\`${esc(it.output_text).replace(/`/g,"'")}\`);toast('Copiado')">📋 Copiar</button>
+      </div>
+    `);
+  }catch(e){toast('Error: '+e.message)}
+}
+
+// ========== TAB 4: HISTORIAL ==========
+let histFilter={format:'',status:''};
+let histSel=new Set();
+
+async function renderHistorial(m){
+  histSel.clear();
+  m.innerHTML='<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div></div>';
+  try{
+    const r=await fetch('/api/spacebox/history',{headers:hdrs});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    let allItems=d.history||[];
+    let items=[...allItems];
+    if(histFilter.format) items=items.filter(i=>i.format_type===histFilter.format);
+    if(histFilter.status) items=items.filter(i=>i.status===histFilter.status);
+    const visibleIds=items.map(i=>i.id);
+    m.innerHTML=`
+      <div class="hist-filters">
+        <select onchange="histFilter.format=this.value;renderHistorial(document.getElementById('modContent'))">
+          <option value="">Todos los formatos</option>
+          ${FMTS.map(f=>`<option value="${f.id}" ${histFilter.format===f.id?'selected':''}>${f.name}</option>`).join('')}
+        </select>
+        <select onchange="histFilter.status=this.value;renderHistorial(document.getElementById('modContent'))">
+          <option value="">Todos los status</option>
+          <option value="draft" ${histFilter.status==='draft'?'selected':''}>Draft</option>
+          <option value="approved" ${histFilter.status==='approved'?'selected':''}>Approved</option>
+        </select>
+      </div>
+      ${items.length?`
+      <div style="display:flex;gap:.5rem;margin-bottom:.6rem;align-items:center;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:.35rem;cursor:pointer;font-size:.8rem;color:var(--mt)"><input type="checkbox" onchange="toggleAllHist(this.checked,${JSON.stringify(visibleIds)})"> Seleccionar todos</label>
+        <span id="histSelCount" style="font-size:.75rem;color:var(--mt)"></span>
+        <div style="margin-left:auto;display:flex;gap:.4rem">
+          <button id="btnBulkDel" onclick="bulkDelHist()" style="display:none;background:#EF4444;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:.75rem;cursor:pointer">Eliminar seleccionados</button>
+          <button onclick="delAllHist(${JSON.stringify(allItems.map(i=>i.id))})" style="background:none;border:1px solid #EF4444;color:#EF4444;border-radius:6px;padding:4px 10px;font-size:.75rem;cursor:pointer">Borrar todo</button>
+        </div>
+      </div>
+      ${items.map(it=>`<div class="hist-item">
+        <input type="checkbox" data-hid="${it.id}" onchange="toggleHistSel(${it.id},this.checked)" style="cursor:pointer;accent-color:#EF4444;margin-right:.4rem">
+        <div class="hist-left">
+          <span class="hist-emoji">${FMT_EMOJI[it.format_type]||'📝'}</span>
+          <div class="hist-info">
+            <div class="hist-title">${esc((it.preview||'Sin titulo').slice(0,50))}</div>
+            <div class="hist-meta">${esc(it.user_name||'Usuario')} · ${fmtDateTime(it.created_at)}${it.status==='approved'&&it.scheduled_date?' · Agendado: '+fmtDateTime(it.scheduled_date):''}</div>
+          </div>
+        </div>
+        <div class="hist-right">
+          <span class="hist-status ${it.status==='approved'?'approved':'draft'}">${it.status==='approved'?'Approved':'Draft'}</span>
+          <button class="idea-btn" onclick="viewHistItem(${it.id})">Ver</button>
+          <button class="idea-btn" onclick="cpHistItem(${it.id})">📋</button>
+          <button class="idea-btn danger" onclick="delHistItem(${it.id})">🗑️</button>
+        </div>
+      </div>`).join('')}`:'<p style="color:var(--mt);text-align:center;padding:2rem">No hay contenido generado aún.</p>'}`;
+  }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
+}
+function toggleHistSel(id,checked){if(checked)histSel.add(id);else histSel.delete(id);updHistSelUI()}
+function toggleAllHist(checked,ids){histSel.clear();if(checked)ids.forEach(id=>histSel.add(id));document.querySelectorAll('[data-hid]').forEach(c=>c.checked=checked);updHistSelUI()}
+function updHistSelUI(){const n=histSel.size;const c=document.getElementById('histSelCount');const b=document.getElementById('btnBulkDel');if(c)c.textContent=n?n+' seleccionado'+(n>1?'s':''):'';if(b)b.style.display=n?'inline-block':'none'}
+async function bulkDelHist(){if(!histSel.size)return;if(!confirm(`Eliminar ${histSel.size} elemento(s) del historial?`))return;try{const r=await fetch('/api/spacebox/history/bulk-delete',{method:'POST',headers:hdrs,body:JSON.stringify({ids:[...histSel]})});const d=await r.json();if(d.error)throw new Error(d.error);toast(d.deleted+' eliminado(s)');renderHistorial(document.getElementById('modContent'))}catch(e){toast('Error: '+e.message)}}
+async function delAllHist(ids){if(!ids||!ids.length)return toast('No hay elementos');if(!confirm('Eliminar TODO el historial de SpaceBox? Esta accion no se puede deshacer.'))return;try{const r=await fetch('/api/spacebox/history/bulk-delete',{method:'POST',headers:hdrs,body:JSON.stringify({ids})});const d=await r.json();if(d.error)throw new Error(d.error);toast(d.deleted+' eliminado(s)');renderHistorial(document.getElementById('modContent'))}catch(e){toast('Error: '+e.message)}}
+
+async function viewHistItem(id){
+  try{
+    const r=await fetch('/api/spacebox/history/'+id,{headers:hdrs});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    const it=d.item;
+    showModal(`
+      <div class="modal-title">${FMT_EMOJI[it.format_type]||'📝'} ${esc(it.format_type)}</div>
+      <div style="max-height:60vh;overflow-y:auto;margin-bottom:1rem">
+        <div class="sb-section-body">${md(it.output_text)}</div>
+      </div>
+      <div class="modal-actions">
+        <button class="m-cancel" onclick="closeModal()">Cerrar</button>
+        <button class="m-ok" onclick="cpToClip(\`${esc(it.output_text).replace(/`/g,"'")}\`);toast('Copiado')">📋 Copiar todo</button>
+      </div>
+    `);
+  }catch(e){toast('Error: '+e.message)}
+}
+
+async function cpHistItem(id){
+  try{
+    const r=await fetch('/api/spacebox/history/'+id,{headers:hdrs});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    cpToClip(d.item.output_text);toast('Copiado');
+  }catch(e){toast('Error: '+e.message)}
+}
+
+async function delHistItem(id){
+  if(!confirm('Eliminar este contenido del historial?'))return;
+  try{
+    const r=await fetch('/api/spacebox/history/'+id,{method:'DELETE',headers:hdrs});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    toast('Eliminado');
+    renderHistorial(document.getElementById('modContent'));
+  }catch(e){toast('Error: '+e.message)}
+}
+
+// ========== APPROVE MODAL ==========
+function openApproveModal(){
+  if(!G.resultId)return toast('Genera contenido primero');
+  showModal(`
+    <div class="modal-title">✅ Aprobar y Agendar</div>
+    <div class="modal-field">
+      <label>Fecha de publicación</label>
+      <input type="date" id="appDate" value="${today()}">
+    </div>
+    <div class="modal-field">
+      <label>Hora</label>
+      <input type="time" id="appTime" value="10:00">
+    </div>
+    <div class="modal-field">
+      <label>Plataforma</label>
+      <select id="appPlatform">
+        <option value="instagram">Instagram</option>
+        <option value="facebook">Facebook</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Notas (opcional)</label>
+      <textarea id="appNotes" rows="2" placeholder="Notas adicionales..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="m-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="m-ok" onclick="doApprove()">✅ Aprobar y Agendar</button>
+    </div>
+  `);
+}
+
+async function doApprove(){
+  const date=document.getElementById('appDate')?.value;
+  const time=document.getElementById('appTime')?.value;
+  const platform=document.getElementById('appPlatform')?.value;
+  const notes=document.getElementById('appNotes')?.value;
+  if(!date)return toast('Selecciona una fecha');
+  try{
+    const r=await fetch('/api/spacebox/approve',{method:'POST',headers:hdrs,
+      body:JSON.stringify({content_id:G.resultId,scheduled_date:date,scheduled_time:time,scheduled_platform:platform,notes:notes||undefined})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    closeModal();
+    toast('✅ Contenido aprobado y agendado');
+  }catch(e){toast('Error: '+e.message)}
+}
+
+// ========== MODAL ==========
+function showModal(html){
+  document.getElementById('modalRoot').innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-box">${html}</div></div>`;
+}
+function closeModal(){document.getElementById('modalRoot').innerHTML=''}
+
+// ========== CLIPBOARD ==========
+function cpToClip(text,btn){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>{
+      if(btn){btn.textContent='✓';setTimeout(()=>btn.textContent='📋 Copiar',1500)}
+      else toast('Copiado');
+    }).catch(()=>fallbackCp(text));
+  }else{fallbackCp(text)}
+}
+function fallbackCp(text){
+  const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0';
+  document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+  toast('Copiado');
+}
+
+// ========== INIT ==========
+renderTab();
+</script>
+</body>
+</html>

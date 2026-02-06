@@ -3,609 +3,86 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NOSOTROS — Plataforma de Contenido</title>
+<title>Panel Central — Login</title>
 <link rel="icon" type="image/png" href="/favicon.png">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0a0a0f;--sf:#111118;--card:#161622;--bd:#1e1e30;--tx:#e2e8f0;--mt:#64748b;--r:12px}
-body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh}
-a{color:inherit;text-decoration:none}
-
-/* Header */
-header{position:relative;text-align:center;padding:3rem 1rem 2rem;border-bottom:1px solid var(--bd);background:linear-gradient(180deg,#0d0d14 0%,var(--bg) 100%);overflow:hidden}
-header .hero-content{position:relative;z-index:2}
-header .logo{height:56px;filter:invert(1);animation:logoIn .8s ease-out both;margin-bottom:.2rem}
-header p{color:var(--mt);font-size:.85rem;margin-top:.4rem;letter-spacing:.08em;animation:fadeUp .8s ease-out .4s both}
-#particles{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none}
-
-/* Newspaper Animation */
-.newspaper{width:72px;height:50px;margin:.8rem auto .2rem;perspective:400px;position:relative;animation:fadeUp .6s ease-out .2s both}
-.paper{position:absolute;top:0;width:50%;height:100%;border-radius:2px;backface-visibility:hidden}
-.paper-l{left:0;transform-origin:right center;background:linear-gradient(145deg,rgba(255,255,255,.12),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.1);border-right:none;border-radius:3px 0 0 3px;animation:openL 3.5s ease-in-out .8s infinite}
-.paper-r{left:50%;transform-origin:left center;background:linear-gradient(215deg,rgba(255,255,255,.12),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.1);border-left:none;border-radius:0 3px 3px 0;animation:openR 3.5s ease-in-out .8s infinite}
-.paper::after{content:'';position:absolute;top:8px;left:6px;right:6px;height:1.5px;background:rgba(255,255,255,.15);box-shadow:0 5px 0 rgba(255,255,255,.08),0 10px 0 rgba(255,255,255,.15),0 15px 0 rgba(255,255,255,.08),0 20px 0 rgba(255,255,255,.12),0 25px 0 rgba(255,255,255,.06),0 30px 0 rgba(255,255,255,.1)}
-.spine{position:absolute;left:50%;top:0;width:1px;height:100%;background:rgba(255,255,255,.15);transform:translateX(-50%);z-index:2}
-@keyframes openL{0%,100%{transform:rotateY(0)}35%,65%{transform:rotateY(40deg)}}
-@keyframes openR{0%,100%{transform:rotateY(0)}35%,65%{transform:rotateY(-40deg)}}
-@keyframes logoIn{from{opacity:0;transform:scale(.9) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-
-/* Glow line */
-.glow-line{width:60px;height:1px;margin:.6rem auto 0;background:linear-gradient(90deg,transparent,rgba(139,92,246,.5),transparent);animation:glowPulse 3s ease-in-out infinite}
-@keyframes glowPulse{0%,100%{opacity:.3;width:40px}50%{opacity:.8;width:80px}}
-
-/* Main */
-#main{max-width:920px;margin:0 auto;padding:1.5rem}
-
-/* Home Grid */
-.hg{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1rem}
-
-/* Format Card */
-.fc{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:1.25rem;cursor:pointer;transition:all .2s ease}
-.fc:hover{transform:translateY(-2px);border-color:var(--c)}
-.fc .ic{font-size:1.6rem;margin-bottom:.4rem}
-.fc .nm{font-weight:600;font-size:1rem;margin-bottom:.25rem}
-.fc .ds{color:var(--mt);font-size:.82rem;line-height:1.45}
-.fc .bg{display:flex;gap:.35rem;margin-top:.7rem;flex-wrap:wrap}
-.badge{padding:.15rem .5rem;font-size:.68rem;border-radius:99px;background:rgba(255,255,255,.06);color:var(--mt)}
-
-/* Flow Header */
-.fh{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem}
-.bb{background:none;border:1px solid var(--bd);color:var(--mt);padding:.4rem .8rem;border-radius:8px;cursor:pointer;font-size:.85rem;font-family:inherit;transition:all .2s}
-.bb:hover{border-color:var(--tx);color:var(--tx)}
-.ft{font-size:1.15rem;font-weight:600;display:flex;align-items:center;gap:.5rem}
-
-/* Steps */
-.steps{display:flex;align-items:center;justify-content:center;margin-bottom:.5rem}
-.sd{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:600;border:2px solid var(--bd);color:var(--mt);transition:all .2s;flex-shrink:0}
-.sd.a{background:var(--c);border-color:var(--c);color:#fff}
-.sd.d{background:var(--c);border-color:var(--c);color:#fff;opacity:.45}
-.sl{width:36px;height:2px;background:var(--bd)}
-.sl.d{background:var(--c);opacity:.45}
-.slab{text-align:center;color:var(--mt);font-size:.83rem;margin-bottom:1.5rem}
-
-/* Search */
-.sb{display:flex;gap:.5rem}
-.sb input{flex:1;padding:.75rem 1rem;background:var(--sf);border:1px solid var(--bd);border-radius:8px;color:var(--tx);font-size:.9rem;outline:none;font-family:inherit}
-.sb input:focus{border-color:var(--c)}
-.sb input::placeholder{color:var(--mt)}
-
-/* Buttons */
-.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.2rem;background:var(--c);color:#fff;border:none;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
-.btn:hover{filter:brightness(1.15)}
-.btn:disabled{opacity:.35;cursor:not-allowed;filter:none}
-.btn-o{background:transparent;border:1px solid var(--c);color:var(--c)}
-.btn-o:hover{background:rgba(255,255,255,.05)}
-
-/* Selectable Cards */
-.sh{color:var(--mt);font-size:.83rem;margin-bottom:.8rem}
-.cl{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem}
-.sc{display:flex;align-items:flex-start;gap:.75rem;background:var(--sf);border:2px solid var(--bd);border-radius:10px;padding:.9rem 1rem;cursor:pointer;transition:all .2s}
-.sc:hover{border-color:var(--mt)}
-.sc.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 7%,var(--sf))}
-.ck{width:20px;height:20px;border:2px solid var(--bd);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .2s;font-size:.7rem;color:transparent}
-.sc.on .ck{background:var(--c);border-color:var(--c);color:#fff}
-.rd{width:20px;height:20px;border:2px solid var(--bd);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .2s}
-.rd::after{content:'';width:10px;height:10px;border-radius:50%;background:transparent;transition:all .2s}
-.sc.on .rd{border-color:var(--c)}
-.sc.on .rd::after{background:var(--c)}
-.sc .bd{flex:1;min-width:0}
-.sc .tt{font-weight:500;font-size:.88rem;margin-bottom:.2rem}
-.sc .dd{color:var(--mt);font-size:.8rem;line-height:1.4}
-.sc .sr{color:var(--mt);font-size:.7rem;margin-top:.25rem;opacity:.65}
-
-/* Loader */
-.ld{display:flex;flex-direction:column;align-items:center;gap:1rem;padding:3rem 0}
-.dots{display:flex;gap:6px}
-.dots span{width:8px;height:8px;border-radius:50%;background:var(--c);animation:pulse 1.2s ease-in-out infinite}
-.dots span:nth-child(2){animation-delay:.2s}
-.dots span:nth-child(3){animation-delay:.4s}
-@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
-.lt{color:var(--mt);font-size:.9rem}
-
-/* Result */
-.rb{position:relative;background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:1.5rem;padding-top:2.5rem;margin-bottom:1rem}
-.cb{position:absolute;top:.7rem;right:.7rem;background:var(--card);border:1px solid var(--bd);color:var(--mt);padding:.3rem .6rem;border-radius:6px;cursor:pointer;font-size:.8rem;font-family:inherit;transition:all .2s}
-.cb:hover{color:var(--tx);border-color:var(--tx)}
-.rc{font-size:.9rem;line-height:1.75;word-wrap:break-word}
-.rc h2{font-size:1.1rem;margin:1rem 0 .5rem;color:var(--c)}
-.rc h3{font-size:1rem;margin:.8rem 0 .4rem;color:var(--tx)}
-.rc h4{font-size:.95rem;margin:.6rem 0 .3rem;color:var(--mt)}
-.rc hr{border:none;border-top:1px solid var(--bd);margin:1rem 0}
-.rc strong{color:#fff}
-
-/* Textarea */
-.ta{width:100%;min-height:150px;padding:1rem;background:var(--sf);border:1px solid var(--bd);border-radius:8px;color:var(--tx);font-size:.9rem;font-family:inherit;resize:vertical;outline:none;line-height:1.5}
-.ta:focus{border-color:var(--c)}
-.ta::placeholder{color:var(--mt)}
-
-/* Error */
-.eb{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:.7rem 1rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;color:#fca5a5;font-size:.83rem}
-.eb button{background:none;border:none;color:#fca5a5;cursor:pointer;font-size:1rem;padding:0 .3rem}
-
-/* Category Filters */
-.cats{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1rem}
-.cat{padding:.35rem .7rem;font-size:.78rem;font-weight:500;border-radius:99px;border:1px solid var(--bd);background:transparent;color:var(--mt);cursor:pointer;font-family:inherit;transition:all .2s}
-.cat:hover{border-color:var(--tx);color:var(--tx)}
-.cat.on{background:var(--c);border-color:var(--c);color:#fff}
-
-/* Actions */
-.ac{display:flex;gap:.75rem;margin-top:1.5rem;justify-content:center;flex-wrap:wrap}
-
-/* Footer */
-footer{text-align:center;padding:2rem;color:var(--mt);font-size:.78rem;border-top:1px solid var(--bd);margin-top:2rem}
-
-/* Responsive */
-@media(max-width:640px){
-  .hg{grid-template-columns:1fr}
-  .sb{flex-direction:column}
-  header .logo{height:42px}
-  header{padding:2rem 1rem 1.5rem}
-  #main{padding:1rem}
-}
-
-/* Fade */
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.fi{animation:fadeIn .2s ease}
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
-<header>
-  <canvas id="particles"></canvas>
-  <div class="hero-content">
-    <img src="/logo.png" alt="NOSOTROS" class="logo">
-    <div class="newspaper">
-      <div class="paper paper-l"></div>
-      <div class="spine"></div>
-      <div class="paper paper-r"></div>
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <h1>Panel <span>Central</span></h1>
+      <p style="color:var(--mt);font-size:.82rem;margin-top:.3rem">Plataforma multi-negocio</p>
     </div>
-    <div class="glow-line"></div>
-    <p>Plataforma de contenido digital con IA</p>
+    <div class="login-tabs">
+      <button class="login-tab active" onclick="setTab('login')">Iniciar Sesion</button>
+      <button class="login-tab" onclick="setTab('register')">Registrarse</button>
+    </div>
+    <form id="loginForm" onsubmit="return doLogin(event)">
+      <div class="form-group"><label>Email</label><input type="email" id="l-email" required></div>
+      <div class="form-group"><label>Password</label><input type="password" id="l-pass" required></div>
+      <button type="submit" class="btn-primary" id="l-btn">Entrar</button>
+    </form>
+    <form id="registerForm" style="display:none" onsubmit="return doRegister(event)">
+      <div class="form-group"><label>Nombre</label><input type="text" id="r-name" required></div>
+      <div class="form-group"><label>Email</label><input type="email" id="r-email" required></div>
+      <div class="form-group"><label>Password</label><input type="password" id="r-pass" required minlength="6"></div>
+      <div class="form-group"><label>Confirmar Password</label><input type="password" id="r-pass2" required></div>
+      <button type="submit" class="btn-primary" id="r-btn">Crear Cuenta</button>
+    </form>
+    <div id="msg" class="login-msg" style="display:none"></div>
   </div>
-</header>
-<div id="main"></div>
-<footer>NOSOTROS &copy; 2026 — Powered by Groq + NewsAPI</footer>
-
+</div>
 <script>
-// ========== CONFIG ==========
-const SYS='Eres el equipo creativo de NOSOTROS, un medio digital mexicano. Lenguaje coloquial mexicano pero sin perder seriedad. Solo usa lenguaje muy casual para ejemplificar o enfatizar. Ganchos constantes y atractivo.';
+// Si ya tiene token, ir a dashboard
+if(localStorage.getItem('token')) window.location.href='/dashboard.html';
 
-const FORMATS=[
-  {id:'carrusel',name:'Carrusel IG',icon:'📱',color:'#E1306C',
-   desc:'Slides con hook, contexto y CTA para Instagram',
-   badges:['Web Search','Ángulos'],steps:['Noticias','Ángulos','Contenido'],
-   scope:'both',ns:1,ac:5,ma:2,search:false},
-  {id:'noticias_hoy',name:'Noticias de Hoy',icon:'🌍',color:'#1DA1F2',
-   desc:'Resumen diario de noticias internacionales y México',
-   badges:['Web Search'],steps:['Noticias','Contenido'],
-   scope:'both',ns:4,ac:0,ma:0,search:false},
-  {id:'noticias_mx',name:'Noticias México',icon:'🇲🇽',color:'#006847',
-   desc:'Noticias exclusivamente de México',
-   badges:['Web Search'],steps:['Noticias','Contenido'],
-   scope:'mx',ns:4,ac:0,ma:0,search:false},
-  {id:'sketch',name:'Sketch',icon:'🎭',color:'#FF6B35',
-   desc:'Sketch con humor, sátira e indicaciones visuales',
-   badges:['Web Search','Ángulos'],steps:['Noticias','Ángulos','Contenido'],
-   scope:'both',ns:1,ac:5,ma:2,search:false},
-  {id:'nr',name:'NR Investigación',icon:'📰',color:'#8B5CF6',
-   desc:'Investigación a profundidad con múltiples posturas',
-   badges:['Web Search','Ángulos'],steps:['Noticias','Ángulos','Contenido'],
-   scope:'both',ns:1,ac:5,ma:2,search:false},
-  {id:'youtube',name:'YouTube Largo',icon:'🎥',color:'#FF0000',
-   desc:'Guión completo 12-15 min con timestamps y clips',
-   badges:['Web Search','Ángulos','Estructuras'],steps:['Noticias','Ángulos','Estructura','Contenido'],
-   scope:'both',ns:1,ac:6,ma:3,search:false},
-  {id:'copy',name:'Copy & Título',icon:'✍️',color:'#F59E0B',
-   desc:'Copy para redes y título YouTube desde cualquier texto',
-   badges:[],steps:['Texto','Contenido'],
-   scope:null,ns:0,ac:0,ma:0,search:false}
-];
-
-// ========== STATE ==========
-let S={view:'home',fid:null,step:0,phase:'input',ltxt:'',
-  sq:'',cat:null,news:[],sn:new Set(),angles:[],sa:new Set(),
-  structs:[],ss:null,result:'',itxt:'',err:null};
-
-const CATS=[
-  {id:null,label:'Todas'},{id:'politica',label:'Política'},{id:'economia',label:'Economía'},
-  {id:'tecnologia',label:'Tecnología'},{id:'deportes',label:'Deportes'},
-  {id:'entretenimiento',label:'Entretenimiento'},{id:'guerra',label:'Guerra'},{id:'ciencia',label:'Ciencia'}
-];
-
-// ========== HELPERS ==========
-function F(){return FORMATS.find(f=>f.id===S.fid)}
-function selN(){return[...S.sn].map(i=>S.news[i])}
-function selA(){return[...S.sa].map(i=>S.angles[i])}
-function pJ(t){
-  const i=t.indexOf('{'),j=t.lastIndexOf('}');
-  if(i===-1||j<=i)return null;
-  try{return JSON.parse(t.substring(i,j+1))}catch{return null}
+let tab='login';
+function setTab(t){
+  tab=t;
+  document.querySelectorAll('.login-tab').forEach((b,i)=>b.classList.toggle('active',i===(t==='login'?0:1)));
+  document.getElementById('loginForm').style.display=t==='login'?'block':'none';
+  document.getElementById('registerForm').style.display=t==='register'?'block':'none';
+  hideMsg();
 }
-function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
-function md(t){
-  return esc(t)
-    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g,'<em>$1</em>')
-    .replace(/^### (.+)$/gm,'<h4>$1</h4>')
-    .replace(/^## (.+)$/gm,'<h3>$1</h3>')
-    .replace(/^# (.+)$/gm,'<h2>$1</h2>')
-    .replace(/^---$/gm,'<hr>')
-    .replace(/\n\n/g,'<br><br>')
-    .replace(/\n/g,'<br>');
+function showMsg(text,type){
+  const m=document.getElementById('msg');
+  m.style.display='block';m.className='login-msg '+type;m.textContent=text;
 }
+function hideMsg(){document.getElementById('msg').style.display='none'}
 
-// ========== API ==========
-async function apiNews(scope,query,category){
-  const r=await fetch('/api/news',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({scope,query:query||undefined,category:category||undefined})});
-  const d=await r.json();
-  if(d.error)throw new Error(d.error);
-  return d.news||[];
-}
-async function apiGen(prompt,system){
-  const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({prompt,system:system||undefined})});
-  const d=await r.json();
-  if(d.error)throw new Error(d.error);
-  return d.result||'';
-}
-
-// ========== RENDER ==========
-function render(){
-  const m=document.getElementById('main');
-  m.className='fi';
-  m.innerHTML=S.view==='home'?rHome():rFlow();
-  void m.offsetWidth;
-  const si=document.getElementById('si');if(si)si.value=S.sq;
-  const ti=document.getElementById('ti');if(ti)ti.value=S.itxt;
-}
-
-function rHome(){
-  return`<div class="hg">${FORMATS.map(f=>`
-    <div class="fc" style="--c:${f.color}" onclick="goFmt('${f.id}')">
-      <div class="ic">${f.icon}</div>
-      <div class="nm">${f.name}</div>
-      <div class="ds">${f.desc}</div>
-      ${f.badges.length?`<div class="bg">${f.badges.map(b=>`<span class="badge">${b}</span>`).join('')}</div>`:''}
-    </div>`).join('')}</div>`;
-}
-
-function rFlow(){
-  const f=F();
-  return`<div style="--c:${f.color}">
-    <div class="fh">
-      <button class="bb" onclick="goHome()">← Volver</button>
-      <div class="ft"><span>${f.icon}</span> ${f.name}</div>
-    </div>
-    ${rSteps(f)}
-    <div class="slab">Paso ${S.step+1}: ${f.steps[S.step]}</div>
-    ${S.err?`<div class="eb"><span>${esc(S.err)}</span><button onclick="clErr()">×</button></div>`:''}
-    ${rContent(f)}
-  </div>`;
-}
-
-function rSteps(f){
-  let h='<div class="steps">';
-  f.steps.forEach((s,i)=>{
-    if(i>0)h+=`<div class="sl ${i<=S.step?'d':''}"></div>`;
-    const c=i<S.step?'d':i===S.step?'a':'';
-    h+=`<div class="sd ${c}">${i+1}</div>`;
-  });
-  return h+'</div>';
-}
-
-function rContent(f){
-  if(S.phase==='loading')return rLoader();
-  if(S.phase==='result')return rResult();
-
-  const st=f.steps[S.step];
-  if(st==='Noticias'){
-    if(S.news.length>0)return rNewsSel(f);
-    if(f.search)return rSearch();
-    return`<div class="ac"><button class="btn" onclick="retryFetch()">Reintentar carga de noticias</button></div>`;
-  }
-  if(st==='Ángulos')return rAngSel(f);
-  if(st==='Estructura')return rStrSel();
-  if(st==='Texto')return rTextIn();
-  return'';
-}
-
-function rLoader(){
-  return`<div class="ld"><div class="dots"><span></span><span></span><span></span></div><div class="lt">${S.ltxt}</div></div>`;
-}
-
-function rSearch(){
-  return`<div class="sb">
-    <input id="si" type="text" placeholder="Tema para buscar noticias..." onkeydown="if(event.key==='Enter')doSearch()">
-    <button class="btn" onclick="doSearch()">Buscar</button></div>`;
-}
-
-function rNewsSel(f){
-  const n=f.ns,ok=S.sn.size===n;
-  const cats=`<div class="cats">${CATS.map(c=>`<button class="cat ${S.cat===c.id?'on':''}" onclick="setCat(${c.id===null?'null':"'"+c.id+"'"})">${c.label}</button>`).join('')}</div>`;
-  return`${cats}<p class="sh">Selecciona ${n} noticia${n>1?'s':''} (${S.sn.size}/${n})</p>
-    <div class="cl">${S.news.map((nw,i)=>{
-      const on=S.sn.has(i);
-      return`<div class="sc ${on?'on':''}" onclick="tgN(${i})">
-        <div class="ck">${on?'✓':''}</div>
-        <div class="bd">
-          <div class="tt">${esc(nw.title)}</div>
-          <div class="dd">${esc(nw.summary)}</div>
-          <div class="sr">${esc(nw.source)}</div>
-        </div></div>`;
-    }).join('')}</div>
-    <div class="ac"><button class="btn" ${ok?'':'disabled'} onclick="${f.steps[S.step+1]==='Contenido'?'goDirectContent()':'goAngles()'}">
-      ${f.steps[S.step+1]==='Contenido'?'Generar contenido':'Generar ángulos'}</button></div>`;
-}
-
-function rAngSel(f){
-  const ok=S.sa.size>=1&&S.sa.size<=f.ma;
-  const lbl=f.id==='youtube'?'Generar estructuras':'Generar contenido';
-  return`<p class="sh">Selecciona 1-${f.ma} ángulo${f.ma>1?'s':''} (${S.sa.size}/${f.ma})</p>
-    <div class="cl">${S.angles.map((a,i)=>{
-      const on=S.sa.has(i);
-      return`<div class="sc ${on?'on':''}" onclick="tgA(${i})">
-        <div class="ck">${on?'✓':''}</div>
-        <div class="bd">
-          <div class="tt">${esc(a.name)}</div>
-          <div class="dd">${esc(a.description)}</div>
-        </div></div>`;
-    }).join('')}</div>
-    <div class="ac"><button class="btn" ${ok?'':'disabled'} onclick="goNext()">${lbl}</button></div>`;
-}
-
-function rStrSel(){
-  const ok=S.ss!==null;
-  return`<p class="sh">Selecciona 1 estructura</p>
-    <div class="cl">${S.structs.map((s,i)=>{
-      const on=S.ss===i;
-      return`<div class="sc ${on?'on':''}" onclick="selStr(${i})">
-        <div class="rd"></div>
-        <div class="bd">
-          <div class="tt">${esc(s.name)}</div>
-          <div class="dd">${esc(s.description)}</div>
-          ${s.sections?`<div class="dd" style="margin-top:.25rem;opacity:.6;font-size:.75rem">${s.sections.map(x=>esc(x)).join(' → ')}</div>`:''}
-        </div></div>`;
-    }).join('')}</div>
-    <div class="ac"><button class="btn" ${ok?'':'disabled'} onclick="goFinal()">Generar guión completo</button></div>`;
-}
-
-function rTextIn(){
-  return`<textarea id="ti" class="ta" placeholder="Pega aquí el texto para generar copy y título..." oninput="S.itxt=this.value"></textarea>
-    <div class="ac"><button class="btn" onclick="goCopy()">Generar copy y título</button></div>`;
-}
-
-function rResult(){
-  return`<div class="rb">
-    <button class="cb" onclick="cpRes()">📋 Copiar</button>
-    <div class="rc">${md(S.result)}</div></div>
-    <div class="ac"><button class="btn-o btn" onclick="goHome()">Nuevo contenido</button></div>`;
-}
-
-// ========== HANDLERS ==========
-function goHome(){
-  S={view:'home',fid:null,step:0,phase:'input',ltxt:'',
-    sq:'',cat:null,news:[],sn:new Set(),angles:[],sa:new Set(),
-    structs:[],ss:null,result:'',itxt:'',err:null};
-  render();
-}
-
-function clErr(){S.err=null;render()}
-
-function setCat(c){
-  if(S.cat===c)return;
-  S.cat=c;S.sn=new Set();S.err=null;
-  fetchN(F().scope,S.sq||undefined);
-}
-
-function goFmt(id){
-  S.view='flow';S.fid=id;S.step=0;
-  S.news=[];S.sn=new Set();S.angles=[];S.sa=new Set();
-  S.structs=[];S.ss=null;S.result='';S.err=null;S.sq='';S.cat=null;S.itxt='';
-  const f=F();
-  if(f.id==='copy'){S.phase='input';render();return}
-  if(f.search){S.phase='input';render();return}
-  S.phase='loading';S.ltxt='Cargando noticias del día...';
-  render();fetchN(f.scope);
-}
-
-async function doSearch(){
-  const el=document.getElementById('si');
-  const q=el?.value.trim();if(!q)return;
-  S.sq=q;await fetchN(F().scope,q);
-}
-
-function retryFetch(){S.err=null;const f=F();S.phase='loading';S.ltxt='Cargando noticias...';render();fetchN(f.scope,S.sq||undefined)}
-
-async function fetchN(scope,query){
-  S.phase='loading';S.ltxt='Buscando noticias...';render();
+async function doLogin(e){
+  e.preventDefault();hideMsg();
+  const btn=document.getElementById('l-btn');btn.disabled=true;btn.textContent='Entrando...';
   try{
-    const news=await apiNews(scope,query,S.cat);
-    if(!news.length)throw new Error('No se encontraron noticias. Intenta otro tema.');
-    S.news=news;S.sn=new Set();S.phase='select';
-  }catch(e){S.err=e.message;S.phase='input';S.news=[]}
-  render();
+    const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email:document.getElementById('l-email').value,password:document.getElementById('l-pass').value})});
+    const d=await r.json();
+    if(!r.ok) throw new Error(d.error);
+    localStorage.setItem('token',d.token);
+    localStorage.setItem('user',JSON.stringify(d.user));
+    window.location.href='/dashboard.html';
+  }catch(err){showMsg(err.message,'error')}
+  finally{btn.disabled=false;btn.textContent='Entrar'}
+  return false;
 }
 
-function tgN(i){
-  const f=F();
-  if(S.sn.has(i)){S.sn.delete(i)}
-  else{if(f.ns===1)S.sn.clear();if(S.sn.size<f.ns)S.sn.add(i)}
-  render();
-}
-
-function tgA(i){
-  const f=F();
-  if(S.sa.has(i)){S.sa.delete(i)}
-  else{if(S.sa.size<f.ma)S.sa.add(i)}
-  render();
-}
-
-function selStr(i){S.ss=i;render()}
-
-async function goAngles(){
-  const f=F(),news=selN();
-  S.step=f.steps.indexOf('Ángulos');S.phase='loading';S.ltxt='Generando ángulos narrativos...';render();
-
-  const nt=news.map(n=>`- ${n.title}: ${n.summary}`).join('\n');
-  const c=f.ac;
-  const prompt=news.length===1
-    ?`Noticia:\n${nt}\n\nGenera ${c} ángulos narrativos distintos. Responde SOLO con JSON válido:\n{"angles":[{"id":1,"name":"nombre corto","description":"descripción en 1 línea"}]}`
-    :`Noticias:\n${nt}\n\nGenera ${c} ángulos narrativos generales para este conjunto. Responde SOLO con JSON válido:\n{"angles":[{"id":1,"name":"nombre corto","description":"descripción en 1 línea"}]}`;
-
+async function doRegister(e){
+  e.preventDefault();hideMsg();
+  const pass=document.getElementById('r-pass').value;
+  if(pass!==document.getElementById('r-pass2').value){showMsg('Las passwords no coinciden','error');return false}
+  const btn=document.getElementById('r-btn');btn.disabled=true;btn.textContent='Creando...';
   try{
-    const txt=await apiGen(prompt);
-    const p=pJ(txt);if(!p?.angles)throw new Error('No se pudieron parsear ángulos');
-    S.angles=p.angles;S.phase='select';
-  }catch(e){S.err=e.message;S.step=0;S.phase='select'}
-  render();
+    const r=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name:document.getElementById('r-name').value,email:document.getElementById('r-email').value,password:pass})});
+    const d=await r.json();
+    if(!r.ok) throw new Error(d.error);
+    showMsg(d.message,'success');
+  }catch(err){showMsg(err.message,'error')}
+  finally{btn.disabled=false;btn.textContent='Crear Cuenta'}
+  return false;
 }
-
-async function goNext(){
-  if(F().id==='youtube')await goStructs();
-  else await goFinalContent();
-}
-
-async function goStructs(){
-  const f=F(),news=selN(),ang=selA();
-  S.step=f.steps.indexOf('Estructura');S.phase='loading';S.ltxt='Generando estructuras de storytelling...';render();
-
-  const n=news[0],at=ang.map(a=>a.name).join(', ');
-  const prompt=`Noticia: ${n.title} - ${n.summary}\nÁngulos: ${at}\n\nGenera 4 estructuras de storytelling para video YouTube 12-15 min. Responde SOLO con JSON válido:\n{"structures":[{"id":1,"name":"nombre","description":"descripción breve","sections":["sección1","sección2","sección3"]}]}`;
-
-  try{
-    const txt=await apiGen(prompt);
-    const p=pJ(txt);if(!p?.structures)throw new Error('No se pudieron parsear estructuras');
-    S.structs=p.structures;S.phase='select';
-  }catch(e){S.err=e.message;S.step=f.steps.indexOf('Ángulos');S.phase='select'}
-  render();
-}
-
-async function goDirectContent(){
-  const f=F(),news=selN();
-  S.step=f.steps.length-1;S.phase='loading';S.ltxt='Generando contenido final...';render();
-  const prompt=buildFinal(f,news,[],null);
-  try{
-    const txt=await apiGen(prompt,SYS);
-    S.result=txt;S.phase='result';
-  }catch(e){S.err=e.message;S.step=0;S.phase='select'}
-  render();
-}
-
-async function goFinalContent(){
-  const f=F(),news=selN(),ang=selA();
-  S.step=f.steps.length-1;S.phase='loading';S.ltxt='Generando contenido final...';render();
-  const prompt=buildFinal(f,news,ang,null);
-  try{
-    const txt=await apiGen(prompt,SYS);
-    S.result=txt;S.phase='result';
-  }catch(e){S.err=e.message;S.step=f.steps.indexOf('Ángulos');S.phase='select'}
-  render();
-}
-
-async function goFinal(){
-  const f=F(),news=selN(),ang=selA(),str=S.structs[S.ss];
-  S.step=f.steps.length-1;S.phase='loading';S.ltxt='Generando guión completo...';render();
-  const prompt=buildFinal(f,news,ang,str);
-  try{
-    const txt=await apiGen(prompt,SYS);
-    S.result=txt;S.phase='result';
-  }catch(e){S.err=e.message;S.step=f.steps.indexOf('Estructura');S.phase='select'}
-  render();
-}
-
-async function goCopy(){
-  const t=S.itxt.trim();if(!t)return;
-  const f=F();
-  S.step=f.steps.length-1;S.phase='loading';S.ltxt='Generando copy y título...';render();
-  const prompt=`Texto:\n${t}\n\nGenera:\n- Copy redes sociales (280 caracteres máximo, con emojis)\n- Título YouTube SEO`;
-  try{
-    const txt=await apiGen(prompt,SYS);
-    S.result=txt;S.phase='result';
-  }catch(e){S.err=e.message;S.step=0;S.phase='input'}
-  render();
-}
-
-function buildFinal(f,news,ang,str){
-  const nt=news.map(n=>`${n.title}: ${n.summary}`).join('\n');
-  const at=ang.map(a=>a.name).join(', ');
-  switch(f.id){
-    case'carrusel':return`Noticia: ${nt}\nÁngulos elegidos: ${at}\n\nGenera un carrusel de Instagram con estos elementos exactos:\n- Slide 1: Hook (gancho impactante)\n- Slide 2: Contexto breve\n- Slide 3: Contexto amplio (máximo 200 caracteres)\n- Slide 4: CTA (llamada a la acción)\n- Copy Instagram: 500 caracteres con emojis y hashtags\n- Copy Twitter/X: máximo 280 caracteres`;
-    case'noticias_hoy':case'noticias_mx':return`Noticias seleccionadas:\n${nt}\n\nGenera un guión de noticias con esta estructura FIJA (respétala exactamente):\n\n## HOOK\nUna línea por cada noticia, máximo 6 palabras cada una, estilo palabras clave impactantes. Ejemplos: "Trump se vuelve loco", "México se cae", "El dólar sube". Van una tras otra, sin introducción, sin contexto, sin saludo. Solo los hooks.\n\n## NOTICIAS\nINMEDIATAMENTE después del hook, sin ninguna introducción ni transición, salta directo al desarrollo de cada noticia:\n- Noticia 1: desarrollo breve\n- Noticia 2: desarrollo breve\n- Noticia 3: desarrollo breve\n- Noticia 4: desarrollo breve\n\n## CIERRE\nSiempre termina con este CTA exacto: "No olvides seguirnos para más noticias. Te enteraste con Nosotros."\n\n## COPY Y TÍTULO\n- Copy redes sociales: 280 caracteres\n- Título YouTube`;
-    case'sketch':return`Noticia: ${nt}\nÁngulos elegidos: ${at}\n\nGenera un sketch con estos elementos:\n- Parte 1: Humor y sátira\n- Parte 2: Contexto serio\n- Indicaciones visuales para producción\n- Copy redes sociales: 280 caracteres\n- Título YouTube`;
-    case'nr':return`Noticia: ${nt}\nÁngulos elegidos: ${at}\n\nGenera una Nota de Investigación con estos elementos:\n- Hook (gancho que atrape)\n- Contexto general\n- Contexto a fondo\n- Diferentes posturas sobre el tema\n- Cierre\n- Copy redes sociales: 280 caracteres\n- Título YouTube`;
-    case'youtube':{
-const secs=str.sections.map((s,i)=>`Sección ${i+1} — "${s}": Escribe TODO el texto narrado completo de esta sección. No pongas solo el título o descripción. Desarrolla el contenido real: datos, contexto, análisis, argumentos, ejemplos concretos. Mínimo 3 párrafos por sección.`).join('\n');
-return`Noticia: ${nt}\nÁngulos elegidos: ${at}\nEstructura elegida: ${str.name}\n\nIMPORTANTE: NO generes solo una escaleta o esquema. Escribe el guión COMPLETO, palabra por palabra, tal como lo leería el narrador frente a cámara. Cada sección debe tener el texto narrado DESARROLLADO con datos reales, contexto, análisis y explicaciones. NO escribas cosas como "aquí se presenta el tema" o "contextualización del caso" — en su lugar ESCRIBE el contenido real de esa presentación y contextualización.\n\nEstructura del guión (12-15 minutos):\n${secs}\n\nFormato de entrega:\n\n# TÍTULO YOUTUBE (SEO optimizado)\n\n## [00:00] Sección 1 — nombre\n(Texto narrado completo, desarrollado, mínimo 3 párrafos)\n\n## [MM:SS] Sección 2 — nombre\n(Texto narrado completo, desarrollado, mínimo 3 párrafos)\n\n(... así para cada sección)\n\n---\n## DESCRIPCIÓN YOUTUBE\n(200-300 palabras)\n\n---\n## CLIPS CORTOS\n4 clips extraídos del guión, cada uno con: título, duración sugerida, extracto textual del guión, y copy para redes (280 caracteres)`;};
-    default:return'';
-  }
-}
-
-async function cpRes(){
-  try{
-    await navigator.clipboard.writeText(S.result);
-    const b=document.querySelector('.cb');
-    if(b){b.textContent='Copiado!';setTimeout(()=>b.textContent='📋 Copiar',2000)}
-  }catch{}
-}
-
-// ========== INIT ==========
-render();
-
-// ========== PARTICLES ==========
-(function(){
-  const c=document.getElementById('particles');
-  if(!c)return;
-  const ctx=c.getContext('2d');
-  let W,H,pts=[];
-  function resize(){
-    const h=c.parentElement;
-    W=c.width=h.offsetWidth;
-    H=c.height=h.offsetHeight;
-  }
-  function init(){
-    resize();
-    pts=[];
-    const n=Math.floor(W*H/12000);
-    for(let i=0;i<n;i++)pts.push({
-      x:Math.random()*W,y:Math.random()*H,
-      r:Math.random()*1.5+.5,
-      dx:(Math.random()-.5)*.3,
-      dy:(Math.random()-.5)-.15,
-      o:Math.random()*.4+.1
-    });
-  }
-  function draw(){
-    ctx.clearRect(0,0,W,H);
-    for(const p of pts){
-      p.x+=p.dx;p.y+=p.dy;
-      if(p.x<0)p.x=W;if(p.x>W)p.x=0;
-      if(p.y<0)p.y=H;if(p.y>H)p.y=0;
-      ctx.beginPath();
-      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(139,92,246,${p.o})`;
-      ctx.fill();
-    }
-    // draw faint lines between close particles
-    for(let i=0;i<pts.length;i++){
-      for(let j=i+1;j<pts.length;j++){
-        const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y;
-        const d=dx*dx+dy*dy;
-        if(d<8000){
-          ctx.beginPath();
-          ctx.moveTo(pts[i].x,pts[i].y);
-          ctx.lineTo(pts[j].x,pts[j].y);
-          ctx.strokeStyle=`rgba(139,92,246,${.06*(1-d/8000)})`;
-          ctx.stroke();
-        }
-      }
-    }
-    requestAnimationFrame(draw);
-  }
-  init();draw();
-  window.addEventListener('resize',init);
-})();
 </script>
 </body>
 </html>
