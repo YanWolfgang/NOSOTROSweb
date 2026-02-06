@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NOSOTROS — Plataforma de Contenido</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      width: 100%;
+      padding: 2rem;
+      text-align: center;
+      border-bottom: 1px solid #1a1a2e;
+      background: linear-gradient(180deg, #111 0%, #0a0a0a 100%);
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      color: #fff;
+    }
+
+    header h1 span {
+      color: #c084fc;
+    }
+
+    header p {
+      margin-top: 0.5rem;
+      color: #888;
+      font-size: 0.95rem;
+    }
+
+    main {
+      width: 100%;
+      max-width: 700px;
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: #141414;
+      border: 1px solid #222;
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .card h2 {
+      font-size: 1.1rem;
+      margin-bottom: 0.75rem;
+      color: #c084fc;
+    }
+
+    .card p {
+      font-size: 0.9rem;
+      color: #999;
+      line-height: 1.5;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      padding: 0.75rem 1.5rem;
+      background: #7c3aed;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover { background: #6d28d9; }
+
+    .btn:disabled {
+      background: #333;
+      color: #666;
+      cursor: not-allowed;
+    }
+
+    .spinner {
+      display: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #fff4;
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    .btn:disabled .spinner { display: inline-block; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #output {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
+      padding: 1.25rem;
+      min-height: 60px;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      display: none;
+    }
+
+    #output.visible { display: block; }
+
+    #output .label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #666;
+      margin-bottom: 0.5rem;
+    }
+
+    #output .step {
+      padding: 0.4rem 0;
+      border-bottom: 1px solid #222;
+    }
+
+    #output .step:last-child { border-bottom: none; }
+
+    .ok { color: #4ade80; }
+    .fail { color: #f87171; }
+    .info { color: #c084fc; }
+
+    .news-input {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .news-input input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #e0e0e0;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .news-input input:focus { border-color: #7c3aed; }
+
+    footer {
+      margin-top: auto;
+      padding: 2rem;
+      text-align: center;
+      color: #444;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>NOSOTRO<span>S</span></h1>
+    <p>Plataforma de contenido con inteligencia artificial</p>
+  </header>
+
+  <main>
+    <div class="card">
+      <h2>Diagnóstico del sistema</h2>
+      <p>Verifica que el servidor y la conexión con Claude estén funcionando correctamente.</p>
+      <button class="btn" id="btnTest" onclick="runTest()">
+        <span class="spinner"></span>
+        Probar conexión con IA
+      </button>
+    </div>
+
+    <div id="output">
+      <div class="label">Resultados</div>
+      <div id="results"></div>
+    </div>
+
+    <div class="card">
+      <h2>Buscar noticias</h2>
+      <p>Escribe un tema y Claude buscará las noticias más recientes al respecto.</p>
+      <div class="news-input">
+        <input type="text" id="topicInput" placeholder="Ej: tecnología en México" />
+        <button class="btn" id="btnNews" onclick="searchNews()">
+          <span class="spinner"></span>
+          Buscar
+        </button>
+      </div>
+    </div>
+
+    <div id="newsOutput" class="card" style="display:none;">
+      <h2>Noticias encontradas</h2>
+      <div id="newsContent" style="white-space:pre-wrap; line-height:1.6;"></div>
+    </div>
+  </main>
+
+  <footer>NOSOTROS &copy; 2026 — Powered by Claude</footer>
+
+  <script>
+    const output = document.getElementById('output');
+    const results = document.getElementById('results');
+
+    function addStep(text, cls) {
+      const div = document.createElement('div');
+      div.className = 'step ' + (cls || '');
+      div.textContent = text;
+      results.appendChild(div);
+    }
+
+    async function runTest() {
+      const btn = document.getElementById('btnTest');
+      btn.disabled = true;
+      output.classList.add('visible');
+      results.innerHTML = '';
+
+      addStep('Verificando servidor...', 'info');
+
+      try {
+        const healthRes = await fetch('/api/health');
+        const health = await healthRes.json();
+
+        if (health.status === 'ok') {
+          addStep('Servidor OK — ' + health.service, 'ok');
+        } else {
+          addStep('Servidor respondió con estado inesperado', 'fail');
+          btn.disabled = false;
+          return;
+        }
+      } catch (e) {
+        addStep('No se pudo conectar al servidor: ' + e.message, 'fail');
+        btn.disabled = false;
+        return;
+      }
+
+      addStep('Probando conexión con Claude (web_search)...', 'info');
+
+      try {
+        const newsRes = await fetch('/api/news', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topic: 'México hoy' }),
+        });
+        const news = await newsRes.json();
+
+        if (news.error) {
+          addStep('Error de Claude: ' + news.error, 'fail');
+        } else {
+          addStep('Claude respondió correctamente', 'ok');
+          addStep('Tokens usados — entrada: ' + news.usage.input_tokens + ', salida: ' + news.usage.output_tokens, 'info');
+        }
+      } catch (e) {
+        addStep('Error al conectar con Claude: ' + e.message, 'fail');
+      }
+
+      btn.disabled = false;
+    }
+
+    async function searchNews() {
+      const btn = document.getElementById('btnNews');
+      const topic = document.getElementById('topicInput').value.trim();
+      const newsOutput = document.getElementById('newsOutput');
+      const newsContent = document.getElementById('newsContent');
+
+      if (!topic) return;
+
+      btn.disabled = true;
+      newsOutput.style.display = 'block';
+      newsContent.textContent = 'Buscando noticias...';
+
+      try {
+        const res = await fetch('/api/news', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topic }),
+        });
+        const data = await res.json();
+
+        if (data.error) {
+          newsContent.textContent = 'Error: ' + data.error;
+        } else {
+          newsContent.textContent = data.result;
+        }
+      } catch (e) {
+        newsContent.textContent = 'Error: ' + e.message;
+      }
+
+      btn.disabled = false;
+    }
+
+    document.getElementById('topicInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') searchNews();
+    });
+  </script>
+</body>
+</html>
