@@ -12,53 +12,83 @@ const CAT_Q = {
   ciencia: 'ciencia OR salud OR medicina OR investigación OR espacio'
 };
 
+// ========== CACHE (15 min TTL) ==========
+const cache = new Map();
+const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
+
+function getCached(key) {
+  const entry = cache.get(key);
+  if (entry && Date.now() - entry.ts < CACHE_TTL) return entry.data;
+  cache.delete(key);
+  return null;
+}
+
+function setCache(key, data) {
+  cache.set(key, { data, ts: Date.now() });
+  // Evict old entries
+  if (cache.size > 50) {
+    const oldest = [...cache.entries()].sort((a, b) => a[1].ts - b[1].ts)[0];
+    if (oldest) cache.delete(oldest[0]);
+  }
+}
+
+async function safeFetch(url) {
+  const r = await fetch(url);
+  const d = await r.json();
+  if (d.status === 'error') {
+    console.error('[NewsAPI]', d.code, d.message);
+    if (d.code === 'rateLimited') throw new Error('NewsAPI: limite de requests alcanzado (100/dia plan gratuito). Intenta en unas horas.');
+    throw new Error(`NewsAPI: ${d.message || d.code}`);
+  }
+  return d;
+}
+
 function filterArticles(articles) {
   return (articles || []).filter(a => a.title && a.title !== '[Removed]' && a.description && a.description !== '[Removed]');
 }
 
 async function fetchNews(scope, query, category) {
+  const cacheKey = `${scope}:${query||''}:${category||''}`;
+  const cached = getCached(cacheKey);
+  if (cached) return cached;
+
   let articles = [];
   const catQuery = category && CAT_Q[category] ? CAT_Q[category] : null;
 
   if (scope === 'both') {
-    // 4 internacionales + 4 México
     const intlQ = catQuery || 'mundial OR internacional';
     const mxQ = catQuery ? `&q=${encodeURIComponent(catQuery)}` : '';
-    const [r1, r2] = await Promise.all([
-      fetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(intlQ)}&language=es&sortBy=publishedAt&pageSize=10&apiKey=${NEWS_KEY}`),
-      fetch(`https://newsapi.org/v2/everything?domains=${MX_DOMAINS}&language=es&sortBy=publishedAt&pageSize=10${mxQ}&apiKey=${NEWS_KEY}`)
+    const [d1, d2] = await Promise.all([
+      safeFetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(intlQ)}&language=es&sortBy=publishedAt&pageSize=10&apiKey=${NEWS_KEY}`),
+      safeFetch(`https://newsapi.org/v2/everything?domains=${MX_DOMAINS}&language=es&sortBy=publishedAt&pageSize=10${mxQ}&apiKey=${NEWS_KEY}`)
     ]);
-    const d1 = await r1.json(), d2 = await r2.json();
     articles = [...filterArticles(d1.articles).slice(0, 4), ...filterArticles(d2.articles).slice(0, 4)];
 
   } else if (scope === 'mx') {
-    // Solo México via dominios mexicanos
     const q = catQuery || query || null;
     const qParam = q ? `&q=${encodeURIComponent(q)}` : '';
-    const r = await fetch(`https://newsapi.org/v2/everything?domains=${MX_DOMAINS}&language=es&sortBy=publishedAt&pageSize=15${qParam}&apiKey=${NEWS_KEY}`);
-    const d = await r.json();
+    const d = await safeFetch(`https://newsapi.org/v2/everything?domains=${MX_DOMAINS}&language=es&sortBy=publishedAt&pageSize=15${qParam}&apiKey=${NEWS_KEY}`);
     articles = d.articles || [];
 
   } else if (scope === 'intl') {
-    // Solo internacionales
     const q = catQuery || query || 'mundial OR internacional OR economía OR política OR tecnología';
-    const r = await fetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(q)}&language=es&sortBy=publishedAt&pageSize=15&apiKey=${NEWS_KEY}`);
-    const d = await r.json();
+    const d = await safeFetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(q)}&language=es&sortBy=publishedAt&pageSize=15&apiKey=${NEWS_KEY}`);
     articles = d.articles || [];
 
   } else {
-    // Default: México
-    const r = await fetch(`https://newsapi.org/v2/everything?domains=${MX_DOMAINS}&language=es&sortBy=publishedAt&pageSize=15&apiKey=${NEWS_KEY}`);
-    const d = await r.json();
+    const d = await safeFetch(`https://newsapi.org/v2/everything?domains=${MX_DOMAINS}&language=es&sortBy=publishedAt&pageSize=15&apiKey=${NEWS_KEY}`);
     articles = d.articles || [];
   }
 
-  return filterArticles(articles).slice(0, 8).map((a, i) => ({
+  const result = filterArticles(articles).slice(0, 8).map((a, i) => ({
     id: i + 1,
     title: (a.title || '').replace(/\s*-\s*[^-]*$/, ''),
     summary: (a.description || '').slice(0, 200),
     source: a.source?.name || 'Fuente desconocida'
   }));
+
+  setCache(cacheKey, result);
+  return result;
 }
 
 module.exports = { fetchNews };
