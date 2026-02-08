@@ -232,4 +232,34 @@ router.get('/trends', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ========== STYLY USER PERMISSIONS ==========
+router.get('/styly/permissions/:userId', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT styly_modules FROM users WHERE id = $1',
+      [req.params.userId]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Usuario no encontrado' });
+    const modules = rows[0].styly_modules || [];
+    res.json({ modules });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post('/styly/permissions/:userId', async (req, res) => {
+  try {
+    const { modules } = req.body;
+    if (!Array.isArray(modules)) return res.status(400).json({ error: 'modules debe ser un array' });
+
+    const { rows } = await pool.query(
+      'UPDATE users SET styly_modules = $1 WHERE id = $2 RETURNING id, name, styly_modules',
+      [JSON.stringify(modules), req.params.userId]
+    );
+
+    if (!rows.length) return res.status(404).json({ error: 'Usuario no encontrado' });
+    res.json({ ok: true, modules: rows[0].styly_modules });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 module.exports = router;

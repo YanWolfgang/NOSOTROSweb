@@ -43,6 +43,7 @@ async function initDB() {
     await client.query(`
       ALTER TABLE ideas ADD COLUMN IF NOT EXISTS season_relevance VARCHAR(100);
       ALTER TABLE content_history ADD COLUMN IF NOT EXISTS notes TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS styly_modules JSONB DEFAULT '[]';
     `);
 
     // AI conversations table
@@ -107,6 +108,17 @@ async function initDB() {
       CREATE INDEX IF NOT EXISTS idx_styly_tasks_assigned ON styly_tasks(assigned_to);
       CREATE INDEX IF NOT EXISTS idx_styly_tasks_status ON styly_tasks(status);
       CREATE INDEX IF NOT EXISTS idx_styly_tasks_project ON styly_tasks(project_id);
+    `);
+
+    // Styly User Permissions table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS styly_user_permissions (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        module VARCHAR(50) NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(user_id, module)
+      );
     `);
 
     // Crear admin si no existe

@@ -152,7 +152,6 @@
       </div>
       <div>
         <div style="font-size:.7rem;font-weight:700;color:var(--mt);text-transform:uppercase;margin-bottom:.4rem">Task Manager</div>
-        <button class="module-tab" onclick="setTab('dashboard')">📊 Dashboard</button>
         <button class="module-tab" onclick="setTab('tareas')">✅ Tareas</button>
         <button class="module-tab" onclick="setTab('ia-tareas')">🧠 IA - Tareas</button>
       </div>
@@ -263,7 +262,7 @@ function fmt$(n){return'$'+Number(n).toLocaleString('es-MX',{minimumFractionDigi
 // ========== TABS ==========
 function setTab(t){
   tab=t;
-  const tabMap={'📊 dashboard':'dashboard','✅ tareas':'tareas','🧠 ia - tareas':'ia-tareas','generar':'generar','ideas':'ideas','herramientas':'herramientas','calendario':'calendario','historial':'historial'};
+  const tabMap={'✅ tareas':'tareas','🧠 ia - tareas':'ia-tareas','generar':'generar','ideas':'ideas','herramientas':'herramientas','calendario':'calendario','historial':'historial'};
   document.querySelectorAll('.module-tab').forEach(b=>{
     const text=b.textContent.trim().toLowerCase();
     const mapped=tabMap[text]||text;
@@ -280,7 +279,6 @@ function renderTab(){
   else if(tab==='calendario')renderCalendario(m);
   else if(tab==='historial')renderHistorial(m);
   else if(tab==='tareas')renderTareas(m);
-  else if(tab==='dashboard')renderDashboard(m);
   else if(tab==='ia-tareas')renderIATareas(m);
 }
 
