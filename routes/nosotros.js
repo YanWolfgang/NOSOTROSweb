@@ -9,9 +9,23 @@ router.use(verifyToken, requireBusiness('nosotros'));
 
 router.post('/news', async (req, res) => {
   try {
-    const { scope, query, category } = req.body;
-    const news = await fetchNews(scope, query, category);
-    res.json({ news });
+    const { scope, query, category, page = 1, pageSize = 8 } = req.body;
+    const result = await fetchNews(scope, query, category);
+
+    // Paginate results
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const paginatedArticles = result.articles.slice(start, end);
+
+    res.json({
+      news: paginatedArticles,
+      pagination: {
+        page,
+        pageSize,
+        total: result.total,
+        totalPages: Math.ceil(result.total / pageSize)
+      }
+    });
   } catch (e) {
     console.error('Error /api/nosotros/news:', e.message);
     res.status(500).json({ error: e.message });
@@ -21,11 +35,12 @@ router.post('/news', async (req, res) => {
 // ========== NEWS VIA IA (fallback when API limit reached) ==========
 router.post('/news-ai', async (req, res) => {
   try {
-    const { scope, category } = req.body;
+    const { scope, category, page = 1, pageSize = 8 } = req.body;
     const today = new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const todayISO = new Date().toISOString();
     const scopeLabel = scope === 'intl' ? 'internacionales' : scope === 'both' ? 'internacionales y de Mexico' : 'de Mexico';
     const catLabel = category ? ` sobre ${category}` : '';
-    const count = scope === 'both' ? 8 : 6;
+    const count = Math.max(pageSize * 3, 20); // Generate more articles to support pagination
 
     const prompt = `Hoy es ${today}. Genera ${count} noticias REALES y ACTUALES ${scopeLabel}${catLabel} que esten ocurriendo hoy o esta semana.
 
@@ -46,7 +61,28 @@ Incluye variedad de temas${category ? '' : ': politica, economia, tecnologia, so
     const parsed = JSON.parse(raw);
     if (!parsed.news || !Array.isArray(parsed.news)) throw new Error('IA no devolvio noticias');
 
-    res.json({ news: parsed.news.slice(0, 8).map((n, i) => ({ id: i + 1, title: n.title, summary: n.summary, source: (n.source || 'IA') + ' (via IA)' })) });
+    // Add today's date to all AI-generated news and paginate
+    const allNews = parsed.news.map((n, i) => ({
+      id: i + 1,
+      title: n.title,
+      summary: n.summary,
+      source: (n.source || 'IA') + ' (via IA)',
+      date: todayISO
+    }));
+
+    const paginatedStart = (page - 1) * pageSize;
+    const paginatedEnd = paginatedStart + pageSize;
+    const paginatedNews = allNews.slice(paginatedStart, paginatedEnd);
+
+    res.json({
+      news: paginatedNews,
+      pagination: {
+        page,
+        pageSize,
+        total: allNews.length,
+        totalPages: Math.ceil(allNews.length / pageSize)
+      }
+    });
   } catch (e) {
     console.error('Error /api/nosotros/news-ai:', e.message);
     res.status(500).json({ error: e.message });

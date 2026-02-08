@@ -44,7 +44,19 @@ async function safeFetch(url) {
 }
 
 function filterArticles(articles) {
-  return (articles || []).filter(a => a.title && a.title !== '[Removed]' && a.description && a.description !== '[Removed]');
+  const now = new Date();
+  const twoDaysAgo = new Date(now.getTime() - (48 * 60 * 60 * 1000)); // 48 hours ago
+
+  return (articles || []).filter(a => {
+    if (!a.title || a.title === '[Removed]' || !a.description || a.description === '[Removed]') return false;
+
+    // Filter for recent articles (last 48 hours)
+    if (a.publishedAt) {
+      const pubDate = new Date(a.publishedAt);
+      return pubDate >= twoDaysAgo; // Published within last 48 hours
+    }
+    return false; // Exclude articles without publishedAt
+  });
 }
 
 async function fetchNews(scope, query, category) {
@@ -80,12 +92,18 @@ async function fetchNews(scope, query, category) {
     articles = d.articles || [];
   }
 
-  const result = filterArticles(articles).slice(0, 8).map((a, i) => ({
-    id: i + 1,
-    title: (a.title || '').replace(/\s*-\s*[^-]*$/, ''),
-    summary: (a.description || '').slice(0, 200),
-    source: a.source?.name || 'Fuente desconocida'
-  }));
+  const filtered = filterArticles(articles);
+
+  const result = {
+    articles: filtered.map((a, i) => ({
+      id: i + 1,
+      title: (a.title || '').replace(/\s*-\s*[^-]*$/, ''),
+      summary: (a.description || '').slice(0, 200),
+      source: a.source?.name || 'Fuente desconocida',
+      date: a.publishedAt || new Date().toISOString()
+    })),
+    total: filtered.length
+  };
 
   setCache(cacheKey, result);
   return result;

@@ -109,6 +109,7 @@ let S={view:'home',fid:null,step:0,phase:'input',ltxt:'',
   structs:[],ss:null,result:'',itxt:'',err:null};
 let modTab='generar';
 let newsSource=localStorage.getItem('newsSource')||'api'; // 'api' or 'ia'
+let newsPagination={page:1,pageSize:8,total:0,totalPages:0};
 
 // ========== HELPERS ==========
 function F(){return FORMATS.find(f=>f.id===S.fid)}
@@ -123,13 +124,17 @@ function md(t){
 }
 
 // ========== API ==========
-async function apiNews(scope,query,category){
-  const r=await fetch('/api/nosotros/news',{method:'POST',headers:hdrs,body:JSON.stringify({scope,query:query||undefined,category:category||undefined})});
-  const d=await r.json();if(d.error)throw new Error(d.error);return d.news||[];
+async function apiNews(scope,query,category,page=1,pageSize=8){
+  const r=await fetch('/api/nosotros/news',{method:'POST',headers:hdrs,body:JSON.stringify({scope,query:query||undefined,category:category||undefined,page,pageSize})});
+  const d=await r.json();if(d.error)throw new Error(d.error);
+  if(d.pagination)newsPagination=d.pagination;
+  return d.news||[];
 }
-async function apiNewsAI(scope,category){
-  const r=await fetch('/api/nosotros/news-ai',{method:'POST',headers:hdrs,body:JSON.stringify({scope,category:category||undefined})});
-  const d=await r.json();if(d.error)throw new Error(d.error);return d.news||[];
+async function apiNewsAI(scope,category,page=1,pageSize=8){
+  const r=await fetch('/api/nosotros/news-ai',{method:'POST',headers:hdrs,body:JSON.stringify({scope,category:category||undefined,page,pageSize})});
+  const d=await r.json();if(d.error)throw new Error(d.error);
+  if(d.pagination)newsPagination=d.pagination;
+  return d.news||[];
 }
 function toggleNewsSource(){
   newsSource=newsSource==='api'?'ia':'api';
@@ -268,14 +273,24 @@ function rContent(f){
 function rNewsSel(f){
   const n=f.ns,ok=S.sn.size===n;
   const cats=`<div class="cats">${CATS.map(c=>`<button class="cat-btn ${S.cat===c.id?'active':''}" onclick="setCat(${c.id===null?'null':"'"+c.id+"'"})">${c.label}</button>`).join('')}</div>`;
-  return`${cats}<p class="sel-hint">Selecciona ${n} noticia${n>1?'s':''} (${S.sn.size}/${n})</p>
+
+  // Pagination controls
+  const pag = newsPagination;
+  const pagControls = pag.totalPages > 1 ? `
+    <div style="display:flex;align-items:center;justify-content:center;gap:.5rem;margin-bottom:.75rem">
+      <button class="btn-outline" ${pag.page===1?'disabled':''} onclick="changePage(${pag.page-1})" style="padding:4px 12px;font-size:.8rem">← Anterior</button>
+      <span style="font-size:.8rem;color:var(--mt)">Página ${pag.page} de ${pag.totalPages}</span>
+      <button class="btn-outline" ${pag.page===pag.totalPages?'disabled':''} onclick="changePage(${pag.page+1})" style="padding:4px 12px;font-size:.8rem">Siguiente →</button>
+    </div>` : '';
+
+  return`${cats}${pagControls}<p class="sel-hint">Selecciona ${n} noticia${n>1?'s':''} (${S.sn.size}/${n})</p>
     <div class="sel-list">${S.news.map((nw,i)=>`
       <div class="sel-card ${S.sn.has(i)?'on':''}" onclick="tgN(${i})">
         <div class="sel-check">${S.sn.has(i)?'✓':''}</div>
         <div class="sel-body">
           <div class="sel-title">${esc(nw.title)}</div>
           <div class="sel-desc">${esc(nw.summary)}</div>
-          <div class="sel-source">${esc(nw.source)}</div>
+          <div class="sel-source">${esc(nw.source)} ${nw.date?'• '+formatNewsDate(nw.date):''}</div>
         </div></div>`).join('')}</div>
     <div class="actions"><button class="btn" ${ok?'':'disabled'} onclick="${f.steps[S.step+1]==='Contenido'?'goDirectContent()':'goAngles()'}">
       ${f.steps[S.step+1]==='Contenido'?'Generar contenido':'Generar angulos'}</button></div>`;
@@ -317,30 +332,48 @@ function rResult(){
     <div class="actions"><button class="btn-outline btn" onclick="goHome()">Nuevo contenido</button></div>`;
 }
 
+// ========== HELPERS (Date formatting) ==========
+function formatNewsDate(dateStr){
+  if(!dateStr)return'';
+  const d=new Date(dateStr);
+  const today=new Date();today.setHours(0,0,0,0);
+  const newsDate=new Date(d);newsDate.setHours(0,0,0,0);
+  if(newsDate.getTime()===today.getTime())return'Hoy';
+  const opts={month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'};
+  return d.toLocaleDateString('es-MX',opts);
+}
+
 // ========== HANDLERS ==========
-function goHome(){S={view:'home',fid:null,step:0,phase:'input',ltxt:'',sq:'',cat:null,news:[],sn:new Set(),angles:[],sa:new Set(),structs:[],ss:null,result:'',itxt:'',err:null};render()}
+function goHome(){S={view:'home',fid:null,step:0,phase:'input',ltxt:'',sq:'',cat:null,news:[],sn:new Set(),angles:[],sa:new Set(),structs:[],ss:null,result:'',itxt:'',err:null};newsPagination={page:1,pageSize:8,total:0,totalPages:0};render()}
 function clErr(){S.err=null;render()}
-function setCat(c){if(S.cat===c)return;S.cat=c;S.sn=new Set();S.err=null;fetchN(F().scope,S.sq||undefined)}
+function setCat(c){if(S.cat===c)return;S.cat=c;S.sn=new Set();S.err=null;newsPagination.page=1;fetchN(F().scope,S.sq||undefined)}
 function goFmt(id){
   S.view='flow';S.fid=id;S.step=0;S.news=[];S.sn=new Set();S.angles=[];S.sa=new Set();
   S.structs=[];S.ss=null;S.result='';S.err=null;S.sq='';S.cat=null;S.itxt='';
+  newsPagination={page:1,pageSize:8,total:0,totalPages:0};
   const f=F();
   if(f.id==='copy'){S.phase='input';render();return}
   S.phase='loading';S.ltxt='Cargando noticias del dia...';render();fetchN(f.scope);
 }
-function retryFetch(){S.err=null;const f=F();S.phase='loading';S.ltxt='Cargando noticias...';render();fetchN(f.scope,S.sq||undefined)}
-async function fetchN(scope,query){
+function retryFetch(){S.err=null;const f=F();newsPagination.page=1;S.phase='loading';S.ltxt='Cargando noticias...';render();fetchN(f.scope,S.sq||undefined)}
+async function changePage(page){
+  if(page<1||page>newsPagination.totalPages)return;
+  newsPagination.page=page;
+  S.sn=new Set(); // Clear selections when changing page
+  await fetchN(F().scope,S.sq||undefined,newsPagination.page);
+}
+async function fetchN(scope,query,page=1){
   S.phase='loading';S.ltxt=newsSource==='ia'?'IA buscando noticias actuales...':'Buscando noticias via API...';render();
   try{
     let news;
     if(newsSource==='ia'){
-      news=await apiNewsAI(scope,S.cat);
+      news=await apiNewsAI(scope,S.cat,page,newsPagination.pageSize);
     }else{
-      try{news=await apiNews(scope,query,S.cat)}
+      try{news=await apiNews(scope,query,S.cat,page,newsPagination.pageSize)}
       catch(apiErr){
         // Auto-fallback to IA if API fails (rate limit, etc)
         S.ltxt='API no disponible, consultando IA...';render();
-        news=await apiNewsAI(scope,S.cat);
+        news=await apiNewsAI(scope,S.cat,page,newsPagination.pageSize);
       }
     }
     if(!news.length)throw new Error('No se encontraron noticias.');
