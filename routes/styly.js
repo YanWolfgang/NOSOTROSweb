@@ -527,6 +527,87 @@ router.post('/projects', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ========== STYLY TASKS ANALYTICS (for Dashboard) ==========
+router.get('/tasks/analytics', async (req, res) => {
+  try {
+    const [tasksR, projR] = await Promise.all([
+      pool.query(
+        `SELECT t.*, p.name as project_name, p.color as project_color
+         FROM styly_tasks t LEFT JOIN styly_projects p ON t.project_id = p.id
+         ORDER BY t.priority DESC, t.task_id ASC`
+      ),
+      pool.query('SELECT * FROM styly_projects ORDER BY order_index ASC')
+    ]);
+
+    const allTasks = tasksR.rows;
+    const projects = projR.rows;
+
+    // Overall stats
+    const stats = {
+      total: allTasks.length,
+      pendiente: allTasks.filter(t => (t.status || '').toLowerCase() === 'pendiente').length,
+      enProgreso: allTasks.filter(t => (t.status || '').toLowerCase() === 'en progreso').length,
+      completada: allTasks.filter(t => (t.status || '').toLowerCase() === 'completada').length
+    };
+    stats.completionRate = stats.total > 0 ? Math.round((stats.completada / stats.total) * 100) : 0;
+
+    // By priority
+    const byPriority = { alta: { total: 0, done: 0 }, media: { total: 0, done: 0 }, baja: { total: 0, done: 0 } };
+    allTasks.forEach(t => {
+      const p = (t.priority || 'media').toLowerCase();
+      if (byPriority[p]) {
+        byPriority[p].total++;
+        if ((t.status || '').toLowerCase() === 'completada') byPriority[p].done++;
+      }
+    });
+
+    // By user
+    const byUser = {};
+    allTasks.forEach(t => {
+      const u = t.assigned_to || 'Sin asignar';
+      if (!byUser[u]) byUser[u] = { total: 0, pendiente: 0, enProgreso: 0, completada: 0 };
+      byUser[u].total++;
+      const s = (t.status || '').toLowerCase();
+      if (s === 'pendiente') byUser[u].pendiente++;
+      else if (s === 'en progreso') byUser[u].enProgreso++;
+      else if (s === 'completada') byUser[u].completada++;
+    });
+
+    // By project
+    const byProject = {};
+    projects.forEach(p => {
+      byProject[p.name] = { id: p.id, color: p.color, total: 0, pendiente: 0, completada: 0, completion: 0 };
+    });
+    allTasks.forEach(t => {
+      const pn = t.project_name || 'Sin proyecto';
+      if (!byProject[pn]) byProject[pn] = { total: 0, pendiente: 0, completada: 0, completion: 0 };
+      byProject[pn].total++;
+      const s = (t.status || '').toLowerCase();
+      if (s === 'pendiente') byProject[pn].pendiente++;
+      if (s === 'completada') byProject[pn].completada++;
+    });
+    Object.values(byProject).forEach(p => {
+      p.completion = p.total > 0 ? Math.round((p.completada / p.total) * 100) : 0;
+    });
+
+    // High priority pending tasks
+    const urgent = allTasks
+      .filter(t => (t.priority || '').toLowerCase() === 'alta' && (t.status || '').toLowerCase() !== 'completada')
+      .map(t => ({ id: t.id, task_id: t.task_id, description: t.description, module: t.module, assigned_to: t.assigned_to, status: t.status, project: t.project_name }));
+
+    // Recently updated
+    const recentlyUpdated = allTasks
+      .filter(t => t.updated_at)
+      .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+      .slice(0, 5)
+      .map(t => ({ task_id: t.task_id, description: t.description, status: t.status, assigned_to: t.assigned_to, updated_at: t.updated_at }));
+
+    res.json({ stats, byPriority, byUser, byProject, urgent, recentlyUpdated, projects });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ========== STYLY TASKS ==========
 router.get('/tasks', async (req, res) => {
   try {

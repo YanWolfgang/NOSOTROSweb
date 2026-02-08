@@ -122,9 +122,15 @@ function renderDashboard(){
       <div class="biz-intel-grid" id="bizGrid"></div>
     </div>
 
-    <!-- STYLY TASKS ANALYSIS -->
+    <!-- STYLY TASKS INTEGRATION -->
     <div class="dash-section">
-      <div class="dash-section-title">✅ Análisis de Tareas STYLY</div>
+      <div class="dash-section-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
+        <span>✅ Tareas STYLY — Panel de Desarrollo</span>
+        <div style="display:flex;gap:.5rem">
+          <button onclick="askAI('Dame un análisis completo del estado de las tareas de desarrollo de Styly: bottlenecks, prioridades y recomendaciones')" style="padding:.4rem .8rem;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass);color:var(--fg);font-size:.75rem;cursor:pointer;font-weight:600">🧠 Analizar con IA</button>
+          <a href="/styly.html" onclick="localStorage.setItem('styly_tab','tareas')" style="padding:.4rem .8rem;border-radius:8px;background:#EC4899;color:#fff;font-size:.75rem;text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:.3rem">💻 Ir a STYLY →</a>
+        </div>
+      </div>
       <div id="stylyTasksArea"></div>
     </div>
 
@@ -151,7 +157,7 @@ function renderDashboard(){
 }
 
 // ========== PLACEHOLDER ROTATION ==========
-const PLACEHOLDERS=['Que genero el equipo esta semana?','Que negocio necesita atencion?','Dame tendencias de hoy','Como va el rendimiento?','Hay huecos en el calendario?'];
+const PLACEHOLDERS=['Que genero el equipo esta semana?','Que negocio necesita atencion?','Dame tendencias de hoy','Como va el rendimiento?','Hay huecos en el calendario?','Como van las tareas de Styly?','Que tareas urgentes hay pendientes?','Quien tiene mas carga de trabajo?'];
 let phIdx=0, phInterval;
 function rotatePlaceholder(){
   const inp=document.getElementById('aiInput');if(!inp)return;
@@ -472,85 +478,162 @@ async function loadBizIntel(){
   }catch(e){grid.innerHTML=`<div style="color:var(--mt)">${esc(e.message)}</div>`}
 }
 
-// ========== STYLY TASKS INTELLIGENCE ==========
+// ========== STYLY TASKS INTELLIGENCE (Full Integration) ==========
+let stylyTasksCache=null;
 async function loadStylyTasksIntel(){
   const el=document.getElementById('stylyTasksArea');if(!el)return;
-  el.innerHTML='<div style="color:var(--mt);font-size:.82rem;padding:1rem;text-align:center">Cargando análisis de tareas...</div>';
+  el.innerHTML='<div style="color:var(--mt);font-size:.82rem;padding:1rem;text-align:center"><div class="loader-dots" style="display:inline-flex;gap:4px"><span></span><span></span><span></span></div><br>Cargando tareas de STYLY...</div>';
   try{
-    const r=await fetch('/api/styly/tasks',{headers:hdrs});
-    const d=await r.json();
-    const tasks=d.tasks||[];
-
-    const stats={
-      total:tasks.length,
-      pending:tasks.filter(t=>t.status==='pendiente').length,
-      progress:tasks.filter(t=>t.status==='en progreso').length,
-      completed:tasks.filter(t=>t.status==='completada').length,
-      high:tasks.filter(t=>t.priority==='alta').length,
-      unassigned:tasks.filter(t=>!t.assigned_to).length
-    };
-
-    const userWorkload={};
-    tasks.forEach(t=>{
-      if(t.assigned_to){
-        userWorkload[t.assigned_to]=(userWorkload[t.assigned_to]||0)+1;
-      }
-    });
-
-    const maxLoad=Math.max(...Object.values(userWorkload),1);
-    const avgLoad=stats.total>0?Math.round(stats.total/Object.keys(userWorkload).length):0;
-
-    el.innerHTML=`
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem;margin-bottom:1.5rem">
-        <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:10px;padding:1rem">
-          <div style="font-size:.75rem;color:var(--mt);font-weight:600">Total de Tareas</div>
-          <div style="font-size:1.8rem;font-weight:700;color:#3B82F6;margin-top:.25rem">${stats.total}</div>
-        </div>
-        <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:10px;padding:1rem">
-          <div style="font-size:.75rem;color:var(--mt);font-weight:600">Pendientes</div>
-          <div style="font-size:1.8rem;font-weight:700;color:#F59E0B;margin-top:.25rem">${stats.pending}</div>
-        </div>
-        <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:10px;padding:1rem">
-          <div style="font-size:.75rem;color:var(--mt);font-weight:600">En Progreso</div>
-          <div style="font-size:1.8rem;font-weight:700;color:#06B6D4;margin-top:.25rem">${stats.progress}</div>
-        </div>
-        <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:10px;padding:1rem">
-          <div style="font-size:.75rem;color:var(--mt);font-weight:600">Completadas</div>
-          <div style="font-size:1.8rem;font-weight:700;color:#10B981;margin-top:.25rem">${stats.completed}</div>
-        </div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem">
-        <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:10px;padding:1rem">
-          <div style="font-weight:600;color:var(--fg);margin-bottom:.75rem">⚠️ Tareas Críticas</div>
-          <div style="font-size:.85rem;color:var(--mt);line-height:1.5">
-            ${stats.high>0?`<strong style="color:#EF4444">${stats.high} tareas de alta prioridad</strong> requieren atención inmediata`:'✅ No hay tareas críticas pendientes'}
-          </div>
-        </div>
-        <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:10px;padding:1rem">
-          <div style="font-weight:600;color:var(--fg);margin-bottom:.75rem">👥 Tareas Sin Asignar</div>
-          <div style="font-size:.85rem;color:var(--mt);line-height:1.5">
-            ${stats.unassigned>0?`<strong style="color:#F59E0B">${stats.unassigned} tareas sin asignar</strong> necesitan ser distribuidas`:'✅ Todas las tareas están asignadas'}
-          </div>
-        </div>
-        <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:10px;padding:1rem">
-          <div style="font-weight:600;color:var(--fg);margin-bottom:.75rem">📊 Progreso General</div>
-          <div style="font-size:.85rem;color:var(--mt);line-height:1.5">
-            ${stats.total>0?`${Math.round(stats.completed/stats.total*100)}% completado`:'Sin datos'}
-            <div style="background:#e5e7eb;height:6px;border-radius:3px;margin-top:.5rem;overflow:hidden">
-              <div style="background:#10B981;height:100%;width:${stats.total>0?stats.completed/stats.total*100:0}%"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div style="margin-top:1.5rem">
-        <a href="/styly.html" style="display:inline-flex;align-items:center;gap:.5rem;padding:.75rem 1.25rem;background:#EC4899;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;transition:all .2s" onmouseover="this.style.background='#BE185D'" onmouseout="this.style.background='#EC4899'">
-          💻 Ver detalles en STYLY →
-        </a>
-      </div>
-    `;
+    const r=await fetch('/api/styly/tasks/analytics',{headers:hdrs});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    stylyTasksCache=d;
+    renderStylyTasks(el,d);
   }catch(e){el.innerHTML=`<div style="color:var(--mt);font-size:.82rem;padding:1rem">Error: ${esc(e.message)}</div>`}
+}
+
+function renderStylyTasks(el,d){
+  const s=d.stats;
+  const projEntries=Object.entries(d.byProject).sort((a,b)=>b[1].total-a[1].total);
+  const userEntries=Object.entries(d.byUser).filter(([k])=>k!=='Sin asignar').sort((a,b)=>b[1].total-a[1].total);
+  const bp=d.byPriority;
+  const urgent=d.urgent||[];
+  const recent=d.recentlyUpdated||[];
+
+  el.innerHTML=`
+    <!-- KPI ROW -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.65rem;margin-bottom:1.25rem">
+      <div style="background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(59,130,246,.04));border:1px solid rgba(59,130,246,.3);border-radius:12px;padding:1rem;text-align:center">
+        <div style="font-size:.7rem;color:var(--mt);font-weight:600">TOTAL</div>
+        <div style="font-size:2rem;font-weight:800;color:#3B82F6">${s.total}</div>
+      </div>
+      <div style="background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(239,68,68,.04));border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:1rem;text-align:center">
+        <div style="font-size:.7rem;color:var(--mt);font-weight:600">PENDIENTES</div>
+        <div style="font-size:2rem;font-weight:800;color:#EF4444">${s.pendiente}</div>
+      </div>
+      <div style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.04));border:1px solid rgba(245,158,11,.3);border-radius:12px;padding:1rem;text-align:center">
+        <div style="font-size:.7rem;color:var(--mt);font-weight:600">EN PROGRESO</div>
+        <div style="font-size:2rem;font-weight:800;color:#F59E0B">${s.enProgreso}</div>
+      </div>
+      <div style="background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.04));border:1px solid rgba(16,185,129,.3);border-radius:12px;padding:1rem;text-align:center">
+        <div style="font-size:.7rem;color:var(--mt);font-weight:600">COMPLETADAS</div>
+        <div style="font-size:2rem;font-weight:800;color:#10B981">${s.completada}</div>
+      </div>
+      <div style="background:linear-gradient(135deg,rgba(236,72,153,.12),rgba(236,72,153,.04));border:1px solid rgba(236,72,153,.3);border-radius:12px;padding:1rem;text-align:center">
+        <div style="font-size:.7rem;color:var(--mt);font-weight:600">COMPLETADO</div>
+        <div style="font-size:2rem;font-weight:800;color:#EC4899">${s.completionRate}%</div>
+        <div style="background:rgba(255,255,255,.1);height:4px;border-radius:2px;margin-top:.4rem;overflow:hidden">
+          <div style="background:linear-gradient(90deg,#EC4899,#f472b6);height:100%;width:${s.completionRate}%;transition:width .5s"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TWO COLUMNS: Projects + Users -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem">
+      <!-- PROJECTS -->
+      <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:12px;padding:1rem;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)">
+        <div style="font-weight:700;color:var(--fg);font-size:.85rem;margin-bottom:.75rem">🎯 Progreso por Proyecto</div>
+        ${projEntries.map(([name,p])=>{
+          const pct=p.completion;
+          const color=p.color||'#6B7280';
+          return `<div style="margin-bottom:.65rem">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.2rem">
+              <span style="font-size:.78rem;font-weight:600;color:var(--fg)">${esc(name)}</span>
+              <span style="font-size:.7rem;font-weight:700;color:${color}">${pct}% <span style="color:var(--mt);font-weight:400">(${p.completada}/${p.total})</span></span>
+            </div>
+            <div style="background:rgba(255,255,255,.06);height:6px;border-radius:3px;overflow:hidden">
+              <div style="background:${color};height:100%;width:${pct}%;transition:width .5s"></div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+
+      <!-- USERS -->
+      <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:12px;padding:1rem;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)">
+        <div style="font-weight:700;color:var(--fg);font-size:.85rem;margin-bottom:.75rem">👥 Carga por Usuario</div>
+        ${userEntries.map(([name,u])=>{
+          const pct=u.total>0?Math.round(u.completada/u.total*100):0;
+          return `<div style="margin-bottom:.65rem">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.2rem">
+              <span style="font-size:.78rem;font-weight:600;color:var(--fg)">${esc(name)}</span>
+              <div style="display:flex;gap:.4rem;font-size:.68rem">
+                <span style="color:#EF4444">🔴${u.pendiente}</span>
+                <span style="color:#F59E0B">🟡${u.enProgreso||0}</span>
+                <span style="color:#10B981">✅${u.completada}</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:2px;height:6px;border-radius:3px;overflow:hidden">
+              <div style="background:#10B981;width:${u.total>0?u.completada/u.total*100:0}%"></div>
+              <div style="background:#F59E0B;width:${u.total>0?(u.enProgreso||0)/u.total*100:0}%"></div>
+              <div style="background:#EF4444;width:${u.total>0?u.pendiente/u.total*100:0}%"></div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <!-- URGENT TASKS + PRIORITY BREAKDOWN -->
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:1rem;margin-bottom:1rem">
+      <!-- URGENT -->
+      <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:12px;padding:1rem;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)">
+        <div style="font-weight:700;color:var(--fg);font-size:.85rem;margin-bottom:.75rem">⚠️ Tareas Urgentes (Alta Prioridad)</div>
+        ${urgent.length===0?'<div style="color:var(--mt);font-size:.82rem;text-align:center;padding:1rem">✅ No hay tareas urgentes pendientes</div>':
+        urgent.slice(0,6).map(t=>`
+          <div style="display:flex;align-items:start;gap:.6rem;padding:.5rem;border-radius:8px;border-left:3px solid #EF4444;background:rgba(239,68,68,.04);margin-bottom:.4rem">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:.7rem;font-weight:700;color:#EC4899">${esc(t.task_id)} · ${esc(t.module)}</div>
+              <div style="font-size:.8rem;color:var(--fg);margin-top:.15rem;line-height:1.3">${esc(t.description)}</div>
+              <div style="font-size:.68rem;color:var(--mt);margin-top:.2rem">👤 ${esc(t.assigned_to||'Sin asignar')} ${t.project?'· 📁 '+esc(t.project):''}</div>
+            </div>
+            <select onchange="updateStylyTask(${t.id},this.value)" style="padding:.25rem .4rem;border-radius:6px;border:1px solid var(--glass-border);background:var(--glass);color:var(--fg);font-size:.68rem;cursor:pointer;flex-shrink:0">
+              <option value="Pendiente" ${(t.status||'').toLowerCase()==='pendiente'?'selected':''}>Pendiente</option>
+              <option value="En Progreso" ${(t.status||'').toLowerCase()==='en progreso'?'selected':''}>En Progreso</option>
+              <option value="Completada" ${(t.status||'').toLowerCase()==='completada'?'selected':''}>Completada</option>
+            </select>
+          </div>
+        `).join('')+
+        (urgent.length>6?`<div style="font-size:.75rem;color:var(--mt);text-align:center;margin-top:.5rem">+${urgent.length-6} tareas urgentes más</div>`:'')}
+      </div>
+
+      <!-- PRIORITY BREAKDOWN -->
+      <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:12px;padding:1rem;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)">
+        <div style="font-weight:700;color:var(--fg);font-size:.85rem;margin-bottom:.75rem">⚡ Por Prioridad</div>
+        <div style="margin-bottom:.75rem">
+          <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:.3rem"><span style="color:#DC2626;font-weight:600">🔴 Alta</span><span style="color:var(--mt)">${bp.alta.done}/${bp.alta.total}</span></div>
+          <div style="background:rgba(255,255,255,.06);height:8px;border-radius:4px;overflow:hidden"><div style="background:#DC2626;height:100%;width:${bp.alta.total>0?bp.alta.done/bp.alta.total*100:0}%"></div></div>
+        </div>
+        <div style="margin-bottom:.75rem">
+          <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:.3rem"><span style="color:#D97706;font-weight:600">🟡 Media</span><span style="color:var(--mt)">${bp.media.done}/${bp.media.total}</span></div>
+          <div style="background:rgba(255,255,255,.06);height:8px;border-radius:4px;overflow:hidden"><div style="background:#D97706;height:100%;width:${bp.media.total>0?bp.media.done/bp.media.total*100:0}%"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:.3rem"><span style="color:#6B7280;font-weight:600">🟢 Baja</span><span style="color:var(--mt)">${bp.baja.done}/${bp.baja.total}</span></div>
+          <div style="background:rgba(255,255,255,.06);height:8px;border-radius:4px;overflow:hidden"><div style="background:#6B7280;height:100%;width:${bp.baja.total>0?bp.baja.done/bp.baja.total*100:0}%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECENT ACTIVITY -->
+    ${recent.length?`
+    <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:12px;padding:1rem;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)">
+      <div style="font-weight:700;color:var(--fg);font-size:.85rem;margin-bottom:.75rem">🕐 Actividad Reciente</div>
+      ${recent.map(t=>`
+        <div style="display:flex;align-items:center;gap:.6rem;padding:.4rem 0;border-bottom:1px solid var(--glass-border)">
+          <span style="padding:2px 6px;border-radius:4px;font-size:.65rem;font-weight:700;background:${(t.status||'').toLowerCase()==='completada'?'rgba(16,185,129,.15)':((t.status||'').toLowerCase()==='en progreso'?'rgba(245,158,11,.15)':'rgba(239,68,68,.15)')};color:${(t.status||'').toLowerCase()==='completada'?'#10B981':((t.status||'').toLowerCase()==='en progreso'?'#F59E0B':'#EF4444')}">${esc(t.status)}</span>
+          <span style="font-size:.78rem;font-weight:600;color:#EC4899">${esc(t.task_id)}</span>
+          <span style="font-size:.78rem;color:var(--fg);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.description)}</span>
+          <span style="font-size:.68rem;color:var(--mt);flex-shrink:0">${t.updated_at?new Date(t.updated_at).toLocaleDateString('es-MX',{day:'2-digit',month:'short'}):''}</span>
+        </div>
+      `).join('')}
+    </div>`:''}
+  `;
+}
+
+async function updateStylyTask(id,status){
+  try{
+    const r=await fetch('/api/styly/tasks/'+id,{method:'PUT',headers:hdrs,body:JSON.stringify({status})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    loadStylyTasksIntel();
+  }catch(e){console.error('Error updating task:',e.message)}
 }
 
 // ========== TRENDS ==========

@@ -501,6 +501,11 @@ button{font-family:inherit;cursor:pointer}
   .trend-action{align-self:flex-end}
   /* Section titles */
   .dash-section-title{font-size:.92rem}
+  /* Styly tasks section responsive */
+  #stylyTasksArea>div>div[style*="grid-template-columns: 1fr 1fr"],
+  #stylyTasksArea>div>div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
+  #stylyTasksArea>div>div[style*="grid-template-columns: 2fr 1fr"],
+  #stylyTasksArea>div>div[style*="grid-template-columns:2fr 1fr"]{grid-template-columns:1fr !important}
 }
 @media(max-width:480px){
   .stats-row{grid-template-columns:1fr}
