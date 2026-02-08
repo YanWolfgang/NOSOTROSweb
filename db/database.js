@@ -110,6 +110,17 @@ async function initDB() {
       CREATE INDEX IF NOT EXISTS idx_styly_tasks_project ON styly_tasks(project_id);
     `);
 
+    // Add new columns for task manager redesign
+    await client.query(`
+      ALTER TABLE styly_tasks ADD COLUMN IF NOT EXISTS due_date DATE;
+      ALTER TABLE styly_tasks ADD COLUMN IF NOT EXISTS start_date DATE;
+      ALTER TABLE styly_tasks ADD COLUMN IF NOT EXISTS position INTEGER DEFAULT 0;
+    `);
+
+    // Clear all existing tasks (fresh start) and reset sequence
+    await client.query(`DELETE FROM styly_tasks;`);
+    await client.query(`ALTER SEQUENCE styly_tasks_id_seq RESTART WITH 1;`);
+
     // Styly User Permissions table
     await client.query(`
       CREATE TABLE IF NOT EXISTS styly_user_permissions (

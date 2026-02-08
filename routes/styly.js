@@ -548,12 +548,12 @@ router.get('/users', async (req, res) => {
 
 router.post('/tasks', async (req, res) => {
   try {
-    const { task_id, project_id, module, description, priority, assigned_to } = req.body;
+    const { task_id, project_id, module, description, priority, assigned_to, start_date, due_date } = req.body;
     if (!task_id || !module || !description) return res.status(400).json({ error: 'Faltan campos requeridos' });
 
     const { rows } = await pool.query(
-      'INSERT INTO styly_tasks (task_id, project_id, module, description, priority, assigned_to, status) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [task_id, project_id || null, module, description, priority || 'media', assigned_to || null, 'pendiente']
+      'INSERT INTO styly_tasks (task_id, project_id, module, description, priority, assigned_to, status, start_date, due_date) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+      [task_id, project_id || null, module, description, priority || 'Media', assigned_to || null, 'Pendiente', start_date || null, due_date || null]
     );
     res.json({ task: rows[0] });
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -561,7 +561,7 @@ router.post('/tasks', async (req, res) => {
 
 router.put('/tasks/:id', async (req, res) => {
   try {
-    const { status, assigned_to, priority } = req.body;
+    const { status, assigned_to, priority, description, project_id, module, start_date, due_date, position } = req.body;
     const updates = [];
     const params = [];
     let paramCount = 1;
@@ -577,6 +577,30 @@ router.put('/tasks/:id', async (req, res) => {
     if (priority !== undefined) {
       updates.push(`priority = $${paramCount++}`);
       params.push(priority);
+    }
+    if (description !== undefined) {
+      updates.push(`description = $${paramCount++}`);
+      params.push(description);
+    }
+    if (project_id !== undefined) {
+      updates.push(`project_id = $${paramCount++}`);
+      params.push(project_id);
+    }
+    if (module !== undefined) {
+      updates.push(`module = $${paramCount++}`);
+      params.push(module);
+    }
+    if (start_date !== undefined) {
+      updates.push(`start_date = $${paramCount++}`);
+      params.push(start_date);
+    }
+    if (due_date !== undefined) {
+      updates.push(`due_date = $${paramCount++}`);
+      params.push(due_date);
+    }
+    if (position !== undefined) {
+      updates.push(`position = $${paramCount++}`);
+      params.push(position);
     }
 
     if (!updates.length) return res.status(400).json({ error: 'No hay campos para actualizar' });
@@ -599,6 +623,43 @@ router.delete('/tasks/:id', async (req, res) => {
     const { rowCount } = await pool.query('DELETE FROM styly_tasks WHERE id = $1', [req.params.id]);
     if (!rowCount) return res.status(404).json({ error: 'Tarea no encontrada' });
     res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Bulk update for drag-and-drop operations
+router.post('/tasks/bulk-update', async (req, res) => {
+  try {
+    const { updates } = req.body;
+    if (!updates || !Array.isArray(updates)) {
+      return res.status(400).json({ error: 'Se requiere array de updates' });
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      for (const u of updates) {
+        await client.query(
+          'UPDATE styly_tasks SET status = $1, position = $2, updated_at = NOW() WHERE id = $3',
+          [u.status, u.position || 0, u.id]
+        );
+      }
+      await client.query('COMMIT');
+      res.json({ ok: true, updated: updates.length });
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Clear all tasks (admin only)
+router.delete('/tasks/all', async (req, res) => {
+  try {
+    const { rowCount } = await pool.query('DELETE FROM styly_tasks');
+    await pool.query('ALTER SEQUENCE styly_tasks_id_seq RESTART WITH 1');
+    res.json({ ok: true, deleted: rowCount });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
