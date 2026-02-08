@@ -15,7 +15,7 @@
   <nav class="sidebar" id="sidebar"></nav>
   <main class="content fade-in" id="content">
     <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
-      <div><h1 style="color:var(--nosotros)">📰 NOSOTROS</h1><p>Plataforma de contenido digital con IA</p></div>
+      <div><h1 style="color:var(--nosotros)"><i class="feather" data-icon="newspaper" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> NOSOTROS</h1><p>Plataforma de contenido digital con IA</p></div>
       <div id="srcToggle" style="display:flex;align-items:center;gap:.5rem;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:.4rem .7rem"></div>
     </div>
     <div class="module-tabs" id="modTabs">
@@ -34,10 +34,10 @@ const hdrs={'Content-Type':'application/json','Authorization':'Bearer '+token};
 
 // ========== SIDEBAR ==========
 const BUSINESSES=[
-  {id:'nosotros',name:'NOSOTROS',icon:'📰',color:'#8B5CF6',url:'/nosotros.html'},
-  {id:'duelazo',name:'DUELAZO',icon:'⚽',color:'#10B981',url:'/duelazo.html'},
-  {id:'spacebox',name:'SPACEBOX',icon:'📦',color:'#3B82F6',url:'/spacebox.html'},
-  {id:'styly',name:'STYLY',icon:'💻',color:'#EC4899',url:'/styly.html'}
+  {id:'nosotros',name:'NOSOTROS',icon:'<i class="feather" data-icon="newspaper" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#8B5CF6',url:'/nosotros.html'},
+  {id:'duelazo',name:'DUELAZO',icon:'<i class="feather" data-icon="activity" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#10B981',url:'/duelazo.html'},
+  {id:'spacebox',name:'SPACEBOX',icon:'<i class="feather" data-icon="package" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#3B82F6',url:'/spacebox.html'},
+  {id:'styly',name:'STYLY',icon:'<i class="feather" data-icon="monitor" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#EC4899',url:'/styly.html'}
 ];
 function renderSidebar(){
   const bs=user.businesses||[];const isAdmin=user.role==='admin';
@@ -45,16 +45,16 @@ function renderSidebar(){
   document.getElementById('sidebar').innerHTML=`
     <button class="sidebar-close" onclick="toggleSidebar()">&times;</button>
     <div class="sidebar-header"><h2>Panel <span>Central</span></h2></div>
-    <div class="sidebar-section"><div class="sidebar-label">General</div><a href="/dashboard.html" class="sidebar-item"><span class="icon">📊</span>Dashboard</a></div>
+    <div class="sidebar-section"><div class="sidebar-label">General</div><a href="/dashboard.html" class="sidebar-item"><span class="icon"><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></span>Dashboard</a></div>
     <div class="sidebar-section"><div class="sidebar-label">Negocios</div>
       ${items.map(b=>`<a href="${b.url}" class="sidebar-item ${b.id==='nosotros'?'active':''}" style="--accent:${b.color}"><span class="icon">${b.icon}</span>${b.name}</a>`).join('')}
     </div>
-    ${isAdmin?`<div class="sidebar-section"><div class="sidebar-label">Admin</div><a href="/admin.html" class="sidebar-item"><span class="icon">👥</span>Usuarios</a></div>`:''}
+    ${isAdmin?`<div class="sidebar-section"><div class="sidebar-label">Admin</div><a href="/admin.html" class="sidebar-item"><span class="icon"><i class="feather" data-icon="users" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></span>Usuarios</a></div>`:''}
     <div class="sidebar-footer">
       <div class="sidebar-avatar">${(user.name||'U')[0].toUpperCase()}</div>
       <div class="sidebar-user"><div class="name">${user.name||'Usuario'}</div><div class="role">${user.role||'editor'}</div></div>
-      <button class="theme-btn" onclick="toggleTheme()">🌙</button>
-      <button class="theme-btn" onclick="logout()" style="font-size:.75rem">↪</button>
+      <button class="theme-btn" onclick="toggleTheme()"><i class="feather" data-icon="moon" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>
+      <button class="theme-btn" onclick="logout()" style="font-size:.75rem"><i class="feather" data-icon="share-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>
     </div>`;
 }
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show')}
@@ -67,7 +67,7 @@ renderSidebar();
 const SYS='Eres el equipo creativo de NOSOTROS, un medio digital mexicano. Lenguaje coloquial mexicano pero sin perder seriedad. Solo usa lenguaje muy casual para ejemplificar o enfatizar. Ganchos constantes y atractivo.';
 
 const FORMATS=[
-  {id:'carrusel',name:'Carrusel IG',icon:'📱',color:'#E1306C',
+  {id:'carrusel',name:'Carrusel IG',icon:'<i class="feather" data-icon="smartphone" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#E1306C',
    desc:'Slides con hook, contexto y CTA para Instagram',
    badges:['Web Search','Angulos'],steps:['Noticias','Angulos','Contenido'],
    scope:'mx',ns:1,ac:5,ma:2},
@@ -75,23 +75,23 @@ const FORMATS=[
    desc:'Resumen diario de noticias internacionales y Mexico',
    badges:['Web Search'],steps:['Noticias','Contenido'],
    scope:'both',ns:4,ac:0,ma:0},
-  {id:'noticias_mx',name:'Noticias Mexico',icon:'🇲🇽',color:'#006847',
+  {id:'noticias_mx',name:'Noticias Mexico',icon:'<i class="feather" data-icon="map-pin" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#006847',
    desc:'Noticias exclusivamente de Mexico',
    badges:['Web Search'],steps:['Noticias','Contenido'],
    scope:'mx',ns:4,ac:0,ma:0},
-  {id:'sketch',name:'Sketch',icon:'🎭',color:'#FF6B35',
+  {id:'sketch',name:'Sketch',icon:'<i class="feather" data-icon="smile" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#FF6B35',
    desc:'Sketch con humor, satira e indicaciones visuales',
    badges:['Web Search','Angulos'],steps:['Noticias','Angulos','Contenido'],
    scope:'mx',ns:1,ac:5,ma:2},
-  {id:'nr',name:'NR Investigacion',icon:'📰',color:'#8B5CF6',
+  {id:'nr',name:'NR Investigacion',icon:'<i class="feather" data-icon="newspaper" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#8B5CF6',
    desc:'Investigacion a profundidad con multiples posturas',
    badges:['Web Search','Angulos'],steps:['Noticias','Angulos','Contenido'],
    scope:'mx',ns:1,ac:5,ma:2},
-  {id:'youtube',name:'YouTube Largo',icon:'🎥',color:'#FF0000',
+  {id:'youtube',name:'YouTube Largo',icon:'<i class="feather" data-icon="video" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#FF0000',
    desc:'Guion completo 12-15 min con timestamps y clips',
    badges:['Web Search','Angulos','Estructuras'],steps:['Noticias','Angulos','Estructura','Contenido'],
    scope:'mx',ns:1,ac:6,ma:3},
-  {id:'copy',name:'Copy & Titulo',icon:'✍️',color:'#F59E0B',
+  {id:'copy',name:'Copy & Titulo',icon:'<i class="feather" data-icon="edit-3" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#F59E0B',
    desc:'Copy para redes y titulo YouTube desde cualquier texto',
    badges:[],steps:['Texto','Contenido'],
    scope:null,ns:0,ac:0,ma:0}
@@ -109,6 +109,7 @@ let S={view:'home',fid:null,step:0,phase:'input',ltxt:'',
   structs:[],ss:null,result:'',itxt:'',err:null};
 let modTab='generar';
 let newsSource=localStorage.getItem('newsSource')||'api'; // 'api' or 'ia'
+let newsPagination={page:1,pageSize:8,total:0,totalPages:0};
 
 // ========== HELPERS ==========
 function F(){return FORMATS.find(f=>f.id===S.fid)}
@@ -123,13 +124,17 @@ function md(t){
 }
 
 // ========== API ==========
-async function apiNews(scope,query,category){
-  const r=await fetch('/api/nosotros/news',{method:'POST',headers:hdrs,body:JSON.stringify({scope,query:query||undefined,category:category||undefined})});
-  const d=await r.json();if(d.error)throw new Error(d.error);return d.news||[];
+async function apiNews(scope,query,category,page=1,pageSize=8){
+  const r=await fetch('/api/nosotros/news',{method:'POST',headers:hdrs,body:JSON.stringify({scope,query:query||undefined,category:category||undefined,page,pageSize})});
+  const d=await r.json();if(d.error)throw new Error(d.error);
+  if(d.pagination)newsPagination=d.pagination;
+  return d.news||[];
 }
-async function apiNewsAI(scope,category){
-  const r=await fetch('/api/nosotros/news-ai',{method:'POST',headers:hdrs,body:JSON.stringify({scope,category:category||undefined})});
-  const d=await r.json();if(d.error)throw new Error(d.error);return d.news||[];
+async function apiNewsAI(scope,category,page=1,pageSize=8){
+  const r=await fetch('/api/nosotros/news-ai',{method:'POST',headers:hdrs,body:JSON.stringify({scope,category:category||undefined,page,pageSize})});
+  const d=await r.json();if(d.error)throw new Error(d.error);
+  if(d.pagination)newsPagination=d.pagination;
+  return d.news||[];
 }
 function toggleNewsSource(){
   newsSource=newsSource==='api'?'ia':'api';
@@ -176,7 +181,7 @@ async function loadHistory(){
           <div class="history-meta"><span>${h.format_type}</span><span>${new Date(h.created_at).toLocaleString('es-MX')}</span></div>
           <div class="history-preview">${esc(h.preview||'')}</div>
         </div>
-        <button onclick="event.stopPropagation();delHistory(${h.id})" style="position:absolute;top:.5rem;right:.5rem;background:none;border:1px solid var(--border);border-radius:6px;color:var(--mt);cursor:pointer;padding:2px 6px;font-size:.7rem;transition:all .15s" onmouseover="this.style.borderColor='#EF4444';this.style.color='#EF4444'" onmouseout="this.style.borderColor='';this.style.color=''">🗑️</button>
+        <button onclick="event.stopPropagation();delHistory(${h.id})" style="position:absolute;top:.5rem;right:.5rem;background:none;border:1px solid var(--border);border-radius:6px;color:var(--mt);cursor:pointer;padding:2px 6px;font-size:.7rem;transition:all .15s" onmouseover="this.style.borderColor='#EF4444';this.style.color='#EF4444'" onmouseout="this.style.borderColor='';this.style.color=''"><i class="feather" data-icon="trash-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>
       </div>`).join('')}</div>`:'<p style="color:var(--mt);text-align:center;padding:2rem">No hay contenido generado aun.</p>';
   }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
 }
@@ -194,7 +199,7 @@ async function viewHistory(id){
     const d=await r.json();if(d.error)throw new Error(d.error);
     const h=d.item;
     m.innerHTML=`<button class="btn-back" onclick="loadHistory()" style="margin-bottom:1rem">← Volver</button>
-      <div class="result-box"><button class="copy-btn" onclick="cpText(this)">📋 Copiar</button>
+      <div class="result-box"><button class="copy-btn" onclick="cpText(this)"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Copiar</button>
       <div class="result-content" data-raw="${esc(h.output_text)}">${md(h.output_text)}</div></div>`;
   }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
 }
@@ -268,14 +273,24 @@ function rContent(f){
 function rNewsSel(f){
   const n=f.ns,ok=S.sn.size===n;
   const cats=`<div class="cats">${CATS.map(c=>`<button class="cat-btn ${S.cat===c.id?'active':''}" onclick="setCat(${c.id===null?'null':"'"+c.id+"'"})">${c.label}</button>`).join('')}</div>`;
-  return`${cats}<p class="sel-hint">Selecciona ${n} noticia${n>1?'s':''} (${S.sn.size}/${n})</p>
+
+  // Pagination controls
+  const pag = newsPagination;
+  const pagControls = pag.totalPages > 1 ? `
+    <div style="display:flex;align-items:center;justify-content:center;gap:.5rem;margin-bottom:.75rem">
+      <button class="btn-outline" ${pag.page===1?'disabled':''} onclick="changePage(${pag.page-1})" style="padding:4px 12px;font-size:.8rem">← Anterior</button>
+      <span style="font-size:.8rem;color:var(--mt)">Página ${pag.page} de ${pag.totalPages}</span>
+      <button class="btn-outline" ${pag.page===pag.totalPages?'disabled':''} onclick="changePage(${pag.page+1})" style="padding:4px 12px;font-size:.8rem">Siguiente →</button>
+    </div>` : '';
+
+  return`${cats}${pagControls}<p class="sel-hint">Selecciona ${n} noticia${n>1?'s':''} (${S.sn.size}/${n})</p>
     <div class="sel-list">${S.news.map((nw,i)=>`
       <div class="sel-card ${S.sn.has(i)?'on':''}" onclick="tgN(${i})">
-        <div class="sel-check">${S.sn.has(i)?'✓':''}</div>
+        <div class="sel-check">${S.sn.has(i)?'<i class="feather" data-icon="check" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>':''}</div>
         <div class="sel-body">
           <div class="sel-title">${esc(nw.title)}</div>
           <div class="sel-desc">${esc(nw.summary)}</div>
-          <div class="sel-source">${esc(nw.source)}</div>
+          <div class="sel-source">${esc(nw.source)} ${nw.date?'• '+formatNewsDate(nw.date):''}</div>
         </div></div>`).join('')}</div>
     <div class="actions"><button class="btn" ${ok?'':'disabled'} onclick="${f.steps[S.step+1]==='Contenido'?'goDirectContent()':'goAngles()'}">
       ${f.steps[S.step+1]==='Contenido'?'Generar contenido':'Generar angulos'}</button></div>`;
@@ -287,7 +302,7 @@ function rAngSel(f){
   return`<p class="sel-hint">Selecciona 1-${f.ma} angulo${f.ma>1?'s':''} (${S.sa.size}/${f.ma})</p>
     <div class="sel-list">${S.angles.map((a,i)=>`
       <div class="sel-card ${S.sa.has(i)?'on':''}" onclick="tgA(${i})">
-        <div class="sel-check">${S.sa.has(i)?'✓':''}</div>
+        <div class="sel-check">${S.sa.has(i)?'<i class="feather" data-icon="check" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>':''}</div>
         <div class="sel-body"><div class="sel-title">${esc(a.name)}</div><div class="sel-desc">${esc(a.description)}</div></div>
       </div>`).join('')}</div>
     <div class="actions"><button class="btn" ${ok?'':'disabled'} onclick="goNext()">${lbl}</button></div>`;
@@ -312,35 +327,53 @@ function rTextIn(){
 
 function rResult(){
   return`<div class="result-box">
-    <button class="copy-btn" onclick="cpRes()">📋 Copiar</button>
+    <button class="copy-btn" onclick="cpRes()"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Copiar</button>
     <div class="result-content">${md(S.result)}</div></div>
     <div class="actions"><button class="btn-outline btn" onclick="goHome()">Nuevo contenido</button></div>`;
 }
 
+// ========== HELPERS (Date formatting) ==========
+function formatNewsDate(dateStr){
+  if(!dateStr)return'';
+  const d=new Date(dateStr);
+  const today=new Date();today.setHours(0,0,0,0);
+  const newsDate=new Date(d);newsDate.setHours(0,0,0,0);
+  if(newsDate.getTime()===today.getTime())return'Hoy';
+  const opts={month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'};
+  return d.toLocaleDateString('es-MX',opts);
+}
+
 // ========== HANDLERS ==========
-function goHome(){S={view:'home',fid:null,step:0,phase:'input',ltxt:'',sq:'',cat:null,news:[],sn:new Set(),angles:[],sa:new Set(),structs:[],ss:null,result:'',itxt:'',err:null};render()}
+function goHome(){S={view:'home',fid:null,step:0,phase:'input',ltxt:'',sq:'',cat:null,news:[],sn:new Set(),angles:[],sa:new Set(),structs:[],ss:null,result:'',itxt:'',err:null};newsPagination={page:1,pageSize:8,total:0,totalPages:0};render()}
 function clErr(){S.err=null;render()}
-function setCat(c){if(S.cat===c)return;S.cat=c;S.sn=new Set();S.err=null;fetchN(F().scope,S.sq||undefined)}
+function setCat(c){if(S.cat===c)return;S.cat=c;S.sn=new Set();S.err=null;newsPagination.page=1;fetchN(F().scope,S.sq||undefined)}
 function goFmt(id){
   S.view='flow';S.fid=id;S.step=0;S.news=[];S.sn=new Set();S.angles=[];S.sa=new Set();
   S.structs=[];S.ss=null;S.result='';S.err=null;S.sq='';S.cat=null;S.itxt='';
+  newsPagination={page:1,pageSize:8,total:0,totalPages:0};
   const f=F();
   if(f.id==='copy'){S.phase='input';render();return}
   S.phase='loading';S.ltxt='Cargando noticias del dia...';render();fetchN(f.scope);
 }
-function retryFetch(){S.err=null;const f=F();S.phase='loading';S.ltxt='Cargando noticias...';render();fetchN(f.scope,S.sq||undefined)}
-async function fetchN(scope,query){
+function retryFetch(){S.err=null;const f=F();newsPagination.page=1;S.phase='loading';S.ltxt='Cargando noticias...';render();fetchN(f.scope,S.sq||undefined)}
+async function changePage(page){
+  if(page<1||page>newsPagination.totalPages)return;
+  newsPagination.page=page;
+  S.sn=new Set(); // Clear selections when changing page
+  await fetchN(F().scope,S.sq||undefined,newsPagination.page);
+}
+async function fetchN(scope,query,page=1){
   S.phase='loading';S.ltxt=newsSource==='ia'?'IA buscando noticias actuales...':'Buscando noticias via API...';render();
   try{
     let news;
     if(newsSource==='ia'){
-      news=await apiNewsAI(scope,S.cat);
+      news=await apiNewsAI(scope,S.cat,page,newsPagination.pageSize);
     }else{
-      try{news=await apiNews(scope,query,S.cat)}
+      try{news=await apiNews(scope,query,S.cat,page,newsPagination.pageSize)}
       catch(apiErr){
         // Auto-fallback to IA if API fails (rate limit, etc)
         S.ltxt='API no disponible, consultando IA...';render();
-        news=await apiNewsAI(scope,S.cat);
+        news=await apiNewsAI(scope,S.cat,page,newsPagination.pageSize);
       }
     }
     if(!news.length)throw new Error('No se encontraron noticias.');
@@ -425,14 +458,14 @@ function cpRes(){
 function cpText(btn){
   const text=btn.parentElement.querySelector('.result-content').getAttribute('data-raw')||btn.parentElement.querySelector('.result-content').textContent;
   if(navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(text).then(()=>{btn.textContent='Copiado!';setTimeout(()=>btn.textContent='📋 Copiar',2000)}).catch(()=>fallbackCopy(text));
+    navigator.clipboard.writeText(text).then(()=>{btn.textContent='Copiado!';setTimeout(()=>btn.textContent='<i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Copiar',2000)}).catch(()=>fallbackCopy(text));
   }else{fallbackCopy(text)}
 }
 function fallbackCopy(text){
   const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0';
   document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showCopied();
 }
-function showCopied(){const b=document.querySelector('.copy-btn');if(b){b.textContent='Copiado!';setTimeout(()=>b.textContent='📋 Copiar',2000)}}
+function showCopied(){const b=document.querySelector('.copy-btn');if(b){b.textContent='Copiado!';setTimeout(()=>b.textContent='<i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Copiar',2000)}}
 
 // ========== TOGGLE RENDER ==========
 function renderToggle(){
@@ -443,12 +476,12 @@ function renderToggle(){
     <div onclick="toggleNewsSource()" style="width:42px;height:22px;border-radius:99px;background:${isAPI?'var(--bd)':'var(--nosotros)'};cursor:pointer;position:relative;transition:background .2s">
       <div style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:2px;${isAPI?'left:2px':'left:22px'};transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>
     </div>
-    <span style="font-size:.75rem;font-weight:600;color:${!isAPI?'var(--nosotros)':'var(--mt)'}">🧠 IA</span>`;
+    <span style="font-size:.75rem;font-weight:600;color:${!isAPI?'var(--nosotros)':'var(--mt)'}"><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> IA</span>`;
 }
 
 // ========== INIT ==========
 renderToggle();
 render();
 </script>
-</body>
+<script src="/emoji-to-svg.js"></script></body>
 </html>

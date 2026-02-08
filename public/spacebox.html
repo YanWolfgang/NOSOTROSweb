@@ -11,8 +11,8 @@
 :root{--sb:#3B82F6;--sb-bg:rgba(59,130,246,.06);--sb-border:rgba(59,130,246,.2)}
 /* Format cards */
 .sb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.75rem;margin:1rem 0}
-.sb-fmt{background:var(--glass);border:2px solid var(--glass-border);border-radius:16px;padding:1.25rem 1rem;cursor:pointer;transition:all .3s ease;text-align:center;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
-.sb-fmt:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(59,130,246,.12)}
+.sb-fmt{background:rgba(255,255,255,0.07);border:2px solid rgba(255,255,255,0.12);border-radius:16px;padding:1.25rem 1rem;cursor:pointer;transition:all .3s ease;text-align:center;-webkit-backdrop-filter:blur(15px);backdrop-filter:blur(15px)}
+.sb-fmt:hover{transform:translateY(-3px);background:rgba(255,255,255,0.1);box-shadow:0 12px 40px rgba(31,38,135,0.2)}
 .sb-fmt.on{border-color:var(--sb);background:var(--sb-bg)}
 .sb-fmt .ico{font-size:2rem;margin-bottom:.5rem}
 .sb-fmt .nm{font-weight:700;font-size:.95rem;color:var(--fg);margin-bottom:.25rem}
@@ -22,7 +22,7 @@
 .sb-topic textarea{width:100%;min-height:90px;padding:.75rem;border-radius:12px;border:1px solid var(--glass-border);background:var(--glass);color:var(--fg);font-size:.88rem;font-family:inherit;resize:vertical;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);transition:all .3s ease}
 .sb-topic textarea:focus{border-color:var(--sb);outline:none;box-shadow:0 0 0 3px rgba(59,130,246,.12)}
 /* Result sections */
-.sb-result{background:var(--card);border:1px solid var(--glass-border);border-radius:16px;padding:1.25rem;margin:.75rem 0;position:relative;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:var(--shadow-sm)}
+.sb-result{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:1.25rem;margin:.75rem 0;position:relative;-webkit-backdrop-filter:blur(15px);backdrop-filter:blur(15px);box-shadow:0 8px 32px 0 rgba(31,38,135,0.1)}
 .sb-section{margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--glass-border);position:relative}
 .sb-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
 .sb-section-title{font-size:.75rem;font-weight:700;color:var(--sb);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem}
@@ -42,7 +42,8 @@
 /* Ideas */
 .ideas-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
 .ideas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.75rem}
-.idea-card{background:var(--card);border:1px solid var(--glass-border);border-radius:14px;padding:1rem;transition:all .3s ease;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.idea-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:1rem;transition:all .3s ease;-webkit-backdrop-filter:blur(15px);backdrop-filter:blur(15px);box-shadow:0 8px 32px 0 rgba(31,38,135,0.1)}
+.idea-card:hover{background:rgba(255,255,255,0.1);box-shadow:0 12px 40px rgba(31,38,135,0.2)}
 .idea-card.discarded{opacity:.3}.idea-card.used{opacity:.5}
 .idea-badge{display:inline-block;padding:3px 10px;border-radius:6px;font-size:.7rem;font-weight:700;margin-bottom:.5rem}
 .idea-badge.new{background:rgba(59,130,246,.1);color:var(--sb)}
@@ -63,7 +64,8 @@
 .cal-btn:hover{border-color:var(--sb);color:var(--sb)}
 .cal-title{font-size:.95rem;font-weight:600;color:var(--fg)}
 .cal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:.5rem;margin-top:.5rem}
-.cal-day{background:var(--card);border:1px solid var(--glass-border);border-radius:12px;padding:.75rem .5rem;min-height:120px;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.cal-day{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:.75rem .5rem;min-height:120px;-webkit-backdrop-filter:blur(15px);backdrop-filter:blur(15px);transition:all 0.3s ease}
+.cal-day:hover{background:rgba(255,255,255,0.1);box-shadow:0 8px 32px 0 rgba(31,38,135,0.1)}
 .cal-day-name{font-size:.7rem;font-weight:700;color:var(--mt);text-transform:uppercase;text-align:center}
 .cal-day-num{font-size:1.1rem;font-weight:700;color:var(--fg);text-align:center;margin:.25rem 0}
 .cal-day.today{border-color:var(--sb);background:var(--sb-bg)}
@@ -72,7 +74,8 @@
 /* History */
 .hist-filters{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
 .hist-filters select{padding:.45rem .8rem;border-radius:10px;border:1px solid var(--glass-border);background:var(--glass);color:var(--fg);font-size:.82rem;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
-.hist-item{background:var(--card);border:1px solid var(--glass-border);border-radius:14px;padding:.85rem 1rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:var(--shadow-sm)}
+.hist-item{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:.85rem 1rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap;-webkit-backdrop-filter:blur(15px);backdrop-filter:blur(15px);box-shadow:0 8px 32px 0 rgba(31,38,135,0.1);transition:all 0.3s ease}
+.hist-item:hover{background:rgba(255,255,255,0.1);box-shadow:0 12px 40px rgba(31,38,135,0.2)}
 .hist-left{display:flex;align-items:center;gap:.5rem;flex:1;min-width:0}
 .hist-emoji{font-size:1.2rem}
 .hist-info{min-width:0}
@@ -114,7 +117,7 @@
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
   <nav class="sidebar" id="sidebar"></nav>
   <main class="content fade-in" id="content">
-    <div class="page-header"><h1 style="color:var(--sb)">📦 SPACEBOX</h1><p>Mini bodegas · Contenido Instagram semanal</p></div>
+    <div class="page-header"><h1 style="color:var(--sb)"><i class="feather" data-icon="package" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> SPACEBOX</h1><p>Mini bodegas · Contenido Instagram semanal</p></div>
     <div class="module-tabs" id="modTabs">
       <button class="module-tab active" onclick="setTab('generar')">Generar</button>
       <button class="module-tab" onclick="setTab('ideas')">Ideas</button>
@@ -135,10 +138,10 @@ const hdrs={'Content-Type':'application/json','Authorization':'Bearer '+token};
 
 // ========== SIDEBAR ==========
 const BUSINESSES=[
-  {id:'nosotros',name:'NOSOTROS',icon:'📰',color:'#8B5CF6',url:'/nosotros.html'},
-  {id:'duelazo',name:'DUELAZO',icon:'⚽',color:'#10B981',url:'/duelazo.html'},
-  {id:'spacebox',name:'SPACEBOX',icon:'📦',color:'#3B82F6',url:'/spacebox.html'},
-  {id:'styly',name:'STYLY',icon:'💻',color:'#EC4899',url:'/styly.html'}
+  {id:'nosotros',name:'NOSOTROS',icon:'<i class="feather" data-icon="newspaper" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#8B5CF6',url:'/nosotros.html'},
+  {id:'duelazo',name:'DUELAZO',icon:'<i class="feather" data-icon="activity" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#10B981',url:'/duelazo.html'},
+  {id:'spacebox',name:'SPACEBOX',icon:'<i class="feather" data-icon="package" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#3B82F6',url:'/spacebox.html'},
+  {id:'styly',name:'STYLY',icon:'<i class="feather" data-icon="monitor" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#EC4899',url:'/styly.html'}
 ];
 function renderSidebar(){
   const bs=user.businesses||[];const isAdmin=user.role==='admin';
@@ -146,16 +149,16 @@ function renderSidebar(){
   document.getElementById('sidebar').innerHTML=`
     <button class="sidebar-close" onclick="toggleSidebar()">&times;</button>
     <div class="sidebar-header"><h2>Panel <span>Central</span></h2></div>
-    <div class="sidebar-section"><div class="sidebar-label">General</div><a href="/dashboard.html" class="sidebar-item"><span class="icon">📊</span>Dashboard</a></div>
+    <div class="sidebar-section"><div class="sidebar-label">General</div><a href="/dashboard.html" class="sidebar-item"><span class="icon"><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></span>Dashboard</a></div>
     <div class="sidebar-section"><div class="sidebar-label">Negocios</div>
       ${items.map(b=>`<a href="${b.url}" class="sidebar-item ${b.id==='spacebox'?'active':''}" style="--accent:${b.color}"><span class="icon">${b.icon}</span>${b.name}</a>`).join('')}
     </div>
-    ${isAdmin?`<div class="sidebar-section"><div class="sidebar-label">Admin</div><a href="/admin.html" class="sidebar-item"><span class="icon">👥</span>Usuarios</a></div>`:''}
+    ${isAdmin?`<div class="sidebar-section"><div class="sidebar-label">Admin</div><a href="/admin.html" class="sidebar-item"><span class="icon"><i class="feather" data-icon="users" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></span>Usuarios</a></div>`:''}
     <div class="sidebar-footer">
       <div class="sidebar-avatar">${(user.name||'U')[0].toUpperCase()}</div>
       <div class="sidebar-user"><div class="name">${user.name||'Usuario'}</div><div class="role">${user.role||'editor'}</div></div>
-      <button class="theme-btn" onclick="toggleTheme()">🌙</button>
-      <button class="theme-btn" onclick="logout()" style="font-size:.75rem">↪</button>
+      <button class="theme-btn" onclick="toggleTheme()"><i class="feather" data-icon="moon" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>
+      <button class="theme-btn" onclick="logout()" style="font-size:.75rem"><i class="feather" data-icon="share-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>
     </div>`;
 }
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show')}
@@ -166,13 +169,13 @@ renderSidebar();
 
 // ========== CONFIG ==========
 const FMTS=[
-  {id:'video',name:'Video Promocional',icon:'🎬',desc:'Guion reel 30-60 seg'},
-  {id:'carrusel',name:'Carrusel Informativo',icon:'📱',desc:'Tips educativos 4-5 slides'},
+  {id:'video',name:'Video Promocional',icon:'<i class="feather" data-icon="film" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',desc:'Guion reel 30-60 seg'},
+  {id:'carrusel',name:'Carrusel Informativo',icon:'<i class="feather" data-icon="smartphone" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',desc:'Tips educativos 4-5 slides'},
   {id:'promocional',name:'Post Promocional',icon:'📸',desc:'Ofertas y descuentos'},
   {id:'estacional',name:'Post Estacional',icon:'🗓️',desc:'Contenido de temporada'},
-  {id:'confianza',name:'Post de Confianza',icon:'⭐',desc:'Seguridad y testimonios'}
+  {id:'confianza',name:'Post de Confianza',icon:'<i class="feather" data-icon="star" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',desc:'Seguridad y testimonios'}
 ];
-const FMT_EMOJI={video:'🎬',carrusel:'📱',promocional:'📸',estacional:'🗓️',confianza:'⭐'};
+const FMT_EMOJI={video:'<i class="feather" data-icon="film" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',carrusel:'<i class="feather" data-icon="smartphone" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',promocional:'📸',estacional:'🗓️',confianza:'<i class="feather" data-icon="star" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'};
 
 // ========== STATE ==========
 let tab='generar';
@@ -257,21 +260,21 @@ function rGenResult(){
     </div>
     <div class="sb-result">
       ${sections.map((s,i)=>`<div class="sb-section">
-        <button class="copy-sec" onclick="cpSection(${i})">📋 Copiar</button>
+        <button class="copy-sec" onclick="cpSection(${i})"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Copiar</button>
         <div class="sb-section-title">${esc(s.title)}</div>
         <div class="sb-section-body" id="sec${i}">${md(s.body)}</div>
       </div>`).join('')}
     </div>
     <div class="sb-tools">
-      <button class="sb-tool" onclick="aiReview()">📝 Revisar con IA</button>
-      <button class="sb-tool" onclick="aiMulti()">🔄 Multi-formato</button>
+      <button class="sb-tool" onclick="aiReview()"><i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Revisar con IA</button>
+      <button class="sb-tool" onclick="aiMulti()"><i class="feather" data-icon="refresh-cw" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Multi-formato</button>
       <button class="sb-tool" onclick="aiVariants()">🔀 Variantes A/B</button>
-      <button class="sb-tool" onclick="openApproveModal()">✅ Aprobar y Agendar</button>
+      <button class="sb-tool" onclick="openApproveModal()"><i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Aprobar y Agendar</button>
       <button class="sb-tool" onclick="doGenerate()">🔃 Regenerar</button>
     </div>
     <div class="sb-edit">
       <input id="editInput" placeholder="Ej: Hazlo más corto, cambia el CTA, hazlo más informal, agrega dato de seguridad..." value="${esc(G.editTxt)}">
-      <button onclick="doRegenEdit()">🔄 Regenerar con cambios</button>
+      <button onclick="doRegenEdit()"><i class="feather" data-icon="refresh-cw" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Regenerar con cambios</button>
     </div>`;
 }
 
@@ -386,7 +389,7 @@ async function renderIdeas(m){
     m.innerHTML=`
       <div class="ideas-header">
         <h3 style="color:var(--fg);margin:0">💡 Banco de Ideas</h3>
-        <button class="btn" onclick="generateIdeas()">🧠 Generar 4 ideas del mes</button>
+        <button class="btn" onclick="generateIdeas()"><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Generar 4 ideas del mes</button>
       </div>
       ${ideas.length?`<div class="ideas-grid">${ideas.map(renderIdeaCard).join('')}</div>`
         :'<p style="color:var(--mt);text-align:center;padding:2rem">No hay ideas aún. Genera las primeras 4 ideas del mes.</p>'}`;
@@ -395,7 +398,7 @@ async function renderIdeas(m){
 
 function renderIdeaCard(idea){
   const s=idea.status;
-  const emoji=FMT_EMOJI[idea.format]||'📝';
+  const emoji=FMT_EMOJI[idea.format]||'<i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>';
   const fmtName=FMTS.find(f=>f.id===idea.format)?.name||idea.format;
   return`<div class="idea-card ${s}">
     <span class="idea-badge ${s}">${s==='new'?'NUEVA':s==='used'?'USADA'+(idea.used_at?' — '+fmtDateTime(idea.used_at):''):'DESCARTADA'}</span>
@@ -405,8 +408,8 @@ function renderIdeaCard(idea){
       ${idea.season_relevance?`<span class="idea-tag season">🗓️ ${esc(idea.season_relevance)}</span>`:''}
     </div>
     ${s==='new'?`<div class="idea-actions">
-      <button class="idea-btn" onclick="useIdea(${idea.id},'${idea.format}',\`${esc(idea.idea_text).replace(/`/g,'')}\`)">✍️ Generar contenido</button>
-      <button class="idea-btn danger" onclick="discardIdea(${idea.id})">❌ Descartar</button>
+      <button class="idea-btn" onclick="useIdea(${idea.id},'${idea.format}',\`${esc(idea.idea_text).replace(/`/g,'')}\`)"><i class="feather" data-icon="edit-3" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Generar contenido</button>
+      <button class="idea-btn danger" onclick="discardIdea(${idea.id})"><i class="feather" data-icon="x-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Descartar</button>
     </div>`:''}
   </div>`;
 }
@@ -470,7 +473,7 @@ async function renderCalendario(m){
           <div class="cal-day-name">${day.name}</div>
           <div class="cal-day-num">${day.num}</div>
           ${day.items.length?day.items.map(it=>`<div class="cal-item" onclick="viewCalItem(${it.id})">
-            ${FMT_EMOJI[it.format_type]||'📝'} ${esc((it.preview||'').slice(0,30))}
+            ${FMT_EMOJI[it.format_type]||'<i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'} ${esc((it.preview||'').slice(0,30))}
             ${it.scheduled_date?'<br>'+new Date(it.scheduled_date).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}):''}
           </div>`).join(''):''}
         </div>`).join('')}
@@ -488,14 +491,14 @@ async function viewCalItem(id){
     const d=await r.json();if(d.error)throw new Error(d.error);
     const it=d.item;
     showModal(`
-      <div class="modal-title">${FMT_EMOJI[it.format_type]||'📝'} ${esc(it.format_type)} — ${fmtDateTime(it.scheduled_date)}</div>
+      <div class="modal-title">${FMT_EMOJI[it.format_type]||'<i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'} ${esc(it.format_type)} — ${fmtDateTime(it.scheduled_date)}</div>
       <div style="max-height:50vh;overflow-y:auto;margin-bottom:1rem">
         <div class="sb-section-body">${md(it.output_text)}</div>
       </div>
       ${it.notes?`<p style="font-size:.82rem;color:var(--mt)">Notas: ${esc(it.notes)}</p>`:''}
       <div class="modal-actions">
         <button class="m-cancel" onclick="closeModal()">Cerrar</button>
-        <button class="m-ok" onclick="cpToClip(\`${esc(it.output_text).replace(/`/g,"'")}\`);toast('Copiado')">📋 Copiar</button>
+        <button class="m-ok" onclick="cpToClip(\`${esc(it.output_text).replace(/`/g,"'")}\`);toast('Copiado')"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Copiar</button>
       </div>
     `);
   }catch(e){toast('Error: '+e.message)}
@@ -540,7 +543,7 @@ async function renderHistorial(m){
       ${items.map(it=>`<div class="hist-item">
         <input type="checkbox" data-hid="${it.id}" onchange="toggleHistSel(${it.id},this.checked)" style="cursor:pointer;accent-color:#EF4444;margin-right:.4rem">
         <div class="hist-left">
-          <span class="hist-emoji">${FMT_EMOJI[it.format_type]||'📝'}</span>
+          <span class="hist-emoji">${FMT_EMOJI[it.format_type]||'<i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'}</span>
           <div class="hist-info">
             <div class="hist-title">${esc((it.preview||'Sin titulo').slice(0,50))}</div>
             <div class="hist-meta">${esc(it.user_name||'Usuario')} · ${fmtDateTime(it.created_at)}${it.status==='approved'&&it.scheduled_date?' · Agendado: '+fmtDateTime(it.scheduled_date):''}</div>
@@ -549,8 +552,8 @@ async function renderHistorial(m){
         <div class="hist-right">
           <span class="hist-status ${it.status==='approved'?'approved':'draft'}">${it.status==='approved'?'Approved':'Draft'}</span>
           <button class="idea-btn" onclick="viewHistItem(${it.id})">Ver</button>
-          <button class="idea-btn" onclick="cpHistItem(${it.id})">📋</button>
-          <button class="idea-btn danger" onclick="delHistItem(${it.id})">🗑️</button>
+          <button class="idea-btn" onclick="cpHistItem(${it.id})"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>
+          <button class="idea-btn danger" onclick="delHistItem(${it.id})"><i class="feather" data-icon="trash-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>
         </div>
       </div>`).join('')}`:'<p style="color:var(--mt);text-align:center;padding:2rem">No hay contenido generado aún.</p>'}`;
   }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
@@ -567,13 +570,13 @@ async function viewHistItem(id){
     const d=await r.json();if(d.error)throw new Error(d.error);
     const it=d.item;
     showModal(`
-      <div class="modal-title">${FMT_EMOJI[it.format_type]||'📝'} ${esc(it.format_type)}</div>
+      <div class="modal-title">${FMT_EMOJI[it.format_type]||'<i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'} ${esc(it.format_type)}</div>
       <div style="max-height:60vh;overflow-y:auto;margin-bottom:1rem">
         <div class="sb-section-body">${md(it.output_text)}</div>
       </div>
       <div class="modal-actions">
         <button class="m-cancel" onclick="closeModal()">Cerrar</button>
-        <button class="m-ok" onclick="cpToClip(\`${esc(it.output_text).replace(/`/g,"'")}\`);toast('Copiado')">📋 Copiar todo</button>
+        <button class="m-ok" onclick="cpToClip(\`${esc(it.output_text).replace(/`/g,"'")}\`);toast('Copiado')"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Copiar todo</button>
       </div>
     `);
   }catch(e){toast('Error: '+e.message)}
@@ -601,7 +604,7 @@ async function delHistItem(id){
 function openApproveModal(){
   if(!G.resultId)return toast('Genera contenido primero');
   showModal(`
-    <div class="modal-title">✅ Aprobar y Agendar</div>
+    <div class="modal-title"><i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Aprobar y Agendar</div>
     <div class="modal-field">
       <label>Fecha de publicación</label>
       <input type="date" id="appDate" value="${today()}">
@@ -623,7 +626,7 @@ function openApproveModal(){
     </div>
     <div class="modal-actions">
       <button class="m-cancel" onclick="closeModal()">Cancelar</button>
-      <button class="m-ok" onclick="doApprove()">✅ Aprobar y Agendar</button>
+      <button class="m-ok" onclick="doApprove()"><i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Aprobar y Agendar</button>
     </div>
   `);
 }
@@ -639,7 +642,7 @@ async function doApprove(){
       body:JSON.stringify({content_id:G.resultId,scheduled_date:date,scheduled_time:time,scheduled_platform:platform,notes:notes||undefined})});
     const d=await r.json();if(d.error)throw new Error(d.error);
     closeModal();
-    toast('✅ Contenido aprobado y agendado');
+    toast('<i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Contenido aprobado y agendado');
   }catch(e){toast('Error: '+e.message)}
 }
 
@@ -653,7 +656,7 @@ function closeModal(){document.getElementById('modalRoot').innerHTML=''}
 function cpToClip(text,btn){
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(text).then(()=>{
-      if(btn){btn.textContent='✓';setTimeout(()=>btn.textContent='📋 Copiar',1500)}
+      if(btn){btn.textContent='<i class="feather" data-icon="check" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>';setTimeout(()=>btn.textContent='<i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Copiar',1500)}
       else toast('Copiado');
     }).catch(()=>fallbackCp(text));
   }else{fallbackCp(text)}
@@ -667,5 +670,5 @@ function fallbackCp(text){
 // ========== INIT ==========
 renderTab();
 </script>
-</body>
+<script src="/emoji-to-svg.js"></script></body>
 </html>

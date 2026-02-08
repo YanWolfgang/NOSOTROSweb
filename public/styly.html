@@ -6,9 +6,49 @@
 <title>Panel Central — STYLY</title>
 <link rel="icon" type="image/png" href="/favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="/css/styles.css">
 <style>
 :root{--sy:#EC4899;--sy-bg:rgba(236,72,153,.06);--sy-border:rgba(236,72,153,.2);--sy-dark:#BE185D}
+/* STYLY unified header bar */
+.styly-header-bar{display:flex;align-items:center;gap:1.5rem;background:rgba(255,255,255,0.08);border-radius:16px;border:1px solid rgba(255,255,255,0.15);padding:24px;margin-bottom:1.5rem;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 8px 32px 0 rgba(31,38,135,0.15)}
+.styly-brand{display:flex;align-items:center;gap:.75rem;flex-shrink:0;border-right:1px solid var(--glass-border);padding-right:1.5rem;min-width:max-content}
+.brand-icon{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#EC4899,#BE185D);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem}
+.brand-text{display:flex;flex-direction:column;gap:0}
+.brand-text h1{margin:0;font-size:1.1rem;color:var(--sy);font-weight:700}
+.brand-text p{margin:0;font-size:.7rem;color:var(--mt);font-weight:500}
+.module-tabs{flex:1;display:flex}
+/* Tab navigation bar */
+.tab-group-unified{display:flex;align-items:center;gap:0;flex:1;flex-wrap:nowrap}
+.tabs-section-group{display:flex;gap:.3rem;align-items:center}
+.tabs-divider{width:1px;height:24px;background:var(--glass-border);margin:0 .6rem}
+.module-tab{display:inline-flex;align-items:center;gap:.35rem;padding:10px 20px;border-radius:12px;border:1px solid rgba(139,92,246,0.3);background:rgba(139,92,246,0.15);color:var(--fg);font-size:.8rem;font-weight:500;cursor:pointer;transition:all 0.3s ease;white-space:nowrap;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.module-tab i{font-size:.95rem;min-width:18px}
+.module-tab:hover{background:rgba(139,92,246,0.3);border-color:rgba(139,92,246,0.5);color:var(--sy);box-shadow:0 4px 16px rgba(139,92,246,0.2)}
+.module-tab.active{background:rgba(139,92,246,0.3);border-color:rgba(139,92,246,0.6);color:var(--sy);font-weight:600;box-shadow:0 8px 24px rgba(139,92,246,0.25)}
+.tab-text{line-height:1.2;font-size:.78rem}
+@media(max-width:1200px){
+  .styly-header-bar{gap:1rem;padding:.65rem 1rem}
+  .styly-brand{padding-right:1rem}
+  .module-tab{padding:.4rem .65rem;font-size:.75rem}
+}
+@media(max-width:992px){
+  .styly-header-bar{flex-wrap:wrap}
+  .styly-brand{border-right:none;border-bottom:1px solid var(--glass-border);padding-right:0;padding-bottom:.75rem;width:100%;margin-bottom:.5rem}
+  .module-tabs{width:100%}
+  .module-tab{padding:.4rem .6rem;font-size:.72rem}
+}
+@media(max-width:768px){
+  .styly-header-bar{gap:.5rem;padding:.5rem}
+  .brand-icon{width:36px;height:36px;font-size:1rem}
+  .brand-text h1{font-size:.95rem}
+  .brand-text p{font-size:.65rem}
+  .tabs-section-group{gap:.2rem}
+  .module-tab{padding:.35rem .5rem;font-size:.65rem}
+  .module-tab i{font-size:.85rem}
+  .tab-text{display:none}
+  .tabs-divider{margin:0 .3rem;height:18px}
+}
 .section-label{font-size:.78rem;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.5px;margin:1.25rem 0 .5rem;padding-bottom:.35rem;border-bottom:1px solid var(--glass-border)}
 /* Format cards */
 .sy-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:.65rem;margin:.5rem 0}
@@ -128,6 +168,16 @@
 /* Toast */
 .toast{position:fixed;bottom:2rem;right:2rem;padding:.65rem 1.1rem;border-radius:12px;background:linear-gradient(135deg,#10B981,#34d399);color:#fff;font-size:.85rem;font-weight:600;z-index:2000;animation:tIn .3s ease;box-shadow:0 8px 24px rgba(16,185,129,.3)}
 @keyframes tIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+/* Glass morphism buttons */
+.glass-btn{background:rgba(139,92,246,0.2);border:1px solid rgba(139,92,246,0.4);color:var(--fg);padding:10px 20px;border-radius:12px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);cursor:pointer;transition:all 0.3s ease;font-weight:600;font-size:.85rem}
+.glass-btn:hover{background:rgba(139,92,246,0.3);border-color:rgba(139,92,246,0.6);box-shadow:0 4px 16px rgba(139,92,246,0.2)}
+/* Glass morphism cards */
+.glass-card{background:rgba(255,255,255,0.07);-webkit-backdrop-filter:blur(15px);backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:20px;box-shadow:0 8px 32px 0 rgba(31,38,135,0.1);transition:all 0.3s ease}
+.glass-card:hover{background:rgba(255,255,255,0.1);box-shadow:0 12px 40px rgba(31,38,135,0.2)}
+/* View switcher buttons */
+.view-btn{padding:10px 16px;border-radius:10px;border:1px solid rgba(139,92,246,0.2);background:transparent;color:var(--fg);font-size:.8rem;font-weight:500;cursor:pointer;transition:all 0.3s ease;white-space:nowrap}
+.view-btn:hover{background:rgba(139,92,246,0.15);border-color:rgba(139,92,246,0.4)}
+.view-btn.active{background:rgba(139,92,246,0.3);border-color:rgba(139,92,246,0.6);color:var(--sy);font-weight:600;box-shadow:0 4px 16px rgba(139,92,246,0.2)}
 @media(max-width:768px){
   .cal-week{grid-template-columns:1fr}.ideas-grid,.tool-cards,.calc-grid{grid-template-columns:1fr}
   .sy-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
@@ -143,20 +193,46 @@
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
   <nav class="sidebar" id="sidebar"></nav>
   <main class="content fade-in" id="content">
-    <div class="page-header"><h1 style="color:var(--sy)">💻 STYLY</h1><p>Software de gestion para negocios de belleza y bienestar</p></div>
-    <div class="module-tabs" id="modTabs">
-      <div style="border-bottom:1px solid var(--border);padding-bottom:.5rem;margin-bottom:.5rem">
-        <div style="font-size:.7rem;font-weight:700;color:var(--mt);text-transform:uppercase;margin-bottom:.4rem">Creacion de Contenido</div>
-        <button class="module-tab active" onclick="setTab('generar')">Generar</button>
-        <button class="module-tab" onclick="setTab('ideas')">Ideas</button>
-        <button class="module-tab" onclick="setTab('herramientas')">Herramientas</button>
-        <button class="module-tab" onclick="setTab('calendario')">Calendario</button>
-        <button class="module-tab" onclick="setTab('historial')">Historial</button>
+    <div class="styly-header-bar">
+      <div class="styly-brand">
+        <div class="brand-icon"><i class="fas fa-laptop"></i></div>
+        <div class="brand-text">
+          <h1>STYLY</h1>
+          <p>Gestión para negocios de belleza</p>
+        </div>
       </div>
-      <div>
-        <div style="font-size:.7rem;font-weight:700;color:var(--mt);text-transform:uppercase;margin-bottom:.4rem">Task Manager</div>
-        <button class="module-tab" onclick="setTab('tareas')">✅ Tareas</button>
-        <button class="module-tab" onclick="setTab('ia-tareas')">🧠 IA - Tareas</button>
+      <div class="module-tabs" id="modTabs">
+        <div class="tab-group-unified">
+          <div class="tabs-section-group">
+            <button class="module-tab active" onclick="setTab('generar')">
+              <i class="far fa-pen-to-square"></i>
+              <span class="tab-text">Generar</span>
+            </button>
+            <button class="module-tab" onclick="setTab('ideas')">
+              <i class="far fa-lightbulb"></i>
+              <span class="tab-text">Ideas</span>
+            </button>
+            <button class="module-tab" onclick="setTab('herramientas')">
+              <i class="far fa-wrench"></i>
+              <span class="tab-text">Herramientas</span>
+            </button>
+            <button class="module-tab" onclick="setTab('calendario')">
+              <i class="far fa-calendar"></i>
+              <span class="tab-text">Calendario</span>
+            </button>
+            <button class="module-tab" onclick="setTab('historial')">
+              <i class="far fa-clock"></i>
+              <span class="tab-text">Historial</span>
+            </button>
+          </div>
+          <div class="tabs-divider"></div>
+          <div class="tabs-section-group">
+            <button class="module-tab" onclick="setTab('tareas')">
+              <i class="far fa-check-square"></i>
+              <span class="tab-text">Tareas</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
     <div id="modContent"></div>
@@ -169,14 +245,14 @@
 const token=localStorage.getItem('token');
 if(!token){window.location.href='/index.html';}
 const user=JSON.parse(localStorage.getItem('user')||'{}');
-const hdrs={'Content-Type':'application/json','Authorization':'Bearer '+token};
+const hdrs={'Content-Type':'application/json','Authorization':'Bearer '+token,'x-business':'styly'};
 
 // ========== SIDEBAR ==========
 const BUSINESSES=[
-  {id:'nosotros',name:'NOSOTROS',icon:'📰',color:'#8B5CF6',url:'/nosotros.html'},
-  {id:'duelazo',name:'DUELAZO',icon:'⚽',color:'#10B981',url:'/duelazo.html'},
-  {id:'spacebox',name:'SPACEBOX',icon:'📦',color:'#3B82F6',url:'/spacebox.html'},
-  {id:'styly',name:'STYLY',icon:'💻',color:'#EC4899',url:'/styly.html'}
+  {id:'nosotros',name:'NOSOTROS',icon:'<i class="feather" data-icon="newspaper" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#8B5CF6',url:'/nosotros.html'},
+  {id:'duelazo',name:'DUELAZO',icon:'<i class="feather" data-icon="activity" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#10B981',url:'/duelazo.html'},
+  {id:'spacebox',name:'SPACEBOX',icon:'<i class="feather" data-icon="package" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#3B82F6',url:'/spacebox.html'},
+  {id:'styly',name:'STYLY',icon:'<i class="feather" data-icon="monitor" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#EC4899',url:'/styly.html'}
 ];
 function renderSidebar(){
   const bs=user.businesses||[];const isAdmin=user.role==='admin';
@@ -184,16 +260,16 @@ function renderSidebar(){
   document.getElementById('sidebar').innerHTML=`
     <button class="sidebar-close" onclick="toggleSidebar()">&times;</button>
     <div class="sidebar-header"><h2>Panel <span>Central</span></h2></div>
-    <div class="sidebar-section"><div class="sidebar-label">General</div><a href="/dashboard.html" class="sidebar-item"><span class="icon">📊</span>Dashboard</a></div>
+    <div class="sidebar-section"><div class="sidebar-label">General</div><a href="/dashboard.html" class="sidebar-item"><span class="icon"><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></span>Dashboard</a></div>
     <div class="sidebar-section"><div class="sidebar-label">Negocios</div>
       ${items.map(b=>`<a href="${b.url}" class="sidebar-item ${b.id==='styly'?'active':''}" style="--accent:${b.color}"><span class="icon">${b.icon}</span>${b.name}</a>`).join('')}
     </div>
-    ${isAdmin?`<div class="sidebar-section"><div class="sidebar-label">Admin</div><a href="/admin.html" class="sidebar-item"><span class="icon">👥</span>Usuarios</a></div>`:''}
+    ${isAdmin?`<div class="sidebar-section"><div class="sidebar-label">Admin</div><a href="/admin.html" class="sidebar-item"><span class="icon"><i class="feather" data-icon="users" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></span>Usuarios</a></div>`:''}
     <div class="sidebar-footer">
       <div class="sidebar-avatar">${(user.name||'U')[0].toUpperCase()}</div>
       <div class="sidebar-user"><div class="name">${user.name||'Usuario'}</div><div class="role">${user.role||'editor'}</div></div>
-      <button class="theme-btn" onclick="toggleTheme()">🌙</button>
-      <button class="theme-btn" onclick="logout()" style="font-size:.75rem">↪</button>
+      <button class="theme-btn" onclick="toggleTheme()"><i class="feather" data-icon="moon" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>
+      <button class="theme-btn" onclick="logout()" style="font-size:.75rem"><i class="feather" data-icon="share-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>
     </div>`;
 }
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show')}
@@ -204,10 +280,10 @@ renderSidebar();
 
 // ========== CONFIG ==========
 const CLIENT_FMTS=[
-  {id:'reel_educativo',name:'Reel Educativo',icon:'🎬',desc:'Tips, errores comunes, antes/despues',aud:'clients'},
-  {id:'carrusel_valor',name:'Carrusel de Valor',icon:'📱',desc:'Antes vs despues, tips de gestion',aud:'clients'},
-  {id:'caso_exito',name:'Caso de Exito',icon:'⭐',desc:'Historia de cliente transformado',aud:'clients'},
-  {id:'post_feature',name:'Post de Feature',icon:'🚀',desc:'Funcion especifica de Styly',aud:'clients'},
+  {id:'reel_educativo',name:'Reel Educativo',icon:'<i class="feather" data-icon="film" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',desc:'Tips, errores comunes, antes/despues',aud:'clients'},
+  {id:'carrusel_valor',name:'Carrusel de Valor',icon:'<i class="feather" data-icon="smartphone" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',desc:'Antes vs despues, tips de gestion',aud:'clients'},
+  {id:'caso_exito',name:'Caso de Exito',icon:'<i class="feather" data-icon="star" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',desc:'Historia de cliente transformado',aud:'clients'},
+  {id:'post_feature',name:'Post de Feature',icon:'<i class="feather" data-icon="send" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',desc:'Funcion especifica de Styly',aud:'clients'},
   {id:'inspiracional',name:'Post Inspiracional',icon:'💡',desc:'Datos + motivacion para digitalizar',aud:'clients'}
 ];
 const AFF_FMTS=[
@@ -265,7 +341,7 @@ function fmt$(n){return'$'+Number(n).toLocaleString('es-MX',{minimumFractionDigi
 // ========== TABS ==========
 function setTab(t){
   tab=t;
-  const tabMap={'✅ tareas':'tareas','🧠 ia - tareas':'ia-tareas','generar':'generar','ideas':'ideas','herramientas':'herramientas','calendario':'calendario','historial':'historial'};
+  const tabMap={'<i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> tareas':'tareas','generar':'generar','ideas':'ideas','herramientas':'herramientas','calendario':'calendario','historial':'historial'};
   document.querySelectorAll('.module-tab').forEach(b=>{
     const text=b.textContent.trim().toLowerCase();
     const mapped=tabMap[text]||text;
@@ -282,7 +358,6 @@ function renderTab(){
   else if(tab==='calendario')renderCalendario(m);
   else if(tab==='historial')renderHistorial(m);
   else if(tab==='tareas')renderTareas(m);
-  else if(tab==='ia-tareas')renderIATareas(m);
 }
 
 // ================================================================
@@ -317,15 +392,15 @@ function rGenResult(){
   const f=ALL_FMTS.find(x=>x.id===G.fmt);
   const secs=parseSections(G.result);
   return`<div class="flow-header"><button class="btn-back" onclick="resetGen()">← Nuevo contenido</button><div class="flow-title"><span>${f.icon}</span> ${f.name} <span class="idea-bdg ${G.aud}" style="font-size:.7rem;margin-left:.5rem">${G.aud==='clients'?'CLIENTES':'AFILIADAS'}</span></div></div>
-    <div class="sy-result">${secs.map((s,i)=>`<div class="sy-sec"><button class="cp-s" onclick="cpSec(${i})">📋</button><div class="sy-sec-title">${esc(s.title)}</div><div class="sy-sec-body" id="sec${i}">${md(s.body)}</div></div>`).join('')}</div>
+    <div class="sy-result">${secs.map((s,i)=>`<div class="sy-sec"><button class="cp-s" onclick="cpSec(${i})"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button><div class="sy-sec-title">${esc(s.title)}</div><div class="sy-sec-body" id="sec${i}">${md(s.body)}</div></div>`).join('')}</div>
     <div class="sy-tools">
-      <button class="sy-tool" onclick="aiAction('Revisa el contenido. Corrige errores, mejora claridad, asegurate de que CTA y beneficios esten presentes.')">📝 Revisar con IA</button>
-      <button class="sy-tool" onclick="aiAction('Adapta para 3 plataformas: 1. Instagram Feed (500 chars + hashtags) 2. TikTok (corto + hashtags) 3. LinkedIn (profesional). Manten el mensaje central.')">🔄 Multi-formato</button>
+      <button class="sy-tool" onclick="aiAction('Revisa el contenido. Corrige errores, mejora claridad, asegurate de que CTA y beneficios esten presentes.')"><i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Revisar con IA</button>
+      <button class="sy-tool" onclick="aiAction('Adapta para 3 plataformas: 1. Instagram Feed (500 chars + hashtags) 2. TikTok (corto + hashtags) 3. LinkedIn (profesional). Manten el mensaje central.')"><i class="feather" data-icon="refresh-cw" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Multi-formato</button>
       <button class="sy-tool" onclick="aiAction('Genera 2 variantes A/B. Variante A: tono profesional. Variante B: tono cercano/casual. Ambas con CTA.')">🔀 Variantes A/B</button>
-      <button class="sy-tool" onclick="openApproveModal()">✅ Aprobar y Agendar</button>
+      <button class="sy-tool" onclick="openApproveModal()"><i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Aprobar y Agendar</button>
       <button class="sy-tool" onclick="doGenerate()">🔃 Regenerar</button>
     </div>
-    <div class="sy-edit"><input id="editIn" placeholder="Ej: Hazlo mas corto, enfocalo a barberias, tono mas urgente, cambia CTA..."><button onclick="doRegenEdit()">🔄 Regenerar con cambios</button></div>`;
+    <div class="sy-edit"><input id="editIn" placeholder="Ej: Hazlo mas corto, enfocalo a barberias, tono mas urgente, cambia CTA..."><button onclick="doRegenEdit()"><i class="feather" data-icon="refresh-cw" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Regenerar con cambios</button></div>`;
 }
 
 function pickFmt(id,aud){G.fmt=id;G.aud=aud;renderTab()}
@@ -360,7 +435,7 @@ async function aiAction(instr){
   }catch(e){G.phase='result';toast('Error: '+e.message)}
   renderTab();
 }
-function cpSec(i){const el=document.getElementById('sec'+i);if(!el)return;cpClip(el.textContent||el.innerText);el.closest('.sy-sec').querySelector('.cp-s').textContent='✓';setTimeout(()=>{const b=document.querySelector(`#sec${i}`)?.closest('.sy-sec')?.querySelector('.cp-s');if(b)b.textContent='📋'},1500)}
+function cpSec(i){const el=document.getElementById('sec'+i);if(!el)return;cpClip(el.textContent||el.innerText);el.closest('.sy-sec').querySelector('.cp-s').textContent='<i class="feather" data-icon="check" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>';setTimeout(()=>{const b=document.querySelector(`#sec${i}`)?.closest('.sy-sec')?.querySelector('.cp-s');if(b)b.textContent='<i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'},1500)}
 
 // ================================================================
 // TAB 2: IDEAS
@@ -370,7 +445,7 @@ async function renderIdeas(m){
   try{
     const r=await fetch('/api/styly/ideas',{headers:hdrs});const d=await r.json();if(d.error)throw new Error(d.error);
     const ideas=d.ideas||[];
-    m.innerHTML=`<div class="ideas-hdr"><div><h3 style="color:var(--fg);margin:0">💡 Ideas Semanales</h3><span style="font-size:.75rem;color:var(--mt)">Balance: 60% clientes · 40% afiliadas</span></div><button class="btn" onclick="genIdeas()">🧠 Generar 4 ideas de la semana</button></div>
+    m.innerHTML=`<div class="ideas-hdr"><div><h3 style="color:var(--fg);margin:0">💡 Ideas Semanales</h3><span style="font-size:.75rem;color:var(--mt)">Balance: 60% clientes · 40% afiliadas</span></div><button class="btn" onclick="genIdeas()"><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Generar 4 ideas de la semana</button></div>
       ${ideas.length?`<div class="ideas-grid">${ideas.map(renderIdeaCard).join('')}</div>`:'<p style="color:var(--mt);text-align:center;padding:2rem">No hay ideas. Genera las primeras 4.</p>'}`;
   }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
 }
@@ -381,10 +456,10 @@ function renderIdeaCard(idea){
     <span class="idea-bdg ${s==='new'?'new':s==='used'?'used':'discarded'}">${s==='new'?'NUEVA':s==='used'?'USADA':'DESCARTADA'}</span>
     <span class="idea-bdg ${aud==='affiliates'?'affiliates':'clients'}">${aud==='affiliates'?'AFILIADAS':'CLIENTES'}</span>
     <div class="idea-txt">${esc(idea.idea_text)}</div>
-    <div class="idea-tags"><span class="idea-tag">${fObj?.icon||'📝'} ${fObj?.name||idea.format}</span></div>
+    <div class="idea-tags"><span class="idea-tag">${fObj?.icon||'<i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'} ${fObj?.name||idea.format}</span></div>
     ${s==='new'?`<div class="idea-acts">
-      <button class="idea-btn" onclick="useIdea(${idea.id},'${idea.format}','${aud}',\`${esc(idea.idea_text).replace(/`/g,'')}\`)">✍️ Generar</button>
-      <button class="idea-btn danger" onclick="discardIdea(${idea.id})">❌ Descartar</button>
+      <button class="idea-btn" onclick="useIdea(${idea.id},'${idea.format}','${aud}',\`${esc(idea.idea_text).replace(/`/g,'')}\`)"><i class="feather" data-icon="edit-3" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Generar</button>
+      <button class="idea-btn danger" onclick="discardIdea(${idea.id})"><i class="feather" data-icon="x-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Descartar</button>
     </div>`:''}
   </div>`;
 }
@@ -414,8 +489,8 @@ function renderHerramientas(m){
 }
 function rToolPick(){
   return`<div class="tool-cards">
-    <div class="tool-card" onclick="toolView='script';renderTab()"><div class="t-ico">📝</div><div class="t-nm">Script de Venta</div><div class="t-ds">Pitch, objeciones, WhatsApp, emails por industria</div></div>
-    <div class="tool-card" onclick="toolView='calc';renderTab()"><div class="t-ico">📊</div><div class="t-nm">Calculadora de Comisiones</div><div class="t-ds">Simula ganancias como Afiliada Elite</div></div>
+    <div class="tool-card" onclick="toolView='script';renderTab()"><div class="t-ico"><i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></div><div class="t-nm">Script de Venta</div><div class="t-ds">Pitch, objeciones, WhatsApp, emails por industria</div></div>
+    <div class="tool-card" onclick="toolView='calc';renderTab()"><div class="t-ico"><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></div><div class="t-nm">Calculadora de Comisiones</div><div class="t-ds">Simula ganancias como Afiliada Elite</div></div>
     <div class="tool-card" onclick="toolView='academy';renderTab()"><div class="t-ico">📚</div><div class="t-nm">Biblioteca Academy</div><div class="t-ds">5 modulos de capacitacion Styly Academy</div></div>
   </div>`;
 }
@@ -423,7 +498,7 @@ function rToolPick(){
 // --- Script tool ---
 let scriptCfg={type:'pitch',industry:'General/Otro',stage:'first_contact'};
 function rScriptTool(){
-  return`<div class="flow-header"><button class="btn-back" onclick="toolView=null;toolResult='';renderTab()">← Herramientas</button><div class="flow-title">📝 Script de Venta</div></div>
+  return`<div class="flow-header"><button class="btn-back" onclick="toolView=null;toolResult='';renderTab()">← Herramientas</button><div class="flow-title"><i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Script de Venta</div></div>
     <div class="sy-topic">
       <select onchange="scriptCfg.type=this.value;renderTab()">
         <option value="pitch" ${scriptCfg.type==='pitch'?'selected':''}>Pitch 30 segundos</option>
@@ -441,8 +516,8 @@ function rScriptTool(){
     </div>
     <div class="actions"><button class="btn" onclick="genScript()">Generar →</button></div>
     ${toolLoading?'<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div></div>':''}
-    ${toolResult?`<div class="sy-result"><button class="cp-s" onclick="cpClip(toolResult);toast('Copiado')" style="position:absolute;top:.75rem;right:.75rem">📋 Copiar todo</button><div class="sy-sec-body">${md(toolResult)}</div></div>
-    <div class="sy-edit"><input id="scriptEdit" placeholder="Ej: Hazlo mas casual, enfocalo a dentistas..."><button onclick="regenScript()">🔄 Con cambios</button></div>`:''}`;
+    ${toolResult?`<div class="sy-result"><button class="cp-s" onclick="cpClip(toolResult);toast('Copiado')" style="position:absolute;top:.75rem;right:.75rem"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Copiar todo</button><div class="sy-sec-body">${md(toolResult)}</div></div>
+    <div class="sy-edit"><input id="scriptEdit" placeholder="Ej: Hazlo mas casual, enfocalo a dentistas..."><button onclick="regenScript()"><i class="feather" data-icon="refresh-cw" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Con cambios</button></div>`:''}`;
 }
 async function genScript(){
   toolLoading=true;toolResult='';renderTab();
@@ -469,20 +544,20 @@ function rCalcTool(){
   const c=calcInputs;
   doCalc();
   const r=calcResult;
-  return`<div class="flow-header"><button class="btn-back" onclick="toolView=null;renderTab()">← Herramientas</button><div class="flow-title">📊 Calculadora de Comisiones</div></div>
+  return`<div class="flow-header"><button class="btn-back" onclick="toolView=null;renderTab()">← Herramientas</button><div class="flow-title"><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Calculadora de Comisiones</div></div>
     <div class="slider-row"><label>Locales directos afiliados <span>${c.locales}</span></label><input type="range" min="1" max="50" value="${c.locales}" oninput="calcInputs.locales=+this.value;renderTab()"></div>
     <div class="slider-row"><label>Modulos extra promedio por local <span>${c.modules}</span></label><input type="range" min="0" max="8" value="${c.modules}" oninput="calcInputs.modules=+this.value;renderTab()"></div>
     <div class="slider-row"><label>Partners invitadas <span>${c.partners}</span></label><input type="range" min="0" max="20" value="${c.partners}" oninput="calcInputs.partners=+this.value;renderTab()"></div>
     ${r?`<div class="calc-grid">
       <div class="calc-card"><div class="c-ico">💰</div><div class="c-lbl">MES 1 (Bono activacion)</div><div class="c-val">${fmt$(r.month1)}</div><div class="c-sub">${c.locales} locales × $599 × 50%</div></div>
-      <div class="calc-card"><div class="c-ico">📈</div><div class="c-lbl">INGRESO MENSUAL (Mes 2+)</div><div class="c-val">${fmt$(r.monthlyRecurring)}</div><div class="c-sub">Residual: ${fmt$(r.residualSaas)} · Upsell: ${fmt$(r.bonusUpsell)} · Red: ${fmt$(r.networkIncome)}</div></div>
-      <div class="calc-card"><div class="c-ico">📅</div><div class="c-lbl">INGRESO ANUAL PROYECTADO</div><div class="c-val">${fmt$(r.annualProjected)}</div><div class="c-sub">Mes 1 + (mensual × 12)</div></div>
-      <div class="calc-card"><div class="c-ico">⭐</div><div class="c-lbl">MILLAS MENSUALES</div><div class="c-val">${r.monthlyMiles} pts</div><div class="c-sub">${c.locales}×15 + ${c.locales*c.modules}×5 + ${c.partners}×10</div></div>
+      <div class="calc-card"><div class="c-ico"><i class="feather" data-icon="trending-up" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></div><div class="c-lbl">INGRESO MENSUAL (Mes 2+)</div><div class="c-val">${fmt$(r.monthlyRecurring)}</div><div class="c-sub">Residual: ${fmt$(r.residualSaas)} · Upsell: ${fmt$(r.bonusUpsell)} · Red: ${fmt$(r.networkIncome)}</div></div>
+      <div class="calc-card"><div class="c-ico"><i class="feather" data-icon="calendar" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></div><div class="c-lbl">INGRESO ANUAL PROYECTADO</div><div class="c-val">${fmt$(r.annualProjected)}</div><div class="c-sub">Mes 1 + (mensual × 12)</div></div>
+      <div class="calc-card"><div class="c-ico"><i class="feather" data-icon="star" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></div><div class="c-lbl">MILLAS MENSUALES</div><div class="c-val">${r.monthlyMiles} pts</div><div class="c-sub">${c.locales}×15 + ${c.locales*c.modules}×5 + ${c.partners}×10</div></div>
       <div class="calc-card gold"><div class="c-ico">🏆</div><div class="c-lbl">RANGO (acumulado anual)</div><div class="c-val">${r.rank}</div><div class="c-sub">${r.annualMiles} millas/ano${r.rankBonus?` · Bono: ${fmt$(r.rankBonus)}`:''}</div></div>
       <div class="calc-card"><div class="c-ico">🚢</div><div class="c-lbl">COPA ANUAL</div><div class="c-val">${r.copaAnual?'Calificas':'No calificas'}</div><div class="c-sub">${r.annualMiles}/500 pts minimo para crucero</div></div>
     </div>
     <div class="actions" style="margin-top:.5rem">
-      <button class="btn" onclick="cpCalc()">📋 Copiar resumen</button>
+      <button class="btn" onclick="cpCalc()"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Copiar resumen</button>
       <button class="btn" style="margin-left:.5rem;background:#25D366" onclick="shareWA()">📲 Compartir por WhatsApp</button>
     </div>`:''}`;
 }
@@ -511,7 +586,7 @@ function cpCalc(){
 }
 function shareWA(){
   const r=calcResult,c=calcInputs;
-  const txt=encodeURIComponent(`*STYLY — Afiliadas Elite*\n\nCon solo ${c.locales} locales directos:\n💰 Mes 1: ${fmt$(r.month1)}\n📈 Mensual recurrente: ${fmt$(r.monthlyRecurring)}\n📅 Anual: ${fmt$(r.annualProjected)}\n🏆 Rango: ${r.rank}\n\nSin inversion, sin horario. Unete → styly.mx/afiliados`);
+  const txt=encodeURIComponent(`*STYLY — Afiliadas Elite*\n\nCon solo ${c.locales} locales directos:\n💰 Mes 1: ${fmt$(r.month1)}\n<i class="feather" data-icon="trending-up" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Mensual recurrente: ${fmt$(r.monthlyRecurring)}\n<i class="feather" data-icon="calendar" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Anual: ${fmt$(r.annualProjected)}\n🏆 Rango: ${r.rank}\n\nSin inversion, sin horario. Unete → styly.mx/afiliados`);
   window.open('https://wa.me/?text='+txt,'_blank');
 }
 
@@ -522,7 +597,7 @@ function rAcademyTool(){
       <div><span class="acad-num">${a.num}</span><span class="acad-title">${a.name}</span><span class="acad-dur">${a.dur}</span></div>
       <div class="acad-desc">${a.desc}</div>
       <div class="acad-desc" style="font-size:.72rem">Examen: ${a.exam}</div>
-      <button class="acad-btn" onclick="genGuide(${a.num})" style="margin-top:.4rem">🧠 Generar guia de estudio</button>
+      <button class="acad-btn" onclick="genGuide(${a.num})" style="margin-top:.4rem"><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Generar guia de estudio</button>
       <div id="acad${a.num}"></div>
     </div>`).join('')}</div>`;
 }
@@ -533,7 +608,7 @@ async function genGuide(num){
     const prompt=`Genera una guia de estudio para el Modulo ${a.num} de Styly Academy: "${a.name}" (${a.dur}).\nContenido: ${a.desc}\nTemas de examen: ${a.exam}\n\nIncluye:\n1. Resumen ejecutivo (3-4 puntos clave)\n2. Tips para recordar\n3. 5 posibles preguntas de examen con respuestas`;
     const r=await fetch('/api/styly/generate',{method:'POST',headers:hdrs,body:JSON.stringify({format:'academy_guide',audience:'affiliates',topic:prompt})});
     const d=await r.json();if(d.error)throw new Error(d.error);
-    el.innerHTML=`<div class="sy-result" style="margin-top:.5rem"><button class="cp-s" onclick="cpClip(this.parentElement.querySelector('.sy-sec-body').textContent);toast('Copiado')" style="position:absolute;top:.5rem;right:.5rem">📋</button><div class="sy-sec-body">${md(d.content)}</div></div>`;
+    el.innerHTML=`<div class="sy-result" style="margin-top:.5rem"><button class="cp-s" onclick="cpClip(this.parentElement.querySelector('.sy-sec-body').textContent);toast('Copiado')" style="position:absolute;top:.5rem;right:.5rem"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button><div class="sy-sec-body">${md(d.content)}</div></div>`;
   }catch(e){el.innerHTML=`<p style="color:#EF4444;font-size:.8rem">Error: ${esc(e.message)}</p>`}
 }
 
@@ -550,14 +625,14 @@ async function renderCalendario(m){
     const days=[],dn=['Lun','Mar','Mie','Jue','Vie','Sab','Dom'];
     for(let i=0;i<7;i++){const dt=addDays(calWeekStart,i);const ds=fmtDate(dt);days.push({name:dn[i],num:dt.getDate(),date:ds,isToday:ds===todayStr,items:items.filter(it=>(it.scheduled_date||'').slice(0,10)===ds)})}
     m.innerHTML=`<div class="cal-hdr"><div class="cal-nav"><button class="cal-btn" onclick="calWeekStart=addDays(calWeekStart,-7);renderCalendario(document.getElementById('modContent'))">←</button><span class="cal-title">Semana del ${fmtDateEs(calWeekStart)} al ${fmtDateEs(addDays(calWeekStart,6))}</span><button class="cal-btn" onclick="calWeekStart=addDays(calWeekStart,7);renderCalendario(document.getElementById('modContent'))">→</button></div></div>
-      <div class="cal-week">${days.map(day=>`<div class="cal-day ${day.isToday?'today':''}"><div class="cal-day-name">${day.name}</div><div class="cal-day-num">${day.num}</div>${day.items.map(it=>{const inp=typeof it.input_data==='string'?JSON.parse(it.input_data||'{}'):it.input_data||{};const aud=inp.audience;return`<div class="cal-item" onclick="viewCalItem(${it.id})">${FMT_EMOJI[it.format_type]||'📝'} ${esc((it.preview||'').slice(0,25))}${aud?'<br><span style=\"font-size:.6rem\">'+(aud==='affiliates'?'AFILIADAS':'CLIENTES')+'</span>':''}</div>`}).join('')}</div>`).join('')}</div>
+      <div class="cal-week">${days.map(day=>`<div class="cal-day ${day.isToday?'today':''}"><div class="cal-day-name">${day.name}</div><div class="cal-day-num">${day.num}</div>${day.items.map(it=>{const inp=typeof it.input_data==='string'?JSON.parse(it.input_data||'{}'):it.input_data||{};const aud=inp.audience;return`<div class="cal-item" onclick="viewCalItem(${it.id})">${FMT_EMOJI[it.format_type]||'<i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'} ${esc((it.preview||'').slice(0,25))}${aud?'<br><span style=\"font-size:.6rem\">'+(aud==='affiliates'?'AFILIADAS':'CLIENTES')+'</span>':''}</div>`}).join('')}</div>`).join('')}</div>
       ${items.length===0?'<p style="color:var(--mt);text-align:center;padding:1.5rem">No hay contenido agendado esta semana.</p>':''}`;
   }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
 }
 async function viewCalItem(id){
   try{
     const r=await fetch('/api/styly/history/'+id,{headers:hdrs});const d=await r.json();if(d.error)throw new Error(d.error);
-    showModal(`<div class="modal-title">${FMT_EMOJI[d.item.format_type]||'📝'} ${esc(d.item.format_type)} — ${fmtDT(d.item.scheduled_date)}</div><div style="max-height:50vh;overflow-y:auto;margin-bottom:.75rem"><div class="sy-sec-body">${md(d.item.output_text)}</div></div><div class="modal-actions"><button class="m-cancel" onclick="closeModal()">Cerrar</button><button class="m-ok" onclick="cpClip(\`${esc(d.item.output_text).replace(/`/g,"'")}\`);toast('Copiado')">📋 Copiar</button></div>`);
+    showModal(`<div class="modal-title">${FMT_EMOJI[d.item.format_type]||'<i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'} ${esc(d.item.format_type)} — ${fmtDT(d.item.scheduled_date)}</div><div style="max-height:50vh;overflow-y:auto;margin-bottom:.75rem"><div class="sy-sec-body">${md(d.item.output_text)}</div></div><div class="modal-actions"><button class="m-cancel" onclick="closeModal()">Cerrar</button><button class="m-ok" onclick="cpClip(\`${esc(d.item.output_text).replace(/`/g,"'")}\`);toast('Copiado')"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Copiar</button></div>`);
   }catch(e){toast('Error: '+e.message)}
 }
 
@@ -591,8 +666,8 @@ async function renderHistorial(m){
       </div>
     </div>
     ${items.map(it=>{const inp=typeof it.input_data==='string'?JSON.parse(it.input_data||'{}'):it.input_data||{};const aud=inp.audience;
-      return`<div class="hist-item"><input type="checkbox" data-hid="${it.id}" onchange="toggleHistSel(${it.id},this.checked)" style="cursor:pointer;accent-color:#EF4444;margin-right:.3rem"><div class="hist-left"><span class="hist-emoji">${FMT_EMOJI[it.format_type]||'📝'}</span><div class="hist-info"><div class="hist-title">${esc((it.preview||'').slice(0,60))}</div><div class="hist-meta">${aud?'<span class="idea-bdg '+(aud==='affiliates'?'affiliates':'clients')+'" style="font-size:.6rem;margin-right:.25rem">'+(aud==='affiliates'?'AFILIADAS':'CLIENTES')+'</span>':''}${esc(it.user_name||'Usuario')} · ${fmtDT(it.created_at)}${it.status==='approved'&&it.scheduled_date?' · '+fmtDT(it.scheduled_date):''}</div></div></div>
-        <div class="hist-right"><span class="hist-st ${it.status==='approved'?'approved':'draft'}">${it.status==='approved'?'Approved':'Draft'}</span><button class="idea-btn" onclick="viewHistItem(${it.id})">Ver</button><button class="idea-btn" onclick="cpHistItem(${it.id})">📋</button><button class="idea-btn danger" onclick="delHistItem(${it.id})">🗑️</button></div></div>`}).join('')}`:'<p style="color:var(--mt);text-align:center;padding:2rem">No hay contenido generado.</p>'}`;
+      return`<div class="hist-item"><input type="checkbox" data-hid="${it.id}" onchange="toggleHistSel(${it.id},this.checked)" style="cursor:pointer;accent-color:#EF4444;margin-right:.3rem"><div class="hist-left"><span class="hist-emoji">${FMT_EMOJI[it.format_type]||'<i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'}</span><div class="hist-info"><div class="hist-title">${esc((it.preview||'').slice(0,60))}</div><div class="hist-meta">${aud?'<span class="idea-bdg '+(aud==='affiliates'?'affiliates':'clients')+'" style="font-size:.6rem;margin-right:.25rem">'+(aud==='affiliates'?'AFILIADAS':'CLIENTES')+'</span>':''}${esc(it.user_name||'Usuario')} · ${fmtDT(it.created_at)}${it.status==='approved'&&it.scheduled_date?' · '+fmtDT(it.scheduled_date):''}</div></div></div>
+        <div class="hist-right"><span class="hist-st ${it.status==='approved'?'approved':'draft'}">${it.status==='approved'?'Approved':'Draft'}</span><button class="idea-btn" onclick="viewHistItem(${it.id})">Ver</button><button class="idea-btn" onclick="cpHistItem(${it.id})"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button><button class="idea-btn danger" onclick="delHistItem(${it.id})"><i class="feather" data-icon="trash-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button></div></div>`}).join('')}`:'<p style="color:var(--mt);text-align:center;padding:2rem">No hay contenido generado.</p>'}`;
   }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
 }
 function toggleHistSel(id,checked){if(checked)histSel.add(id);else histSel.delete(id);updHistSelUI()}
@@ -602,7 +677,7 @@ async function bulkDelHist(){if(!histSel.size)return;if(!confirm(`Eliminar ${his
 async function delAllHist(ids){if(!ids||!ids.length)return toast('No hay elementos');if(!confirm('Eliminar TODO el historial de Styly? Esta accion no se puede deshacer.'))return;try{const r=await fetch('/api/styly/history/bulk-delete',{method:'POST',headers:hdrs,body:JSON.stringify({ids})});const d=await r.json();if(d.error)throw new Error(d.error);toast(d.deleted+' eliminado(s)');renderHistorial(document.getElementById('modContent'))}catch(e){toast('Error: '+e.message)}}
 async function viewHistItem(id){
   try{const r=await fetch('/api/styly/history/'+id,{headers:hdrs});const d=await r.json();if(d.error)throw new Error(d.error);
-    showModal(`<div class="modal-title">${FMT_EMOJI[d.item.format_type]||'📝'} ${esc(d.item.format_type)}</div><div style="max-height:60vh;overflow-y:auto;margin-bottom:.75rem"><div class="sy-sec-body">${md(d.item.output_text)}</div></div><div class="modal-actions"><button class="m-cancel" onclick="closeModal()">Cerrar</button><button class="m-ok" onclick="cpClip(\`${esc(d.item.output_text).replace(/`/g,"'")}\`);toast('Copiado')">📋 Copiar</button></div>`);
+    showModal(`<div class="modal-title">${FMT_EMOJI[d.item.format_type]||'<i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'} ${esc(d.item.format_type)}</div><div style="max-height:60vh;overflow-y:auto;margin-bottom:.75rem"><div class="sy-sec-body">${md(d.item.output_text)}</div></div><div class="modal-actions"><button class="m-cancel" onclick="closeModal()">Cerrar</button><button class="m-ok" onclick="cpClip(\`${esc(d.item.output_text).replace(/`/g,"'")}\`);toast('Copiado')"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Copiar</button></div>`);
   }catch(e){toast('Error: '+e.message)}
 }
 async function cpHistItem(id){try{const r=await fetch('/api/styly/history/'+id,{headers:hdrs});const d=await r.json();cpClip(d.item.output_text);toast('Copiado')}catch(e){toast('Error')}}
@@ -613,17 +688,17 @@ async function delHistItem(id){if(!confirm('Eliminar del historial?'))return;try
 // ================================================================
 function openApproveModal(){
   if(!G.resultId)return toast('Genera contenido primero');
-  showModal(`<div class="modal-title">✅ Aprobar y Agendar</div>
+  showModal(`<div class="modal-title"><i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Aprobar y Agendar</div>
     <div class="modal-field"><label>Fecha</label><input type="date" id="appDate" value="${today()}"></div>
     <div class="modal-field"><label>Hora</label><input type="time" id="appTime" value="10:00"></div>
     <div class="modal-field"><label>Plataforma</label><select id="appPlat"><option value="instagram">Instagram</option><option value="tiktok">TikTok</option><option value="facebook">Facebook</option><option value="linkedin">LinkedIn</option></select></div>
     <div class="modal-field"><label>Notas (opcional)</label><textarea id="appNotes" rows="2"></textarea></div>
-    <div class="modal-actions"><button class="m-cancel" onclick="closeModal()">Cancelar</button><button class="m-ok" onclick="doApprove()">✅ Aprobar</button></div>`);
+    <div class="modal-actions"><button class="m-cancel" onclick="closeModal()">Cancelar</button><button class="m-ok" onclick="doApprove()"><i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Aprobar</button></div>`);
 }
 async function doApprove(){
   const date=document.getElementById('appDate')?.value,time=document.getElementById('appTime')?.value,plat=document.getElementById('appPlat')?.value,notes=document.getElementById('appNotes')?.value;
   if(!date)return toast('Selecciona fecha');
-  try{const r=await fetch('/api/styly/approve',{method:'POST',headers:hdrs,body:JSON.stringify({content_id:G.resultId,scheduled_date:date,scheduled_time:time,scheduled_platform:plat,notes:notes||undefined})});const d=await r.json();if(d.error)throw new Error(d.error);closeModal();toast('✅ Aprobado y agendado')}catch(e){toast('Error: '+e.message)}
+  try{const r=await fetch('/api/styly/approve',{method:'POST',headers:hdrs,body:JSON.stringify({content_id:G.resultId,scheduled_date:date,scheduled_time:time,scheduled_platform:plat,notes:notes||undefined})});const d=await r.json();if(d.error)throw new Error(d.error);closeModal();toast('<i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Aprobado y agendado')}catch(e){toast('Error: '+e.message)}
 }
 
 // ================================================================
@@ -635,321 +710,90 @@ function cpClip(text){if(navigator.clipboard&&navigator.clipboard.writeText){nav
 function fbCp(text){const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta)}
 
 // ================================================================
-// TAB 6: TAREAS (TASK MANAGER)
+// TAB 6: TAREAS (TASK MANAGER) - MEGA TASK MANAGER REDESIGN
 // ================================================================
-const INITIAL_TASKS=[
-  // PANEL STYLY
-  {task_id:'P-01',module:'Dashboard',description:'Reemplazar banner de bienvenida por ventana de notificaciones tipo carrusel',priority:'Alta',assigned_to:'Emilio'},
-  {task_id:'P-02',module:'Dashboard',description:'Agregar insights del negocio: clientes ganados/perdidos, suscripciones nuevas',priority:'Alta',assigned_to:'Emilio'},
-  {task_id:'P-03',module:'Dashboard',description:'Agregar botón para descargar reporte del dashboard en Excel y PDF',priority:'Media',assigned_to:'Emilio'},
-  {task_id:'P-04',module:'Mensajes',description:'Modulo de envío de mails masivos con 2 templates HTML personalizables',priority:'Alta',assigned_to:'Damián'},
-  {task_id:'P-05',module:'Mensajes',description:'Conectar email del dueño para envío de mensajes desde el módulo',priority:'Alta',assigned_to:'Damián'},
-  {task_id:'P-06',module:'Pagos',description:'Permitir registrar un pago manual aunque no exista el servicio asociado',priority:'Media',assigned_to:'Damián'},
-  {task_id:'P-07',module:'Pagos',description:'Filtrar pagos por rango de fechas y descargar reporte en PDF, CSV o Excel',priority:'Media',assigned_to:'Damián'},
-  {task_id:'P-08',module:'Pagos',description:'Panel para administrar facturas generadas anteriormente',priority:'Media',assigned_to:'Damián'},
-  {task_id:'P-09',module:'Tareas',description:'Notificaciones al usuario en StylyPanel cada que hay un nuevo evento',priority:'Alta',assigned_to:'Damián'},
-  {task_id:'P-10',module:'Tareas',description:'Permitir agregar, renombrar y eliminar columnas en el tablero de tareas',priority:'Media',assigned_to:'Damián'},
-  {task_id:'P-11',module:'Tareas',description:'En móvil: drag & drop intuitivo para mover tareas entre columnas',priority:'Media',assigned_to:'Damián'},
-  {task_id:'P-12',module:'Tickets',description:'Renombrar módulo "Soporte" a "Tickets"',priority:'Baja',assigned_to:'Damián'},
-  {task_id:'P-13',module:'Tickets',description:'Auto-envío de mensajes de atención al cliente con notificación push',priority:'Alta',assigned_to:'Damián'},
-  {task_id:'P-14',module:'Cuenta',description:'Revisar funcionalidad de "Descargar datos"',priority:'Baja',assigned_to:'Emilio'},
-  {task_id:'P-15',module:'Cuenta',description:'Verificar que el email de soporte reciba mensajes de prueba',priority:'Baja',assigned_to:'Emilio'},
-  {task_id:'P-16',module:'Cuenta',description:'Configurar autenticación de dos pasos con todos los métodos disponibles',priority:'Alta',assigned_to:'Emilio'},
-  {task_id:'P-17',module:'Registro',description:'Agregar términos y condiciones de Styly en el formulario de registro',priority:'Alta',assigned_to:'Damián'},
-  {task_id:'P-18',module:'Métricas+',description:'Dropdown menu en móvil para todas las secciones Plus',priority:'Media',assigned_to:'Emilio'},
-  {task_id:'P-19',module:'IA',description:'Herramienta de IA en barra lateral para consultas sobre el negocio',priority:'Media',assigned_to:'Emilio'},
-  {task_id:'P-20',module:'Facturación',description:'Crear panel de facturación: generar factura fiscal que timbre al SAT',priority:'Alta',assigned_to:'Damián'},
-  {task_id:'P-21',module:'Stripe',description:'Quitar onboarding de Stripe externo; reemplazar por onboarding integrado',priority:'Alta',assigned_to:'Damián'},
-  {task_id:'P-22',module:'QA',description:'Revisión completa de conectividad y funcionamiento',priority:'Alta',assigned_to:'Ambos'},
-  // PANEL AFILIADOS
-  {task_id:'A-01',module:'Puntaje',description:'Que funcione el sistema de puntaje real',priority:'Alta',assigned_to:'Emilio'},
-  {task_id:'A-02',module:'Puntaje',description:'Agregar sección del crucero en el tablero de puntaje',priority:'Media',assigned_to:'Emilio'},
-  {task_id:'A-03',module:'Comisiones',description:'Widget de tasa de comisiones desglosadas y paginadas',priority:'Media',assigned_to:'Emilio'},
-  {task_id:'A-04',module:'Comisiones',description:'Aplicar 50% en primera venta + mensaje en Academy',priority:'Alta',assigned_to:'Emilio'},
-  {task_id:'A-05',module:'Pagos',description:'Poder descargar historial de pagos completo',priority:'Media',assigned_to:'Emilio'},
-  {task_id:'A-06',module:'Referidos',description:'Verificar que se exporten los datos de referidos correctamente',priority:'Media',assigned_to:'Emilio'},
-  {task_id:'A-07',module:'Referidos',description:'Botón de descargar reporte en PDF y Excel',priority:'Media',assigned_to:'Emilio'},
-  {task_id:'A-08',module:'Academy',description:'Agregar módulos 3 y 4',priority:'Alta',assigned_to:'Damián'},
-  {task_id:'A-09',module:'Academy',description:'Meter los primeros 5 módulos como un solo curso',priority:'Media',assigned_to:'Damián'},
-  {task_id:'A-10',module:'Academy',description:'Cambiar duración de módulos de la academy',priority:'Baja',assigned_to:'Damián'},
-  {task_id:'A-11',module:'Academy',description:'Al terminar la academy, mostrar certificado al usuario',priority:'Alta',assigned_to:'Damián'},
-  {task_id:'A-12',module:'Consultoría',description:'Crear módulo "Consultoría": Survey para recabar info del negocio',priority:'Alta',assigned_to:'Emilio'},
-  {task_id:'A-13',module:'Consultoría',description:'La herramienta sugiere extensiones basado en respuestas',priority:'Alta',assigned_to:'Emilio'},
-  {task_id:'A-14',module:'Clasificación',description:'Agregar premios mensuales administrables en clasificación global',priority:'Media',assigned_to:'Emilio'},
-  {task_id:'A-15',module:'Clasificación',description:'Banner del crucero Styly en la clasificación global',priority:'Baja',assigned_to:'Emilio'},
-  {task_id:'A-16',module:'Tareas',description:'Reflejar mismos ajustes que Panel Styly: agregar/quitar/renombrar columnas',priority:'Media',assigned_to:'Damián'},
-  {task_id:'A-17',module:'Enlace',description:'Cambiar los textos de invitación de las redes sociales en "Mi Enlace"',priority:'Baja',assigned_to:'Emilio'},
-  {task_id:'A-18',module:'Kit',description:'Implementar el kit de afiliado completo',priority:'Media',assigned_to:'Emilio'},
-  {task_id:'A-19',module:'Demo',description:'En modo demo de Styly Panel, mostrar los add-ons sin bloqueos',priority:'Baja',assigned_to:'Emilio'},
-  {task_id:'A-20',module:'UI',description:'Ajustar mensaje de bienvenida del panel de afiliados',priority:'Baja',assigned_to:'Emilio'},
-  {task_id:'A-21',module:'UI',description:'Cambiar nombre de "Tickets" a "Soporte"',priority:'Baja',assigned_to:'Emilio'},
-  {task_id:'A-22',module:'Registro',description:'Que funcione botón "Quiero ser afiliado" con cuenta ya registrada',priority:'Alta',assigned_to:'Damián'},
-  {task_id:'A-23',module:'Registro',description:'Agregar botón de "Dejar de ser afiliado" en panel de afiliado',priority:'Baja',assigned_to:'Damián'},
-  // LANDINGS
-  {task_id:'L-01',module:'Landing',description:'Agregar vista previa de los add-ons al abrir detalles',priority:'Media',assigned_to:'Emilio'},
-  {task_id:'L-02',module:'Landing',description:'Agregar demo interactiva del panel para visitantes',priority:'Media',assigned_to:'Emilio'},
-  {task_id:'L-03',module:'Landing',description:'Chatbot de preguntas y respuestas predeterminadas',priority:'Media',assigned_to:'Emilio'},
-  {task_id:'L-04',module:'Landing',description:'Cambiar animación del hero section por imagen real del panel',priority:'Baja',assigned_to:'Emilio'},
-  {task_id:'L-05',module:'Landing',description:'Sección "Reservas automáticas" → renombrar, nuevo copy',priority:'Media',assigned_to:'Emilio'},
-  {task_id:'L-06',module:'Afiliados LP',description:'Ajustar todo el texto de la página según documento actualizado',priority:'Media',assigned_to:'Emilio'},
-  {task_id:'L-07',module:'Afiliados LP',description:'Revisar flujo: código de invitación, login y panel completo',priority:'Alta',assigned_to:'Damián'},
-  {task_id:'L-08',module:'Afiliados LP',description:'Que un usuario sin ser afiliado ni negocio se registre como afiliado',priority:'Alta',assigned_to:'Damián'},
-  {task_id:'L-09',module:'Afiliados LP',description:'Quitar la parte de "solicitud de afiliado"',priority:'Baja',assigned_to:'Emilio'},
-  {task_id:'L-10',module:'Afiliados LP',description:'Ajustar mínimo de puntos para participar en podio',priority:'Baja',assigned_to:'Emilio'},
-  // SUBDOMINIOS
-  {task_id:'S-01',module:'Subdominio',description:'Permitir que afiliados o dueños se registren para comprar/suscribirse',priority:'Alta',assigned_to:'Damián'},
-  {task_id:'S-02',module:'Subdominio',description:'Sincronizar empleados con servicios y reservas en la página web',priority:'Alta',assigned_to:'Damián'},
-  {task_id:'S-03',module:'Subdominio',description:'Permitir reservar un servicio sin estar registrado (usuario guest)',priority:'Media',assigned_to:'Damián'},
-  {task_id:'S-04',module:'Subdominio',description:'Crear panel en la web para que clientes puedan solicitar facturas',priority:'Media',assigned_to:'Damián'},
-  // ADMIN PANEL
-  {task_id:'AD-01',module:'Admin Dashboard',description:'Renombrar métricas + agregar filtros de tiempo',priority:'Alta',assigned_to:'Emilio'},
-  {task_id:'AD-02',module:'Admin Dashboard',description:'Agregar filtro por persona (futuro)',priority:'Baja',assigned_to:'Emilio'},
-  {task_id:'AD-03',module:'Admin',description:'Eliminar sección de solicitudes',priority:'Baja',assigned_to:'Emilio'},
-  {task_id:'AD-04',module:'Admin Pagos',description:'Gestión de pagos: descargar facturas + estados de cuenta mensuales',priority:'Media',assigned_to:'Emilio'},
-  {task_id:'AD-05',module:'Admin',description:'Agregar filtros de búsqueda y paginación en "Todos los negocios"',priority:'Media',assigned_to:'Emilio'},
-  {task_id:'AD-06',module:'Admin',description:'Restringir acceso al módulo de soporte solo a ciertos usuarios',priority:'Media',assigned_to:'Emilio'}
-];
 
 let tasks=[],projects=[],users=[],tasksLoaded=false;
+let taskView=localStorage.getItem('styly_task_view')||'list';let tasksSubView='tareas';let taskFilters={status:'',assigned:'',priority:'',project:'',search:'',dateRange:{start:null,end:null}};let selectedTask=null;
 
 const PROJECT_CONFIG={
-  'Landing Page':{emoji:'🌐',color:'#84CC16',order:1},
-  'Módulo Panel':{emoji:'📊',color:'#3B82F6',order:2},
-  'Afiliados Landing':{emoji:'👥',color:'#EC4899',order:3},
-  'Panel Afiliados':{emoji:'⭐',color:'#F59E0B',order:4},
+  'Landing Page':{emoji:'<i class="feather" data-icon="globe" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#84CC16',order:1},
+  'Módulo Panel':{emoji:'<i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#3B82F6',order:2},
+  'Afiliados Landing':{emoji:'<i class="feather" data-icon="users" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#EC4899',order:3},
+  'Panel Afiliados':{emoji:'<i class="feather" data-icon="star" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#F59E0B',order:4},
   'Subdominios':{emoji:'🏪',color:'#10B981',order:5},
-  'Admin Panel':{emoji:'⚙️',color:'#8B5CF6',order:6}
-};
-
-const PROJECT_TASKS={
-  'Landing Page':['L-01','L-02','L-03','L-04','L-05'],
-  'Afiliados Landing':['L-06','L-07','L-08','L-09','L-10'],
-  'Módulo Panel':['P-01','P-02','P-03','P-04','P-05','P-06','P-07','P-08','P-09','P-10','P-11','P-12','P-13','P-14','P-15','P-16','P-17','P-18','P-19','P-20','P-21','P-22'],
-  'Panel Afiliados':['A-01','A-02','A-03','A-04','A-05','A-06','A-07','A-08','A-09','A-10','A-11','A-12','A-13','A-14','A-15','A-16','A-17','A-18','A-19','A-20','A-21','A-22','A-23'],
-  'Subdominios':['S-01','S-02','S-03','S-04'],
-  'Admin Panel':['AD-01','AD-02','AD-03','AD-04','AD-05','AD-06']
+  'Admin Panel':{emoji:'<i class="feather" data-icon="settings" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#8B5CF6',order:6}
 };
 
 async function loadTasks(){
   if(tasksLoaded)return;
   try{
-    // Cargar proyectos
     let r=await fetch('/api/styly/projects',{headers:hdrs});
+    if(!r.ok)throw new Error(`Error HTTP: ${r.status}`);
     let d=await r.json();
+    if(d.error)throw new Error(d.error);
     projects=d.projects||[];
-
-    // Si no hay proyectos, crearlos
     if(projects.length===0){
       for(const [name,cfg] of Object.entries(PROJECT_CONFIG)){
         const r2=await fetch('/api/styly/projects',{method:'POST',headers:hdrs,body:JSON.stringify({name,color:cfg.color,description:name})});
+        if(!r2.ok)throw new Error(`Error creando proyecto: ${r2.status}`);
         const d2=await r2.json();
+        if(d2.error)throw new Error(d2.error);
         projects.push(d2.project);
       }
     }
-
-    // Cargar tareas
     r=await fetch('/api/styly/tasks',{headers:hdrs});
+    if(!r.ok)throw new Error(`Error HTTP: ${r.status}`);
     d=await r.json();
+    if(d.error)throw new Error(d.error);
     tasks=d.tasks||[];
-
-    // Si no hay tareas, crearlas todas con sus proyectos
-    if(tasks.length===0){
-      for(const task of INITIAL_TASKS){
-        let projectName=null;
-        // Buscar en qué proyecto está esta tarea
-        for(const [pname,taskIds] of Object.entries(PROJECT_TASKS)){
-          if(taskIds.includes(task.task_id)){
-            projectName=pname;
-            break;
-          }
-        }
-        const proj=projects.find(p=>p.name===projectName);
-        const payload={...task,project_id:proj?.id||null};
-        try{
-          await fetch('/api/styly/tasks',{method:'POST',headers:hdrs,body:JSON.stringify(payload)});
-        }catch(err){console.error('Error creando tarea',task.task_id,err.message)}
-      }
-      // Recargar tareas
-      r=await fetch('/api/styly/tasks',{headers:hdrs});
-      d=await r.json();
-      tasks=d.tasks||[];
-    }
-
-    // Cargar usuarios
     r=await fetch('/api/styly/users',{headers:hdrs});
+    if(!r.ok)throw new Error(`Error HTTP: ${r.status}`);
     d=await r.json();
+    if(d.error)throw new Error(d.error);
     users=d.users||[];
-
     tasksLoaded=true;
-  }catch(e){console.error('Error cargando tareas:',e.message)}
+  }catch(e){
+    console.error('Error cargando tareas:',e.message);
+    tasks=[];projects=[];users=[];
+    toast('Error al cargar datos: '+e.message);
+  }
 }
 
+function switchView(view){taskView=view;localStorage.setItem('styly_task_view',view);renderTareas(document.getElementById('modContent'))}
+function switchTasksSubView(subView){tasksSubView=subView;renderTareas(document.getElementById('modContent'))}
+function applyFilters(list){let r=[...list];if(taskFilters.search){const s=taskFilters.search.toLowerCase();r=r.filter(t=>t.task_id?.toLowerCase().includes(s)||t.titulo?.toLowerCase().includes(s)||t.seccion?.toLowerCase().includes(s))}if(taskFilters.status)r=r.filter(t=>t.estado===taskFilters.status);if(taskFilters.assigned){const assignedNames=taskFilters.assigned.toLowerCase();r=r.filter(t=>t.asignados?.some(a=>a.name?.toLowerCase()===assignedNames))}if(taskFilters.priority)r=r.filter(t=>t.prioridad===taskFilters.priority);if(taskFilters.project)r=r.filter(t=>t.proyecto_id==taskFilters.project);return r}
+function clearFilters(){taskFilters={status:'',assigned:'',priority:'',project:'',search:'',dateRange:{start:null,end:null}};renderTareas(document.getElementById('modContent'))}
+function formatDateShort(d){if(!d)return'';const dt=new Date(d);const today=new Date();const tm=new Date(today);tm.setDate(tm.getDate()+1);if(dt.toDateString()===today.toDateString())return'Hoy';if(dt.toDateString()===tm.toDateString())return'Mañana';return dt.toLocaleDateString('es-MX',{day:'numeric',month:'short'})}
+async function quickUpdateStatus(id,s){try{const r=await fetch(`/api/styly/tasks/${id}`,{method:'PUT',headers:hdrs,body:JSON.stringify({estado:s})});const d=await r.json();if(d.error)throw new Error(d.error);const idx=tasks.findIndex(t=>t.id===id);if(idx!==-1)tasks[idx]=d.task;renderTareas(document.getElementById('modContent'))}catch(e){toast('Error: '+e.message)}}
+async function deleteTask(id){if(!confirm('¿Eliminar esta tarea?'))return;try{const r=await fetch(`/api/styly/tasks/${id}`,{method:'DELETE',headers:hdrs});const d=await r.json();if(d.error)throw new Error(d.error);tasks=tasks.filter(t=>t.id!==id);toast('Tarea eliminada');renderTareas(document.getElementById('modContent'))}catch(e){toast('Error: '+e.message)}}
+
+function renderTaskCard(t){const sc={'Pendiente':{bg:'rgba(239,68,68,.1)',b:'#EF4444',c:'#DC2626'},'En Progreso':{bg:'rgba(245,158,11,.1)',b:'#F59E0B',c:'#D97706'},'Completada':{bg:'rgba(16,185,129,.1)',b:'#10B981',c:'#059669'}};const pc={'Alta':{bg:'rgba(239,68,68,.12)',c:'#DC2626'},'Media':{bg:'rgba(245,158,11,.12)',c:'#D97706'},'Baja':{bg:'rgba(107,114,128,.1)',c:'#6B7280'}};const s=sc[t.estado]||sc['Pendiente'];const p=pc[t.prioridad]||pc['Media'];const ds=t.fecha_vencimiento?formatDateShort(t.fecha_vencimiento):'';const iso=t.fecha_vencimiento&&new Date(t.fecha_vencimiento)<new Date()&&t.estado!=='Completada';const assignedNames=t.asignados&&t.asignados.length>0?t.asignados.map(a=>a.name).join(', '):'';return`<div class="task-card" onclick="openTaskModal(${t.id})" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;cursor:pointer;transition:all .3s;position:relative" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,.1)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'"><div style="position:absolute;top:.75rem;right:.75rem;padding:3px 8px;border-radius:6px;background:var(--sy-bg);font-size:.65rem;font-weight:700;color:var(--sy)">${t.task_id||'#'+t.id}</div><div style="font-size:1rem;font-weight:600;color:var(--fg);line-height:1.4;margin-bottom:1rem;padding-right:3rem">${esc(t.titulo)}</div>${t.seccion?`<div style="display:inline-block;padding:4px 10px;border-radius:6px;background:rgba(139,92,246,.1);color:#8B5CF6;font-size:.7rem;font-weight:600;margin-bottom:.75rem"><i class="fas fa-tag" style="font-size:.65rem;margin-right:.25rem"></i>${t.seccion}</div>`:''}<div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem"><span style="padding:5px 10px;border-radius:6px;font-size:.75rem;font-weight:600;background:${s.bg};color:${s.c};border:1px solid ${s.b}">${t.estado==='Pendiente'?'🔴':t.estado==='En Progreso'?'🟡':'✅'} ${t.estado}</span><span style="padding:5px 10px;border-radius:6px;font-size:.75rem;font-weight:600;background:${p.bg};color:${p.c}">${t.prioridad}</span>${assignedNames?`<span style="padding:5px 10px;border-radius:6px;font-size:.75rem;font-weight:600;background:var(--sy-bg);color:var(--sy)"><i class="fas fa-user" style="font-size:.7rem;margin-right:.3rem"></i>${assignedNames}</span>`:`<span style="padding:5px 10px;border-radius:6px;font-size:.75rem;font-weight:600;background:var(--border);color:var(--mt)"><i class="fas fa-user-slash" style="font-size:.7rem;margin-right:.3rem"></i>Sin asignar</span>`}${ds?`<span style="padding:5px 10px;border-radius:6px;font-size:.75rem;font-weight:600;background:${iso?'rgba(239,68,68,.15)':'rgba(59,130,246,.1)'};color:${iso?'#DC2626':'#2563EB'}"><i class="far fa-calendar" style="font-size:.7rem;margin-right:.3rem"></i>${ds}</span>`:''}</div><div style="display:flex;gap:.5rem" onclick="event.stopPropagation()"><select onchange="quickUpdateStatus(${t.id},this.value)" style="flex:1;padding:.4rem;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);font-size:.75rem;cursor:pointer"><option value="Pendiente">🔴 Pendiente</option><option value="En Progreso">🟡 En Progreso</option><option value="Completada">✅ Completada</option></select><button onclick="deleteTask(${t.id});event.stopPropagation()" style="padding:.4rem .7rem;border:1px solid #EF4444;background:transparent;color:#EF4444;border-radius:6px;cursor:pointer;font-size:.75rem;transition:all .2s" onmouseover="this.style.background='#EF4444';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#EF4444'"><i class="fas fa-trash"></i></button></div></div>`}
+
+async function renderListView(){if(!Array.isArray(tasks)||!Array.isArray(projects)||!Array.isArray(users)){return`<div style="text-align:center;padding:4rem;color:var(--mt)"><div style="font-size:3rem;margin-bottom:1rem">⚠️</div><div style="font-size:1.1rem;font-weight:600;margin-bottom:.5rem">Error al cargar datos</div><div style="font-size:.85rem">No se pudieron cargar las tareas. <button onclick="tasksLoaded=false;renderTareas(document.getElementById('modContent'))" class="btn" style="margin-top:1rem">Reintentar</button></div></div>`}let filtered=applyFilters(tasks);const filterBar=`<div style="display:flex;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center;padding:1rem;background:var(--card);border:1px solid var(--border);border-radius:12px"><input type="text" id="searchTasks" placeholder="🔍 Buscar tareas..." value="${taskFilters.search}" oninput="taskFilters.search=this.value;renderTareas(document.getElementById('modContent'))" style="flex:1;min-width:200px;padding:.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--fg)"><select onchange="taskFilters.project=this.value;renderTareas(document.getElementById('modContent'))" style="padding:.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--fg)"><option value="">Todos los Proyectos</option>${projects.map(p=>`<option value="${p.id||''}" ${taskFilters.project==p.id?'selected':''}>${p.name||'Sin nombre'}</option>`).join('')}</select><select onchange="taskFilters.status=this.value;renderTareas(document.getElementById('modContent'))" style="padding:.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--fg)"><option value="">Todos los Estados</option><option value="Pendiente" ${taskFilters.status==='Pendiente'?'selected':''}>🔴 Pendiente</option><option value="En Progreso" ${taskFilters.status==='En Progreso'?'selected':''}>🟡 En Progreso</option><option value="Completada" ${taskFilters.status==='Completada'?'selected':''}>✅ Completada</option></select><select onchange="taskFilters.assigned=this.value;renderTareas(document.getElementById('modContent'))" style="padding:.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--fg)"><option value="">Todos los Usuarios</option>${users.map(u=>`<option value="${u.name||''}" ${taskFilters.assigned===u.name?'selected':''}>${u.name||'Sin nombre'}</option>`).join('')}</select><select onchange="taskFilters.priority=this.value;renderTareas(document.getElementById('modContent'))" style="padding:.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--fg)"><option value="">Todas las Prioridades</option><option value="Alta" ${taskFilters.priority==='Alta'?'selected':''}>🔴 Alta</option><option value="Media" ${taskFilters.priority==='Media'?'selected':''}>🟡 Media</option><option value="Baja" ${taskFilters.priority==='Baja'?'selected':''}>🟢 Baja</option></select><button onclick="clearFilters()" class="m-ok" style="background:var(--card);color:var(--fg);border:1px solid var(--border)"><i class="fas fa-times"></i> Limpiar</button></div>`;if(filtered.length===0&&projects.length>0){return filterBar+`<div style="text-align:center;padding:4rem;color:var(--mt)"><div style="font-size:3rem;margin-bottom:1rem"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></div><div style="font-size:1.1rem;font-weight:600;margin-bottom:.5rem">No hay tareas</div><div style="font-size:.85rem">Crea tu primera tarea para comenzar</div><button onclick="openNewTaskModal()" class="btn" style="margin-top:1.5rem"><i class="fas fa-plus"></i> Nueva Tarea</button></div>`}let pHTML='';for(const proj of projects){if(!proj||!proj.id)continue;const projTasks=filtered.filter(t=>t&&t.proyecto_id===proj.id);if(projTasks.length===0)continue;const cfg=PROJECT_CONFIG[proj.name]||{emoji:'📌',color:'#6B7280'};const projId='list-proj-'+proj.id;pHTML+=`<div style="margin-bottom:2rem"><button onclick="toggleProject('${projId}')" style="width:100%;text-align:left;padding:1rem 1.25rem;background:linear-gradient(135deg,${cfg.color}15,${cfg.color}05);border:2px solid ${cfg.color}40;border-radius:14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .2s"><div style="display:flex;align-items:center;gap:.75rem"><span style="font-size:1.75rem">${cfg.emoji}</span><div><div style="font-size:1.1rem;font-weight:700;color:var(--fg)">${proj.name||'Sin nombre'}</div><div style="font-size:.75rem;color:var(--mt);font-weight:400;margin-top:.15rem">${projTasks.length} tareas · ${projTasks.filter(t=>t&&t.estado==='Completada').length} completadas</div></div></div><span id="toggle-${projId}" style="font-size:1.2rem;transition:transform .2s">▼</span></button><div id="${projId}" style="display:block;margin-top:1rem"><div style="margin-bottom:1rem;padding:1rem;background:var(--card);border:1px dashed var(--border);border-radius:10px;cursor:pointer;text-align:center;color:var(--mt);transition:all .2s" onclick="openNewTaskModal(${proj.id})" onmouseover="this.style.borderColor='var(--sy)';this.style.color='var(--sy)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--mt)'"><i class="fas fa-plus-circle"></i> Agregar tarea a ${proj.name}</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem">${projTasks.map(t=>renderTaskCard(t)).join('')}</div></div></div>`}return filterBar+pHTML}
+
+let draggedTask=null;function handleDragStart(e){draggedTask=parseInt(e.currentTarget.dataset.taskId);e.currentTarget.style.opacity='0.4';e.dataTransfer.effectAllowed='move'}function handleDragEnd(e){e.currentTarget.style.opacity='1';draggedTask=null}function handleDragOver(e){if(e.preventDefault)e.preventDefault();e.dataTransfer.dropEffect='move';return false}async function handleDrop(e){if(e.stopPropagation)e.stopPropagation();e.preventDefault();if(!draggedTask)return;const col=e.currentTarget;const ns=col.dataset.status;await quickUpdateStatus(draggedTask,ns);return false}
+
+async function renderBoardView(){let filtered=applyFilters(tasks);const cols={'Pendiente':filtered.filter(t=>t.estado==='Pendiente'),'En Progreso':filtered.filter(t=>t.estado==='En Progreso'),'Completada':filtered.filter(t=>t.estado==='Completada')};const cc={'Pendiente':{bg:'rgba(239,68,68,.05)',b:'#EF4444'},'En Progreso':{bg:'rgba(245,158,11,.05)',b:'#F59E0B'},'Completada':{bg:'rgba(16,185,129,.05)',b:'#10B981'}};return`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;height:calc(100vh - 300px)">${Object.entries(cols).map(([status,tasks])=>{const c=cc[status];return`<div class="kanban-column" data-status="${status}" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" style="background:${c.bg};border:2px solid ${c.b}40;border-radius:14px;padding:1rem;display:flex;flex-direction:column;overflow:hidden"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:2px solid ${c.b}40"><div><div style="font-size:1.05rem;font-weight:700;color:var(--fg)">${status==='Pendiente'?'<i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#EF4444" aria-hidden="true"></i>':status==='En Progreso'?'<i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#FCD34D" aria-hidden="true"></i>':'<i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'} ${status}</div><div style="font-size:.75rem;color:var(--mt);margin-top:.15rem">${tasks.length} tareas</div></div><button onclick="openNewTaskModal(null,'${status}')" style="padding:.4rem .6rem;border-radius:6px;border:1px solid ${c.b};background:transparent;color:${c.b};cursor:pointer;font-size:.75rem;transition:all .2s" onmouseover="this.style.background='${c.b}';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='${c.b}'"><i class="fas fa-plus"></i></button></div><div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:.75rem">${tasks.map(t=>{const proj=projects.find(p=>p.id===t.proyecto_id);const pc=proj?PROJECT_CONFIG[proj.name]:null;const assignedNames=t.asignados&&t.asignados.length>0?t.asignados[0].name:'';return`<div class="board-task-card" draggable="true" data-task-id="${t.id}" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)" onclick="openTaskModal(${t.id})" style="background:var(--card);border:1px solid var(--border);border-left:4px solid ${c.b};border-radius:10px;padding:1rem;cursor:move;transition:all .2s" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,.1)'" onmouseout="this.style.boxShadow='none'"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:.5rem">${pc?`<span style="font-size:1.2rem">${pc.emoji}</span>`:'<span style="font-size:.75rem;color:var(--mt)"><i class="feather" data-icon="pin" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></span>'}<span style="font-size:.65rem;font-weight:700;color:var(--mt)">${t.task_id||'#'+t.id}</span></div><div style="font-size:.9rem;font-weight:600;color:var(--fg);line-height:1.3;margin-bottom:.75rem">${esc(t.titulo)}</div><div style="display:flex;flex-wrap:wrap;gap:.4rem;font-size:.7rem">${t.prioridad?`<span style="padding:3px 8px;border-radius:4px;background:${t.prioridad==='Alta'?'rgba(239,68,68,.15)':t.prioridad==='Media'?'rgba(245,158,11,.15)':'rgba(107,114,128,.1)'};color:${t.prioridad==='Alta'?'#DC2626':t.prioridad==='Media'?'#D97706':'#6B7280'};font-weight:600">${t.prioridad}</span>`:''}${assignedNames?`<span style="padding:3px 8px;border-radius:4px;background:var(--sy-bg);color:var(--sy);font-weight:600"><i class="fas fa-user" style="font-size:.65rem;margin-right:.25rem"></i>${assignedNames}</span>`:''}${t.fecha_vencimiento?`<span style="padding:3px 8px;border-radius:4px;background:rgba(59,130,246,.1);color:#2563EB;font-weight:600"><i class="far fa-calendar" style="font-size:.65rem;margin-right:.25rem"></i>${formatDateShort(t.fecha_vencimiento)}</span>`:''}</div></div>`}).join('')}</div></div>`}).join('')}</div>`}
+
+async function renderTimelineView(){let filtered=applyFilters(tasks).filter(t=>t.fecha_vencimiento||t.fecha_inicio);if(filtered.length===0)return`<div style="text-align:center;padding:4rem;color:var(--mt)"><div style="font-size:3rem;margin-bottom:1rem"><i class="feather" data-icon="calendar" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></div><div style="font-size:1.1rem;font-weight:600;margin-bottom:.5rem">No hay tareas con fechas</div><div style="font-size:.85rem">Agrega fechas de inicio o vencimiento a tus tareas para visualizarlas en el timeline</div></div>`;const dts=filtered.flatMap(t=>[t.fecha_inicio,t.fecha_vencimiento].filter(Boolean)).map(d=>new Date(d));const mn=new Date(Math.min(...dts));const mx=new Date(Math.max(...dts));mn.setDate(mn.getDate()-7);mx.setDate(mx.getDate()+7);const td=Math.ceil((mx-mn)/(1000*60*60*24));const dw=40;const tw=td*dw;let hHTML='';let cd=new Date(mn);while(cd<=mx){const ms=new Date(cd);const me=new Date(cd.getFullYear(),cd.getMonth()+1,0);const ve=me>mx?mx:me;const dm=Math.ceil((ve-ms)/(1000*60*60*24))+1;hHTML+=`<div style="width:${dm*dw}px;text-align:center;padding:.5rem;border-right:1px solid var(--border);background:var(--card);font-size:.75rem;font-weight:600;color:var(--fg)">${ms.toLocaleDateString('es-MX',{month:'short',year:'numeric'})}</div>`;cd.setMonth(cd.getMonth()+1);cd.setDate(1)}let rHTML='';for(const proj of projects){const pTasks=filtered.filter(t=>t.proyecto_id===proj.id);if(pTasks.length===0)continue;const cfg=PROJECT_CONFIG[proj.name]||{emoji:'📌',color:'#6B7280'};rHTML+=`<div style="display:flex;border-bottom:1px solid var(--border)"><div style="width:200px;flex-shrink:0;padding:1rem;background:var(--card);border-right:1px solid var(--border);display:flex;align-items:center;gap:.5rem"><span style="font-size:1.2rem">${cfg.emoji}</span><div style="font-size:.85rem;font-weight:600;color:var(--fg)">${proj.name}</div></div><div style="position:relative;flex:1;min-height:80px;padding:.5rem 0">${pTasks.map(t=>{const sd=t.fecha_inicio?new Date(t.fecha_inicio):new Date(t.fecha_vencimiento);const ed=t.fecha_vencimiento?new Date(t.fecha_vencimiento):new Date(sd);const dss=Math.ceil((sd-mn)/(1000*60*60*24));const dur=Math.max(1,Math.ceil((ed-sd)/(1000*60*60*24))+1);const l=dss*dw;const w=dur*dw;const iso=ed<new Date()&&t.estado!=='Completada';const bc=iso?'#EF4444':t.estado==='Completada'?'#10B981':cfg.color;return`<div onclick="openTaskModal(${t.id})" style="position:absolute;left:${l}px;top:${Math.random()*40}px;width:${w}px;height:28px;background:${bc}30;border:2px solid ${bc};border-radius:6px;cursor:pointer;display:flex;align-items:center;padding:0 .5rem;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,0,0,.15)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'" title="${esc(t.titulo)}"><div style="font-size:.7rem;font-weight:600;color:${bc};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.task_id||'#'+t.id}: ${esc(t.titulo).substring(0,30)}${t.titulo.length>30?'...':''}</div></div>`}).join('')}</div></div>`}return`<div style="overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 300px);border:1px solid var(--border);border-radius:12px"><div style="display:flex;position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:2px solid var(--border)"><div style="width:200px;flex-shrink:0;padding:.5rem 1rem;background:var(--card);border-right:1px solid var(--border);font-size:.85rem;font-weight:700;color:var(--fg)">Proyectos</div><div style="display:flex">${hHTML}</div></div>${rHTML}</div>`}
+
 async function renderTareas(m){
-  await loadTasks();
-  let filters=window._taskFilters||{status:'',assigned:'',priority:'',project:'',search:''};
-
-  const MODULECONFIG={
-    'Dashboard':{emoji:'📊',color:'#3B82F6',order:1},'Mensajes':{emoji:'💬',color:'#8B5CF6',order:2},'Pagos':{emoji:'💰',color:'#10B981',order:3},'Tareas':{emoji:'✅',color:'#F59E0B',order:4},'Tickets':{emoji:'🎫',color:'#EC4899',order:5},'Cuenta':{emoji:'👤',color:'#6366F1',order:6},'Registro':{emoji:'✍️',color:'#06B6D4',order:7},'Métricas+':{emoji:'📈',color:'#EF4444',order:8},'IA':{emoji:'🧠',color:'#14B8A6',order:9},'Facturación':{emoji:'🧾',color:'#F97316',order:10},'Stripe':{emoji:'💳',color:'#0EA5E9',order:11},'QA':{emoji:'🔍',color:'#84CC16',order:12},'Puntaje':{emoji:'⭐',color:'#EC4899',order:13},'Comisiones':{emoji:'💵',color:'#10B981',order:14},'Referidos':{emoji:'👥',color:'#8B5CF6',order:15},'Academy':{emoji:'📚',color:'#F59E0B',order:16},'Consultoría':{emoji:'🎯',color:'#06B6D4',order:17},'Clasificación':{emoji:'🏆',color:'#EF4444',order:18},'Enlace':{emoji:'🔗',color:'#6366F1',order:19},'Kit':{emoji:'📦',color:'#14B8A6',order:20},'Demo':{emoji:'🎬',color:'#F97316',order:21},'UI':{emoji:'🎨',color:'#0EA5E9',order:22},'Landing':{emoji:'🌐',color:'#84CC16',order:23},'Afiliados LP':{emoji:'👥',color:'#EC4899',order:24},'Subdominio':{emoji:'🏪',color:'#10B981',order:25},'Admin Dashboard':{emoji:'⚙️',color:'#8B5CF6',order:26},'Admin Pagos':{emoji:'💼',color:'#F59E0B',order:27},'Admin':{emoji:'🛡️',color:'#06B6D4',order:28}
-  };
-
-  // Calcular estadísticas
-  const pending=tasks.filter(t=>t.status==='Pendiente').length;
-  const inProgress=tasks.filter(t=>t.status==='En Progreso').length;
-  const completed=tasks.filter(t=>t.status==='Completada').length;
-  const userStats={};
-  users.forEach(u=>{userStats[u.name]={total:0,pending:0,completed:0};});
-  tasks.forEach(t=>{
-    if(t.assigned_to&&userStats[t.assigned_to]){
-      userStats[t.assigned_to].total++;
-      if(t.status==='Pendiente')userStats[t.assigned_to].pending++;
-      if(t.status==='Completada')userStats[t.assigned_to].completed++;
-    }
-  });
-
-  // Filtrar tareas
-  let filtered=tasks;
-  if(filters.status)filtered=filtered.filter(t=>t.status===filters.status);
-  if(filters.assigned)filtered=filtered.filter(t=>t.assigned_to===filters.assigned);
-  if(filters.priority)filtered=filtered.filter(t=>t.priority===filters.priority);
-  if(filters.search)filtered=filtered.filter(t=>t.task_id.toLowerCase().includes(filters.search.toLowerCase())||t.description.toLowerCase().includes(filters.search.toLowerCase()));
-
-  const sortedProjects=[...projects].sort((a,b)=>(PROJECT_CONFIG[a.name]?.order||999)-(PROJECT_CONFIG[b.name]?.order||999));
-
-  m.innerHTML=`
-    <div style="display:grid;grid-template-columns:250px 1fr;gap:1.5rem;height:calc(100vh - 250px);overflow:hidden">
-      <!-- SIDEBAR IZQUIERDO -->
-      <div style="border-right:1px solid var(--border);padding-right:1.5rem;overflow-y:auto;padding-bottom:2rem">
-        <div style="margin-bottom:1.5rem">
-          <div style="font-size:.7rem;font-weight:700;color:var(--mt);text-transform:uppercase;margin-bottom:.5rem">🎯 KPIs</div>
-          <div style="background:rgba(59,130,246,.1);border:1px solid #3B82F6;border-radius:8px;padding:.75rem;margin-bottom:.5rem">
-            <div style="font-size:.75rem;color:var(--mt);margin-bottom:.2rem">Pendientes</div>
-            <div style="font-size:1.5rem;font-weight:700;color:#3B82F6">${pending}</div>
-          </div>
-          <div style="background:rgba(245,158,11,.1);border:1px solid #F59E0B;border-radius:8px;padding:.75rem;margin-bottom:.5rem">
-            <div style="font-size:.75rem;color:var(--mt);margin-bottom:.2rem">En Progreso</div>
-            <div style="font-size:1.5rem;font-weight:700;color:#F59E0B">${inProgress}</div>
-          </div>
-          <div style="background:rgba(16,185,129,.1);border:1px solid #10B981;border-radius:8px;padding:.75rem">
-            <div style="font-size:.75rem;color:var(--mt);margin-bottom:.2rem">Completadas</div>
-            <div style="font-size:1.5rem;font-weight:700;color:#10B981">${completed}</div>
-          </div>
-        </div>
-
-        <div style="margin-bottom:1.5rem">
-          <div style="font-size:.7rem;font-weight:700;color:var(--mt);text-transform:uppercase;margin-bottom:.5rem">👥 Usuarios</div>
-          ${users.map(u=>`<div style="padding:.5rem;border-radius:6px;border:1px solid var(--border);margin-bottom:.4rem;cursor:pointer;transition:all .2s;${filters.assigned===u.name?'background:var(--sy-bg);border-color:var(--sy)':''}" onclick="window._taskFilters.assigned='${u.name}';renderTareas(document.getElementById('modContent'))">
-            <div style="font-size:.75rem;font-weight:600;color:var(--fg)">${u.name}</div>
-            <div style="font-size:.65rem;color:var(--mt)">${userStats[u.name]?.total||0} tareas</div>
-          </div>`).join('')}
-        </div>
-
-        <div style="margin-bottom:1.5rem">
-          <div style="font-size:.7rem;font-weight:700;color:var(--mt);text-transform:uppercase;margin-bottom:.5rem">🎨 Status</div>
-          <div onclick="window._taskFilters.status='';renderTareas(document.getElementById('modContent'))" style="padding:.5rem;border-radius:6px;border:1px solid var(--border);margin-bottom:.4rem;cursor:pointer;${!filters.status?'background:var(--sy-bg);border-color:var(--sy)':''}">Todos</div>
-          <div onclick="window._taskFilters.status='Pendiente';renderTareas(document.getElementById('modContent'))" style="padding:.5rem;border-radius:6px;border:1px solid var(--border);margin-bottom:.4rem;cursor:pointer;${filters.status==='Pendiente'?'background:rgba(239,68,68,.15);border-color:#EF4444':''}">🔴 Pendiente</div>
-          <div onclick="window._taskFilters.status='En Progreso';renderTareas(document.getElementById('modContent'))" style="padding:.5rem;border-radius:6px;border:1px solid var(--border);margin-bottom:.4rem;cursor:pointer;${filters.status==='En Progreso'?'background:rgba(245,158,11,.15);border-color:#F59E0B':''}">🟡 En Progreso</div>
-          <div onclick="window._taskFilters.status='Completada';renderTareas(document.getElementById('modContent'))" style="padding:.5rem;border-radius:6px;border:1px solid var(--border);cursor:pointer;${filters.status==='Completada'?'background:rgba(16,185,129,.1);border-color:#10B981':''}">✅ Completada</div>
-        </div>
-      </div>
-
-      <!-- CONTENIDO PRINCIPAL -->
-      <div style="overflow-y:auto;padding-bottom:2rem">
-        <!-- BARRA SUPERIOR -->
-        <div style="margin-bottom:1.5rem;position:sticky;top:0;background:var(--bg);padding:.75rem 0;z-index:10;border-bottom:1px solid var(--border);padding-bottom:1rem">
-          <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap">
-            <input type="text" id="searchTasks" placeholder="🔍 Buscar por ID o descripción..." onchange="window._taskFilters.search=this.value;renderTareas(document.getElementById('modContent'))" oninput="window._taskFilters.search=this.value;renderTareas(document.getElementById('modContent'))" value="${filters.search}" style="flex:1;min-width:200px;padding:.45rem .65rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.85rem">
-            <select id="filterPrio" onchange="window._taskFilters.priority=this.value;renderTareas(document.getElementById('modContent'))" style="padding:.45rem .65rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.85rem">
-              <option value="">Todas las Prioridades</option>
-              <option value="Alta" ${filters.priority==='Alta'?'selected':''}>Alta</option>
-              <option value="Media" ${filters.priority==='Media'?'selected':''}>Media</option>
-              <option value="Baja" ${filters.priority==='Baja'?'selected':''}>Baja</option>
-            </select>
-            <button onclick="window._taskFilters={status:'',assigned:'',priority:'',project:'',search:''};renderTareas(document.getElementById('modContent'))" style="padding:.45rem 1rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.85rem;font-weight:600;cursor:pointer;white-space:nowrap">🔄 Limpiar</button>
-            <button onclick="openNewTaskModal()" style="padding:.45rem 1rem;border-radius:8px;border:none;background:var(--sy);color:#fff;font-size:.85rem;font-weight:600;cursor:pointer;white-space:nowrap">➕ Tarea</button>
-          </div>
-          <div style="font-size:.8rem;color:var(--mt)"><strong>${filtered.length}</strong> tareas mostradas · <strong>${pending}</strong> pendientes · <strong>${inProgress}</strong> en progreso · <strong>${completed}</strong> completadas</div>
-        </div>
-
-        <!-- TAREAS POR PROYECTO -->
-        ${sortedProjects.map(proj=>{
-          const cfg=PROJECT_CONFIG[proj.name]||{emoji:'📌',color:'#6B7280'};
-          const projTasks=filtered.filter(t=>t.project_id===proj.id);
-          if(projTasks.length===0)return'';
-          const projId='proj-'+(proj.id||proj.name.replace(/\s+/g,'-'));
-
-          const grouped={};
-          projTasks.forEach(t=>{
-            if(!grouped[t.module])grouped[t.module]=[];
-            grouped[t.module].push(t);
-          });
-          const sortedModules=Object.keys(grouped).sort((a,b)=>(MODULECONFIG[a]?.order||999)-(MODULECONFIG[b]?.order||999));
-
-          return `
-          <div style="margin-bottom:2rem">
-            <button onclick="toggleProject('${projId}')" style="width:100%;text-align:left;padding:.9rem 1.2rem;background:linear-gradient(135deg,${cfg.color}20 0%,${cfg.color}05 100%);border:2px solid ${cfg.color}60;border-radius:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:var(--fg);font-weight:700;font-size:1.05rem;transition:all .2s">
-              <div style="display:flex;align-items:center;gap:.7rem">
-                <span style="font-size:1.5rem">${cfg.emoji}</span>
-                <div>
-                  <div>${proj.name}</div>
-                  <div style="font-size:.7rem;color:var(--mt);font-weight:400">${projTasks.length} tareas</div>
-                </div>
-              </div>
-              <span id="toggle-${projId}" style="font-size:1.1rem;transition:transform .2s">▶</span>
-            </button>
-            <div id="${projId}" style="display:block;margin-top:1rem;padding-left:.5rem;border-left:3px solid ${cfg.color}">
-              ${sortedModules.map(mod=>{
-                const mCfg=MODULECONFIG[mod]||{emoji:'📌',color:'#6B7280'};
-                const mTasks=grouped[mod];
-                const modId=projId+'-mod-'+(mod.replace(/\s+/g,'-'));
-                return `
-                <div style="margin-bottom:1.5rem">
-                  <button onclick="toggleModule('${modId}')" style="width:100%;text-align:left;padding:.65rem 1rem;background:linear-gradient(135deg,${mCfg.color}10 0%,${mCfg.color}02 100%);border:1px solid ${mCfg.color}30;border-radius:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:var(--fg);font-weight:600;font-size:.95rem;transition:all .2s">
-                    <div style="display:flex;align-items:center;gap:.4rem">
-                      <span style="font-size:1rem">${mCfg.emoji}</span>
-                      <span>${mod} (${mTasks.length})</span>
-                    </div>
-                    <span id="toggle-${modId}" style="font-size:.85rem">▶</span>
-                  </button>
-                  <div id="mod-${modId}" style="display:none;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:.75rem;margin-top:.75rem">
-                    ${mTasks.map(t=>`
-                      <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem;transition:all .2s" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,.1)'" onmouseout="this.style.boxShadow='none'">
-                        <div style="display:flex;justify-content:space-between;align-items:start;gap:.5rem;margin-bottom:.5rem">
-                          <div style="flex:1">
-                            <div style="font-size:.75rem;font-weight:700;color:${mCfg.color};text-transform:uppercase;letter-spacing:.5px">${t.task_id}</div>
-                            <div style="font-size:.9rem;font-weight:600;color:var(--fg);margin-top:.25rem;line-height:1.4">${esc(t.description)}</div>
-                          </div>
-                          <button onclick="deleteTask(${t.id})" style="padding:.25rem;border:none;background:transparent;color:#EF4444;font-size:.9rem;cursor:pointer;opacity:.5;transition:opacity .2s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.5'">🗑️</button>
-                        </div>
-                        <div style="display:flex;gap:.4rem;margin-bottom:.75rem;flex-wrap:wrap">
-                          <span style="padding:3px 8px;border-radius:4px;font-size:.7rem;font-weight:700;background:${t.priority==='Alta'?'rgba(239,68,68,.15)':t.priority==='Media'?'rgba(245,158,11,.15)':'rgba(107,114,128,.1)'};color:${t.priority==='Alta'?'#DC2626':t.priority==='Media'?'#D97706':'#6B7280'}">${t.priority}</span>
-                          <span style="padding:3px 8px;border-radius:4px;font-size:.7rem;font-weight:700;background:${t.status==='Pendiente'?'rgba(239,68,68,.1)':t.status==='En Progreso'?'rgba(245,158,11,.1)':'rgba(16,185,129,.1)'};color:${t.status==='Pendiente'?'#EF4444':t.status==='En Progreso'?'#F59E0B':'#10B981'}">${t.status}</span>
-                          ${t.assigned_to?`<span style="padding:3px 8px;border-radius:4px;font-size:.7rem;font-weight:700;background:var(--sy-bg);color:var(--sy)">👤 ${t.assigned_to}</span>`:'<span style="padding:3px 8px;border-radius:4px;font-size:.7rem;font-weight:700;background:var(--border);color:var(--mt)">⊘ Sin asignar</span>'}
-                        </div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">
-                          <select onchange="updateTaskStatus(${t.id},this.value)" style="padding:.35rem;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);font-size:.7rem;font-weight:600;cursor:pointer">
-                            <option value="Pendiente" ${t.status==='Pendiente'?'selected':''}>Pendiente</option>
-                            <option value="En Progreso" ${t.status==='En Progreso'?'selected':''}>En Progreso</option>
-                            <option value="Completada" ${t.status==='Completada'?'selected':''}>Completada</option>
-                          </select>
-                          <select onchange="updateTaskAssigned(${t.id},this.value)" style="padding:.35rem;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);font-size:.7rem;font-weight:600;cursor:pointer">
-                            <option value="">Sin asignar</option>
-                            ${users.map(u=>`<option value="${u.name}" ${t.assigned_to===u.name?'selected':''}>${u.name}</option>`).join('')}
-                          </select>
-                        </div>
-                      </div>
-                    `).join('')}
-                  </div>
-                </div>
-                `;
-              }).join('')}
-            </div>
-          </div>
-          `;
-        }).join('')}
-      </div>
-    </div>
-  `;
-  window._taskFilters=filters;
+  if(!tasksLoaded){
+    m.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem;color:var(--mt)"><div style="animation:spin 1s linear infinite;font-size:3rem;margin-bottom:1rem"><i class="feather" data-icon="settings" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></div><div style="font-size:1.1rem;font-weight:600">Cargando tareas...</div></div><style>@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style>`;
+    await loadTasks();
+  }
+  // Si está en vista de proyectos, mostrar panel de proyectos
+  if(tasksSubView==='proyectos'){
+    await renderProyectos(m);
+    return;
+  }
+  // Vista de tareas - mostrar barra de vistas y tareas
+  const vBar=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem"><div style="display:flex;gap:.5rem;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:.5rem;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)"><button onclick="switchView('list')" class="view-btn ${taskView==='list'?'active':''}" title="Vista de Lista"><i class="fas fa-list"></i> Lista</button><button onclick="switchView('board')" class="view-btn ${taskView==='board'?'active':''}" title="Vista de Tablero"><i class="fas fa-columns"></i> Tablero</button><button onclick="switchView('timeline')" class="view-btn ${taskView==='timeline'?'active':''}" title="Vista de Línea de Tiempo"><i class="fas fa-chart-gantt"></i> Timeline</button></div><div style="display:flex;gap:.5rem"><button onclick="openNewTaskModal()" class="glass-btn" style="white-space:nowrap"><i class="fas fa-plus"></i> Nueva Tarea</button><button onclick="switchTasksSubView('proyectos')" class="glass-btn" style="white-space:nowrap" title="Administrar Proyectos"><i class="fas fa-folder"></i> Proyectos</button></div></div>`;
+  m.innerHTML=vBar;
+  if(taskView==='list')m.innerHTML+=await renderListView();
+  else if(taskView==='board')m.innerHTML+=await renderBoardView();
+  else if(taskView==='timeline')m.innerHTML+=await renderTimelineView()
 }
 
 // ================================================================
@@ -960,9 +804,9 @@ async function renderDashboard(m){
 
   // Calcular todas las estadísticas
   const total=tasks.length;
-  const pending=tasks.filter(t=>t.status==='Pendiente').length;
-  const inProgress=tasks.filter(t=>t.status==='En Progreso').length;
-  const completed=tasks.filter(t=>t.status==='Completada').length;
+  const pending=tasks.filter(t=>t.estado==='Pendiente').length;
+  const inProgress=tasks.filter(t=>t.estado==='En Progreso').length;
+  const completed=tasks.filter(t=>t.estado==='Completada').length;
   const completionRate=total>0?Math.round((completed/total)*100):0;
 
   // Estadísticas por usuario
@@ -971,11 +815,15 @@ async function renderDashboard(m){
     userStats[u.name]={name:u.name,total:0,pending:0,inProgress:0,completed:0,completion:0};
   });
   tasks.forEach(t=>{
-    if(t.assigned_to&&userStats[t.assigned_to]){
-      userStats[t.assigned_to].total++;
-      if(t.status==='Pendiente')userStats[t.assigned_to].pending++;
-      else if(t.status==='En Progreso')userStats[t.assigned_to].inProgress++;
-      else if(t.status==='Completada')userStats[t.assigned_to].completed++;
+    if(t.asignados&&t.asignados.length>0){
+      t.asignados.forEach(a=>{
+        if(userStats[a.name]){
+          userStats[a.name].total++;
+          if(t.estado==='Pendiente')userStats[a.name].pending++;
+          else if(t.estado==='En Progreso')userStats[a.name].inProgress++;
+          else if(t.estado==='Completada')userStats[a.name].completed++;
+        }
+      });
     }
   });
   Object.values(userStats).forEach(u=>{
@@ -985,14 +833,14 @@ async function renderDashboard(m){
   // Estadísticas por proyecto
   const projStats={};
   projects.forEach(p=>{
-    projStats[p.name]={name:p.name,emoji:PROJECT_CONFIG[p.name]?.emoji||'📌',total:0,pending:0,completed:0,completion:0};
+    projStats[p.name]={name:p.name,emoji:PROJECT_CONFIG[p.name]?.emoji||'<i class="feather" data-icon="pin" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',total:0,pending:0,completed:0,completion:0};
   });
   tasks.forEach(t=>{
-    const proj=projects.find(p=>p.id===t.project_id);
+    const proj=projects.find(p=>p.id===t.proyecto_id);
     if(proj&&projStats[proj.name]){
       projStats[proj.name].total++;
-      if(t.status==='Completada')projStats[proj.name].completed++;
-      if(t.status==='Pendiente')projStats[proj.name].pending++;
+      if(t.estado==='Completada')projStats[proj.name].completed++;
+      if(t.estado==='Pendiente')projStats[proj.name].pending++;
     }
   });
   Object.values(projStats).forEach(p=>{
@@ -1003,9 +851,9 @@ async function renderDashboard(m){
   const byPriority={Alta:0,Media:0,Baja:0};
   const byPriorityDone={Alta:0,Media:0,Baja:0};
   tasks.forEach(t=>{
-    if(byPriority[t.priority]!==undefined){
-      byPriority[t.priority]++;
-      if(t.status==='Completada')byPriorityDone[t.priority]++;
+    if(byPriority[t.prioridad]!==undefined){
+      byPriority[t.prioridad]++;
+      if(t.estado==='Completada')byPriorityDone[t.prioridad]++;
     }
   });
 
@@ -1017,22 +865,22 @@ async function renderDashboard(m){
       <!-- KPI CARDS -->
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2rem">
         <div style="background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(59,130,246,.05));border:2px solid #3B82F6;border-radius:12px;padding:1.5rem">
-          <div style="font-size:.85rem;color:var(--mt);margin-bottom:.5rem">📊 Total de Tareas</div>
+          <div style="font-size:.85rem;color:var(--mt);margin-bottom:.5rem"><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Total de Tareas</div>
           <div style="font-size:2.5rem;font-weight:700;color:#3B82F6">${total}</div>
           <div style="font-size:.75rem;color:var(--mt);margin-top:.5rem">Tareas en el sistema</div>
         </div>
         <div style="background:linear-gradient(135deg,rgba(239,68,68,.1),rgba(239,68,68,.05));border:2px solid #EF4444;border-radius:12px;padding:1.5rem">
-          <div style="font-size:.85rem;color:var(--mt);margin-bottom:.5rem">🔴 Pendientes</div>
+          <div style="font-size:.85rem;color:var(--mt);margin-bottom:.5rem"><i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#EF4444" aria-hidden="true"></i> Pendientes</div>
           <div style="font-size:2.5rem;font-weight:700;color:#EF4444">${pending}</div>
           <div style="font-size:.75rem;color:var(--mt);margin-top:.5rem">${total>0?Math.round((pending/total)*100):'0'}% del total</div>
         </div>
         <div style="background:linear-gradient(135deg,rgba(245,158,11,.1),rgba(245,158,11,.05));border:2px solid #F59E0B;border-radius:12px;padding:1.5rem">
-          <div style="font-size:.85rem;color:var(--mt);margin-bottom:.5rem">🟡 En Progreso</div>
+          <div style="font-size:.85rem;color:var(--mt);margin-bottom:.5rem"><i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#FCD34D" aria-hidden="true"></i> En Progreso</div>
           <div style="font-size:2.5rem;font-weight:700;color:#F59E0B">${inProgress}</div>
           <div style="font-size:.75rem;color:var(--mt);margin-top:.5rem">${total>0?Math.round((inProgress/total)*100):'0'}% del total</div>
         </div>
         <div style="background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(16,185,129,.05));border:2px solid #10B981;border-radius:12px;padding:1.5rem">
-          <div style="font-size:.85rem;color:var(--mt);margin-bottom:.5rem">✅ Completadas</div>
+          <div style="font-size:.85rem;color:var(--mt);margin-bottom:.5rem"><i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Completadas</div>
           <div style="font-size:2.5rem;font-weight:700;color:#10B981">${completed}</div>
           <div style="font-size:.75rem;color:var(--mt);margin-top:.5rem">${completionRate}% de completación</div>
         </div>
@@ -1042,7 +890,7 @@ async function renderDashboard(m){
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem">
         <!-- COLUMNA IZQUIERDA: Usuarios y Proyectos -->
         <div>
-          <h3 style="font-size:1.1rem;font-weight:700;color:var(--fg);margin-bottom:1rem">👥 Carga de Trabajo por Usuario</h3>
+          <h3 style="font-size:1.1rem;font-weight:700;color:var(--fg);margin-bottom:1rem"><i class="feather" data-icon="users" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Carga de Trabajo por Usuario</h3>
           ${usersList.map(u=>`
             <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:.75rem">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
@@ -1050,10 +898,10 @@ async function renderDashboard(m){
                 <div style="font-size:.75rem;font-weight:700;background:var(--sy-bg);color:var(--sy);padding:2px 8px;border-radius:4px">${u.completion}%</div>
               </div>
               <div style="display:flex;gap:.5rem;font-size:.75rem;color:var(--mt);margin-bottom:.5rem">
-                <span>📌 ${u.total} tareas</span>
-                <span>🔴 ${u.pending}</span>
-                <span>🟡 ${u.inProgress}</span>
-                <span>✅ ${u.completed}</span>
+                <span><i class="feather" data-icon="pin" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> ${u.total} tareas</span>
+                <span><i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#EF4444" aria-hidden="true"></i> ${u.pending}</span>
+                <span><i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#FCD34D" aria-hidden="true"></i> ${u.inProgress}</span>
+                <span><i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> ${u.completed}</span>
               </div>
               <div style="width:100%;height:6px;background:var(--border);border-radius:3px;overflow:hidden">
                 <div style="width:${u.completion}%;height:100%;background:linear-gradient(90deg,#3B82F6,#10B981);transition:width .3s"></div>
@@ -1072,8 +920,8 @@ async function renderDashboard(m){
                 <div style="font-size:.75rem;font-weight:700;background:var(--sy-bg);color:var(--sy);padding:2px 8px;border-radius:4px">${p.completion}%</div>
               </div>
               <div style="display:flex;gap:.5rem;font-size:.75rem;color:var(--mt);margin-bottom:.5rem">
-                <span>📌 ${p.total} tareas</span>
-                <span>✅ ${p.completed}</span>
+                <span><i class="feather" data-icon="pin" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> ${p.total} tareas</span>
+                <span><i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> ${p.completed}</span>
               </div>
               <div style="width:100%;height:6px;background:var(--border);border-radius:3px;overflow:hidden">
                 <div style="width:${p.completion}%;height:100%;background:linear-gradient(90deg,#3B82F6,#10B981);transition:width .3s"></div>
@@ -1085,20 +933,20 @@ async function renderDashboard(m){
 
       <!-- PRIORIDADES -->
       <div style="margin-top:2rem">
-        <h3 style="font-size:1.1rem;font-weight:700;color:var(--fg);margin-bottom:1rem">⚡ Tareas por Prioridad</h3>
+        <h3 style="font-size:1.1rem;font-weight:700;color:var(--fg);margin-bottom:1rem"><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Tareas por Prioridad</h3>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem">
           <div style="background:rgba(220,38,38,.1);border:1px solid #DC2626;border-radius:10px;padding:1.5rem;text-align:center">
-            <div style="font-size:.85rem;color:var(--mt);margin-bottom:.5rem">🔴 Alta Prioridad</div>
+            <div style="font-size:.85rem;color:var(--mt);margin-bottom:.5rem"><i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#EF4444" aria-hidden="true"></i> Alta Prioridad</div>
             <div style="font-size:2rem;font-weight:700;color:#DC2626">${byPriority.Alta}</div>
             <div style="font-size:.75rem;color:var(--mt);margin-top:.5rem">${byPriorityDone.Alta} completadas (${byPriority.Alta>0?Math.round((byPriorityDone.Alta/byPriority.Alta)*100):'0'}%)</div>
           </div>
           <div style="background:rgba(217,119,6,.1);border:1px solid #D97706;border-radius:10px;padding:1.5rem;text-align:center">
-            <div style="font-size:.85rem;color:var(--mt);margin-bottom:.5rem">🟡 Prioridad Media</div>
+            <div style="font-size:.85rem;color:var(--mt);margin-bottom:.5rem"><i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#FCD34D" aria-hidden="true"></i> Prioridad Media</div>
             <div style="font-size:2rem;font-weight:700;color:#D97706">${byPriority.Media}</div>
             <div style="font-size:.75rem;color:var(--mt);margin-top:.5rem">${byPriorityDone.Media} completadas (${byPriority.Media>0?Math.round((byPriorityDone.Media/byPriority.Media)*100):'0'}%)</div>
           </div>
           <div style="background:rgba(107,114,128,.1);border:1px solid #6B7280;border-radius:10px;padding:1.5rem;text-align:center">
-            <div style="font-size:.85rem;color:var(--mt);margin-bottom:.5rem">🟢 Baja Prioridad</div>
+            <div style="font-size:.85rem;color:var(--mt);margin-bottom:.5rem"><i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#10B981" aria-hidden="true"></i> Baja Prioridad</div>
             <div style="font-size:2rem;font-weight:700;color:#6B7280">${byPriority.Baja}</div>
             <div style="font-size:.75rem;color:var(--mt);margin-top:.5rem">${byPriorityDone.Baja} completadas (${byPriority.Baja>0?Math.round((byPriorityDone.Baja/byPriority.Baja)*100):'0'}%)</div>
           </div>
@@ -1108,275 +956,58 @@ async function renderDashboard(m){
   `;
 }
 
-// ================================================================
-// IA - ANÁLISIS INTELIGENTE DE TAREAS
-// ================================================================
-async function renderIATareas(m){
-  await loadTasks();
+function toggleProject(projId){const el=document.getElementById(projId);const icon=document.getElementById('toggle-'+projId);if(el){const hidden=el.style.display==='none';el.style.display=hidden?'block':'none';if(icon)icon.textContent=hidden?'▼':'▶'}}
 
-  let iaState=window._iaState||{mode:'menu',result:'',loading:false};
+function openTaskModal(taskId){const task=tasks.find(t=>t.id===taskId);if(!task)return;const assignedUserId=task.asignados&&task.asignados.length>0?task.asignados[0].user_id:'';const modal=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-box" style="max-width:600px"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1.5rem"><div style="font-size:1.15rem;font-weight:700;color:var(--fg)">Editar Tarea<span style="font-size:.75rem;font-weight:600;color:var(--sy);margin-left:.5rem">${task.task_id||'#'+task.id}</span></div><button onclick="closeModal()" style="padding:.5rem;border:none;background:transparent;color:var(--mt);cursor:pointer;font-size:1.2rem">&times;</button></div><div class="modal-field"><label>Título</label><textarea id="editDesc" rows="3" style="resize:vertical">${esc(task.titulo)}</textarea></div><div class="modal-field"><label>Proyecto</label><select id="editProject">${projects.map(p=>`<option value="${p.id}" ${task.proyecto_id==p.id?'selected':''}>${p.name}</option>`).join('')}</select></div><div class="modal-field"><label>Sección (opcional)</label><input type="text" id="editModule" value="${task.seccion||''}" placeholder="Ej: Dashboard, Pagos, etc."></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem"><div class="modal-field"><label>Estado</label><select id="editStatus"><option value="Pendiente">🔴 Pendiente</option><option value="En Progreso">🟡 En Progreso</option><option value="Completada">✅ Completada</option></select></div><div class="modal-field"><label>Prioridad</label><select id="editPriority"><option value="Alta">🔴 Alta</option><option value="Media">🟡 Media</option><option value="Baja">🟢 Baja</option></select></div></div><div class="modal-field"><label>Asignado a</label><select id="editAssigned"><option value="">Sin asignar</option>${users.map(u=>`<option value="${u.id}" ${assignedUserId==u.id?'selected':''}>${u.name}</option>`).join('')}</select></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem"><div class="modal-field"><label>Fecha de Inicio</label><input type="date" id="editStartDate" value="${task.fecha_inicio||''}"></div><div class="modal-field"><label>Fecha de Vencimiento</label><input type="date" id="editDueDate" value="${task.fecha_vencimiento||''}"></div></div><div style="display:flex;justify-content:space-between;gap:1rem;margin-top:1.5rem"><button onclick="deleteTask(${task.id});closeModal()" style="padding:.65rem 1.25rem;border-radius:10px;border:1px solid #EF4444;background:transparent;color:#EF4444;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#EF4444';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#EF4444'"><i class="fas fa-trash"></i> Eliminar</button><div style="display:flex;gap:.75rem"><button onclick="closeModal()" class="m-cancel">Cancelar</button><button onclick="saveTask(${task.id})" class="m-ok"><i class="fas fa-save"></i> Guardar</button></div></div></div></div>`;document.getElementById('modalRoot').innerHTML=modal}
 
-  const total=tasks.length;
-  const pending=tasks.filter(t=>t.status==='Pendiente').length;
-  const completed=tasks.filter(t=>t.status==='Completada').length;
+async function saveTask(taskId){const titulo=document.getElementById('editDesc')?.value?.trim();const proyecto_id=document.getElementById('editProject')?.value;const seccion=document.getElementById('editModule')?.value?.trim()||null;const estado=document.getElementById('editStatus')?.value;const prioridad=document.getElementById('editPriority')?.value;const assignedUserId=document.getElementById('editAssigned')?.value||null;const fecha_inicio=document.getElementById('editStartDate')?.value||null;const fecha_vencimiento=document.getElementById('editDueDate')?.value||null;if(!titulo)return toast('Título requerido');try{const payload={titulo,proyecto_id,seccion,estado,prioridad,fecha_inicio,fecha_vencimiento};const r=await fetch(`/api/styly/tasks/${taskId}`,{method:'PUT',headers:hdrs,body:JSON.stringify(payload)});const d=await r.json();if(d.error)throw new Error(d.error);const task=tasks.find(t=>t.id===taskId);if(assignedUserId){const currentAssigned=task?.asignados||[];for(const a of currentAssigned){await fetch(`/api/styly/tasks/${taskId}/asignados/${a.user_id}`,{method:'DELETE',headers:hdrs}).catch(e=>console.log(e));}await fetch(`/api/styly/tasks/${taskId}/asignados`,{method:'POST',headers:hdrs,body:JSON.stringify({user_id:parseInt(assignedUserId)})});}else if(task){const currentAssigned=task?.asignados||[];for(const a of currentAssigned){await fetch(`/api/styly/tasks/${taskId}/asignados/${a.user_id}`,{method:'DELETE',headers:hdrs}).catch(e=>console.log(e));}}toast('Tarea actualizada');closeModal();tasksLoaded=false;renderTareas(document.getElementById('modContent'))}catch(e){toast('Error: '+e.message)}}
 
-  // Análisis de patrones
-  const getBottlenecks=()=>{
-    const bottlenecks=[];
-    const userLoads={};
-    tasks.forEach(t=>{
-      if(t.assigned_to&&t.status!=='Completada'){
-        userLoads[t.assigned_to]=(userLoads[t.assigned_to]||0)+1;
-      }
-    });
-    Object.entries(userLoads).forEach(([user,count])=>{
-      if(count>Math.ceil(total/users.length)*1.5){
-        bottlenecks.push({user,overload:count});
-      }
-    });
-    return bottlenecks;
-  };
+function openNewTaskModal(projectId=null,status='Pendiente',userId=null){const modal=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-box" style="max-width:600px"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1.5rem"><div style="font-size:1.15rem;font-weight:700;color:var(--fg)"><i class="fas fa-plus-circle" style="color:var(--sy);margin-right:.5rem"></i>Nueva Tarea</div><button onclick="closeModal()" style="padding:.5rem;border:none;background:transparent;color:var(--mt);cursor:pointer;font-size:1.2rem">&times;</button></div><div class="modal-field"><label>Título *</label><textarea id="newDesc" rows="3" placeholder="Describe la tarea..." style="resize:vertical"></textarea></div><div class="modal-field"><label style="display:flex;justify-content:space-between;align-items:center">Proyecto * <button onclick="openCreateProjectModal()" title="Crear nuevo proyecto" style="padding:4px 8px;border-radius:4px;border:1px solid var(--sy);background:transparent;color:var(--sy);cursor:pointer;font-size:.75rem"><i class="fas fa-plus"></i> Nuevo</button></label><select id="newProject">${projects.length===0?'<option value="">-- Sin proyectos disponibles --</option>':projects.map(p=>`<option value="${p.id}" ${projectId==p.id?'selected':''}>${p.name}</option>`).join('')}</select></div><div class="modal-field"><label>Sección (opcional)</label><input type="text" id="newModule" placeholder="Ej: Dashboard, Pagos, etc."></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem"><div class="modal-field"><label>Estado</label><select id="newStatus"><option value="Pendiente">🔴 Pendiente</option><option value="En Progreso">🟡 En Progreso</option><option value="Completada">✅ Completada</option></select></div><div class="modal-field"><label>Prioridad</label><select id="newPriority"><option value="Media" selected><i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#FCD34D" aria-hidden="true"></i> Media</option><option value="Alta"><i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#EF4444" aria-hidden="true"></i> Alta</option><option value="Baja"><i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#10B981" aria-hidden="true"></i> Baja</option></select></div></div><div class="modal-field"><label style="display:flex;justify-content:space-between;align-items:center">Asignado a <button onclick="openCreateUserModal()" title="Crear nuevo usuario" style="padding:4px 8px;border-radius:4px;border:1px solid var(--sy);background:transparent;color:var(--sy);cursor:pointer;font-size:.75rem"><i class="fas fa-plus"></i> Nuevo</button></label><select id="newAssigned"><option value="">Sin asignar</option>${users.map(u=>`<option value="${u.id}" ${userId==u.id?'selected':''}>${u.name}</option>`).join('')}</select></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem"><div class="modal-field"><label>Fecha de Inicio</label><input type="date" id="newStartDate"></div><div class="modal-field"><label>Fecha de Vencimiento</label><input type="date" id="newDueDate"></div></div><div class="modal-actions" style="margin-top:1.5rem;display:flex;justify-content:flex-end;gap:.75rem"><button onclick="closeModal()" class="m-cancel">Cancelar</button><button onclick="createTask()" class="m-ok"><i class="fas fa-plus"></i> Crear Tarea</button></div></div></div>`;document.getElementById('modalRoot').innerHTML=modal}
 
-  const bottlenecks=getBottlenecks();
-  const oldestTasks=tasks.filter(t=>t.status==='Pendiente').sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)).slice(0,5);
+function openCreateProjectModal(context='task'){window.projectCreationContext=context;const modal=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-box" style="max-width:500px"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1.5rem"><div style="font-size:1.15rem;font-weight:700;color:var(--fg)"><i class="fas fa-folder-plus" style="color:var(--sy);margin-right:.5rem"></i>Nuevo Proyecto</div><button onclick="closeModal()" style="padding:.5rem;border:none;background:transparent;color:var(--mt);cursor:pointer;font-size:1.2rem">&times;</button></div><div class="modal-field"><label>Nombre del Proyecto *</label><input type="text" id="projName" placeholder="Ej: Rediseño Web, Campaña Q1, etc." style="width:100%"></div><div class="modal-field"><label>Descripción (opcional)</label><textarea id="projDesc" rows="2" placeholder="Descripción breve..." style="resize:vertical"></textarea></div><div class="modal-field"><label>Color del Proyecto</label><div style="display:flex;gap:0.75rem;flex-wrap:wrap"><input type="color" id="projColor" value="#3B82F6" style="width:50px;height:40px;border:none;border-radius:8px;cursor:pointer"></div></div><div style="display:flex;justify-content:flex-end;gap:.75rem;margin-top:1.5rem"><button onclick="closeModal()" class="m-cancel">Cancelar</button><button onclick="createProject()" class="m-ok"><i class="fas fa-check"></i> Crear Proyecto</button></div></div></div>`;document.getElementById('modalRoot').innerHTML=modal}
 
-  m.innerHTML=`
-    <div style="padding:1rem">
-      ${iaState.mode==='menu'?`
-        <div style="max-width:900px">
-          <h2 style="font-size:1.5rem;font-weight:700;color:var(--fg);margin-bottom:1.5rem">🧠 Inteligencia Artificial - Análisis de Tareas</h2>
+async function createProject(){const name=document.getElementById('projName')?.value?.trim();const description=document.getElementById('projDesc')?.value?.trim()||null;const color=document.getElementById('projColor')?.value||'#3B82F6';if(!name)return toast('Nombre del proyecto requerido');try{const r=await fetch('/api/styly/projects',{method:'POST',headers:hdrs,body:JSON.stringify({name,description,color})});const d=await r.json();if(d.error)throw new Error(d.error);toast('Proyecto creado');projects.push(d.project);const newProjectId=d.project.id;const context=window.projectCreationContext||'task';closeModal();await new Promise(resolve=>setTimeout(resolve,100));if(context==='admin'){renderProyectos(document.getElementById('modContent'))}else{openNewTaskModal(newProjectId)}}catch(e){toast('Error: '+e.message)}}
 
-          <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem">
-            <p style="color:var(--mt);margin-bottom:1rem;line-height:1.6">La IA analiza tus tareas para identificar bottlenecks, sugerir optimizaciones y predecir riesgos de atrasos.</p>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;font-size:.85rem">
-              <div>📊 <strong>${total}</strong> tareas totales</div>
-              <div>🔴 <strong>${pending}</strong> pendientes</div>
-              <div>✅ <strong>${completed}</strong> completadas</div>
-            </div>
-          </div>
+function openCreateUserModal(){const modal=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-box" style="max-width:500px"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1.5rem"><div style="font-size:1.15rem;font-weight:700;color:var(--fg)"><i class="fas fa-user-plus" style="color:var(--sy);margin-right:.5rem"></i>Nuevo Usuario</div><button onclick="closeModal()" style="padding:.5rem;border:none;background:transparent;color:var(--mt);cursor:pointer;font-size:1.2rem">&times;</button></div><div class="modal-field"><label>Nombre Completo *</label><input type="text" id="userName" placeholder="Ej: Juan Pérez" style="width:100%"></div><div class="modal-field"><label>Email *</label><input type="email" id="userEmail" placeholder="correo@ejemplo.com" style="width:100%"></div><div class="modal-field"><label>Contraseña *</label><input type="password" id="userPassword" placeholder="Mínimo 6 caracteres" style="width:100%"></div><div style="display:flex;justify-content:flex-end;gap:.75rem;margin-top:1.5rem"><button onclick="closeModal()" class="m-cancel">Cancelar</button><button onclick="createUser()" class="m-ok"><i class="fas fa-check"></i> Crear Usuario</button></div></div></div>`;document.getElementById('modalRoot').innerHTML=modal}
 
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem">
-            <div onclick="window._iaState={mode:'bottlenecks',result:'',loading:true};renderIATareas(document.getElementById('modContent'))" style="background:linear-gradient(135deg,rgba(239,68,68,.1),rgba(239,68,68,.05));border:2px solid #EF4444;border-radius:12px;padding:1.5rem;cursor:pointer;transition:all .2s;text-align:center" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 4px 12px rgba(239,68,68,.2)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">
-              <div style="font-size:2rem;margin-bottom:.5rem">⚠️</div>
-              <div style="font-weight:700;color:#EF4444;margin-bottom:.5rem">Detectar Bottlenecks</div>
-              <div style="font-size:.75rem;color:var(--mt)">Identifica usuarios sobrecargados</div>
-            </div>
+async function createUser(){const name=document.getElementById('userName')?.value?.trim();const email=document.getElementById('userEmail')?.value?.trim();const password=document.getElementById('userPassword')?.value;if(!name)return toast('Nombre requerido');if(!email)return toast('Email requerido');if(!password||password.length<6)return toast('Contraseña mínimo 6 caracteres');try{const r=await fetch('/api/styly/users',{method:'POST',headers:hdrs,body:JSON.stringify({name,email,password})});const d=await r.json();if(d.error)throw new Error(d.error);toast('Usuario creado');users.push(d.user);const newUserId=d.user.id;closeModal();await new Promise(resolve=>setTimeout(resolve,100));openNewTaskModal(null,'Pendiente',newUserId)}catch(e){toast('Error: '+e.message)}}
 
-            <div onclick="window._iaState={mode:'recommendations',result:'',loading:true};renderIATareas(document.getElementById('modContent'))" style="background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(59,130,246,.05));border:2px solid #3B82F6;border-radius:12px;padding:1.5rem;cursor:pointer;transition:all .2s;text-align:center" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 4px 12px rgba(59,130,246,.2)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">
-              <div style="font-size:2rem;margin-bottom:.5rem">💡</div>
-              <div style="font-weight:700;color:#3B82F6;margin-bottom:.5rem">Recomendaciones</div>
-              <div style="font-size:.75rem;color:var(--mt)">Asignaciones y optimizaciones</div>
-            </div>
+async function createTask(){const titulo=document.getElementById('newDesc')?.value?.trim();const proyecto_id=document.getElementById('newProject')?.value;const seccion=document.getElementById('newModule')?.value?.trim()||null;const estado=document.getElementById('newStatus')?.value;const prioridad=document.getElementById('newPriority')?.value;const assignedUserId=document.getElementById('newAssigned')?.value||null;const fecha_inicio=document.getElementById('newStartDate')?.value||null;const fecha_vencimiento=document.getElementById('newDueDate')?.value||null;if(!titulo)return toast('Título requerido');if(!proyecto_id)return toast('Proyecto requerido');try{const nextId=Math.max(0,...tasks.map(t=>{const match=t.task_id?.match(/T-(\d+)/);return match?parseInt(match[1]):0}))+1;const taskId=`T-${String(nextId).padStart(3,'0')}`;const payload={task_id:taskId,titulo,proyecto_id,seccion,prioridad,fecha_inicio,fecha_vencimiento};if(assignedUserId){payload.asignados=[parseInt(assignedUserId)];}const r=await fetch('/api/styly/tasks',{method:'POST',headers:hdrs,body:JSON.stringify(payload)});const d=await r.json();if(d.error)throw new Error(d.error);toast('Tarea creada');closeModal();tasksLoaded=false;renderTareas(document.getElementById('modContent'))}catch(e){toast('Error: '+e.message)}}
 
-            <div onclick="window._iaState={mode:'riskanalysis',result:'',loading:true};renderIATareas(document.getElementById('modContent'))" style="background:linear-gradient(135deg,rgba(245,158,11,.1),rgba(245,158,11,.05));border:2px solid #F59E0B;border-radius:12px;padding:1.5rem;cursor:pointer;transition:all .2s;text-align:center" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 4px 12px rgba(245,158,11,.2)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">
-              <div style="font-size:2rem;margin-bottom:.5rem">🎯</div>
-              <div style="font-weight:700;color:#F59E0B;margin-bottom:.5rem">Análisis de Riesgo</div>
-              <div style="font-size:.75rem;color:var(--mt)">Tareas en riesgo de atrasos</div>
-            </div>
-
-            <div onclick="window._iaState={mode:'report',result:'',loading:true};renderIATareas(document.getElementById('modContent'))" style="background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(16,185,129,.05));border:2px solid #10B981;border-radius:12px;padding:1.5rem;cursor:pointer;transition:all .2s;text-align:center" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 4px 12px rgba(16,185,129,.2)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">
-              <div style="font-size:2rem;margin-bottom:.5rem">📈</div>
-              <div style="font-weight:700;color:#10B981;margin-bottom:.5rem">Reporte Ejecutivo</div>
-              <div style="font-size:.75rem;color:var(--mt)">Resumen y tendencias</div>
-            </div>
-          </div>
-        </div>
-      `:iaState.mode==='bottlenecks'?`
-        <button onclick="window._iaState={mode:'menu',result:'',loading:false};renderIATareas(document.getElementById('modContent'))" style="margin-bottom:1.5rem;padding:.5rem 1rem;border:1px solid var(--border);background:var(--card);border-radius:6px;color:var(--fg);cursor:pointer;font-weight:600">← Volver</button>
-        <h2 style="font-size:1.3rem;font-weight:700;color:var(--fg);margin-bottom:1rem">⚠️ Análisis de Bottlenecks</h2>
-        ${iaState.loading?'<div style="color:var(--mt)">🔄 Analizando carga de trabajo...</div>':`
-          <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
-            ${bottlenecks.length===0?`
-              <div style="text-align:center;padding:2rem;color:var(--mt)">
-                <div style="font-size:3rem;margin-bottom:1rem">✅</div>
-                <p>Excelente distribución de carga. Ningún usuario está sobrecargado.</p>
-              </div>
-            `:`
-              <div>
-                <div style="color:#EF4444;font-weight:700;margin-bottom:1rem">Se detectaron los siguientes usuarios con sobrecarga:</div>
-                ${bottlenecks.map(b=>`
-                  <div style="background:rgba(239,68,68,.1);border-left:3px solid #EF4444;padding:1rem;margin-bottom:.75rem;border-radius:6px">
-                    <div style="font-weight:600;color:var(--fg)">${b.user}</div>
-                    <div style="font-size:.85rem;color:var(--mt);margin-top:.25rem">${b.overload} tareas asignadas (25% por encima del promedio)</div>
-                    <div style="font-size:.8rem;color:var(--mt);margin-top:.5rem;font-style:italic">💡 Recomendación: Redistribuir tareas o priorizar completaciones</div>
-                  </div>
-                `).join('')}
-              </div>
-            `}
-          </div>
-        `}
-      `:iaState.mode==='recommendations'?`
-        <button onclick="window._iaState={mode:'menu',result:'',loading:false};renderIATareas(document.getElementById('modContent'))" style="margin-bottom:1.5rem;padding:.5rem 1rem;border:1px solid var(--border);background:var(--card);border-radius:6px;color:var(--fg);cursor:pointer;font-weight:600">← Volver</button>
-        <h2 style="font-size:1.3rem;font-weight:700;color:var(--fg);margin-bottom:1rem">💡 Recomendaciones de IA</h2>
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
-          <div style="margin-bottom:1.5rem">
-            <div style="font-weight:700;color:var(--fg);margin-bottom:.75rem">1. 📝 Nuevas Tareas Sugeridas</div>
-            <div style="font-size:.9rem;color:var(--mt);background:rgba(59,130,246,.05);padding:1rem;border-radius:6px;border-left:3px solid #3B82F6">
-              Basado en tus proyectos actuales, se sugieren crear tareas para: Testing, Documentación, y Revisión de código. Esto mejorará la calidad del producto.
-            </div>
-          </div>
-          <div style="margin-bottom:1.5rem">
-            <div style="font-weight:700;color:var(--fg);margin-bottom:.75rem">2. 👥 Redistribución Óptima</div>
-            <div style="font-size:.9rem;color:var(--mt);background:rgba(245,158,11,.05);padding:1rem;border-radius:6px;border-left:3px solid #F59E0B">
-              ${bottlenecks.length>0?bottlenecks.map(b=>'Transferir 2-3 tareas de '+b.user+' a usuarios con menor carga').join('. '):'Mantener distribución actual - está bien balanceada'}
-            </div>
-          </div>
-          <div>
-            <div style="font-weight:700;color:var(--fg);margin-bottom:.75rem">3. ⚡ Optimización de Prioridades</div>
-            <div style="font-size:.9rem;color:var(--mt);background:rgba(16,185,129,.05);padding:1rem;border-radius:6px;border-left:3px solid #10B981">
-              Priorizar primero las tareas de "Alta" en estado "Pendiente". Esto acelerará la finalización de hitos críticos.
-            </div>
-          </div>
-        </div>
-      `:iaState.mode==='riskanalysis'?`
-        <button onclick="window._iaState={mode:'menu',result:'',loading:false};renderIATareas(document.getElementById('modContent'))" style="margin-bottom:1.5rem;padding:.5rem 1rem;border:1px solid var(--border);background:var(--card);border-radius:6px;color:var(--fg);cursor:pointer;font-weight:600">← Volver</button>
-        <h2 style="font-size:1.3rem;font-weight:700;color:var(--fg);margin-bottom:1rem">🎯 Análisis de Riesgo</h2>
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
-          <div style="margin-bottom:1.5rem">
-            <div style="font-weight:700;color:#EF4444;margin-bottom:.75rem">⚠️ Tareas Antiguas en Pendiente</div>
-            ${oldestTasks.length===0?'<div style="color:var(--mt);font-size:.9rem">No hay tareas antiguas pendientes.</div>':'<div style="display:flex;flex-direction:column;gap:.5rem">'+oldestTasks.map(t=>{const days=Math.floor((new Date()-new Date(t.created_at))/(1000*60*60*24));return '<div style="background:rgba(239,68,68,.1);padding:.75rem;border-radius:6px;border-left:3px solid #EF4444;font-size:.85rem"><div style="font-weight:600;color:var(--fg)">'+t.task_id+' - '+t.description.substring(0,50)+'...</div><div style="color:var(--mt);margin-top:.25rem">Pendiente desde hace '+days+' días</div></div>';}).join('')+'</div>'}
-          </div>
-          <div>
-            <div style="font-weight:700;color:#F59E0B;margin-bottom:.75rem">🟡 Tareas Sin Asignar</div>
-            ${tasks.filter(t=>!t.assigned_to).length===0?'<div style="color:var(--mt);font-size:.9rem">✅ Todas las tareas están asignadas.</div>':`<div style="color:var(--mt);font-size:.9rem">${tasks.filter(t=>!t.assigned_to).length} tareas sin asignar. Esto puede retrasar el progreso.</div>`}
-          </div>
-        </div>
-      `:''}
-    </div>
-  `;
-  window._iaState=iaState;
-}
-
-function toggleProject(projId){
-  const el=document.getElementById(projId);
-  const icon=document.getElementById('toggle-'+projId);
-  if(el){
-    const hidden=el.style.display==='none';
-    el.style.display=hidden?'block':'none';
-    if(icon)icon.textContent=hidden?'▼':'▶';
+async function renderProyectos(m){
+  const header=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem"><h2 style="color:var(--fg);margin:0;font-size:1.5rem"><i class="fas fa-folder" style="margin-right:.5rem;color:var(--sy)"></i>Administrar Proyectos</h2><div style="display:flex;gap:.5rem"><button onclick="openCreateProjectModal('admin')" class="glass-btn"><i class="fas fa-plus"></i> Nuevo Proyecto</button><button onclick="switchTasksSubView('tareas')" class="glass-btn" style="background:rgba(139,92,246,0.15)"><i class="fas fa-arrow-left"></i> Volver</button></div></div>`;
+  if(!projects||projects.length===0){
+    m.innerHTML=header+`<div style="text-align:center;padding:3rem;color:var(--mt)"><div style="font-size:2.5rem;margin-bottom:1rem"><i class="feather" data-icon="folder" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></div><div style="font-size:1rem;font-weight:600">No hay proyectos</div><div style="font-size:.85rem;margin-top:.5rem">Crea tu primer proyecto para comenzar</div></div>`;
+    return;
   }
+  const projectsList=projects.map(p=>`<div class="glass-card" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><div style="flex:1"><div style="font-size:1.1rem;font-weight:700;color:var(--fg);display:flex;align-items:center;gap:.75rem"><span style="width:20px;height:20px;background:${p.color||'#3B82F6'};border-radius:6px;box-shadow:0 4px 12px ${p.color||'#3B82F6'}40"></span>${p.name}</div><div style="font-size:.85rem;color:rgba(255,255,255,0.7);margin-top:.5rem">${p.description||'Sin descripción'}</div><div style="font-size:.75rem;color:rgba(255,255,255,0.7);margin-top:.75rem;display:flex;gap:1rem"><span><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Estado: <strong>${p.estado||'activo'}</strong></span><span><i class="feather" data-icon="calendar" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Creado: ${new Date(p.created_at).toLocaleDateString('es-MX')}</span></div></div><button onclick="deleteProject(${p.id})" style="padding:.65rem 1.25rem;border-radius:12px;border:1px solid rgba(239,68,68,0.4);background:rgba(239,68,68,0.1);color:#EF4444;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .3s;white-space:nowrap;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)" onmouseover="this.style.background='#EF4444';this.style.color='#fff';this.style.border='1px solid #EF4444'" onmouseout="this.style.background='rgba(239,68,68,0.1)';this.style.color='#EF4444';this.style.border='1px solid rgba(239,68,68,0.4)'"><i class="fas fa-trash"></i> Eliminar</button></div>`).join('');
+  m.innerHTML=header+projectsList
 }
 
-function toggleAllProjects(){
-  const projs=document.querySelectorAll('[id^="proj-"]');
-  const allHidden=Array.from(projs).every(p=>p.style.display==='none');
-  projs.forEach(p=>{
-    p.style.display=allHidden?'block':'none';
-    const projId=p.id;
-    const icon=document.getElementById('toggle-'+projId);
-    if(icon)icon.textContent=allHidden?'▼':'▶';
-  });
-}
-
-function toggleModule(modId){
-  const id='mod-'+modId;
-  const toggle='toggle-'+modId;
-  const el=document.getElementById(id);
-  const icon=document.getElementById(toggle);
-  if(el){
-    const hidden=el.style.display==='none';
-    el.style.display=hidden?'grid':'none';
-    if(icon)icon.textContent=hidden?'▼':'▶';
+async function deleteProject(id){
+  if(!confirm('¿Estás seguro de que deseas eliminar este proyecto? No se puede deshacer.'))return;
+  try{
+    console.log('Deleting project',id,'with headers',hdrs);
+    const r=await fetch(`/api/styly/projects/${id}`,{method:'DELETE',headers:hdrs});
+    console.log('Delete response status:',r.status);
+    const text=await r.text();
+    console.log('Delete response text:',text.substring(0,200));
+    if(!r.ok){
+      throw new Error(`Error HTTP ${r.status}: ${text.includes('<')?'Error del servidor':text}`);
+    }
+    let d;
+    try{d=JSON.parse(text)}catch{throw new Error('Respuesta no válida: '+text.substring(0,100))}
+    if(d.error)throw new Error(d.error);
+    toast('Proyecto eliminado');
+    projects=projects.filter(p=>p.id!==id);
+    await renderProyectos(document.getElementById('modContent'));
+  }catch(e){
+    console.error('deleteProject error:',e.message);
+    toast('Error: '+e.message);
   }
-}
-
-function toggleAllModules(){
-  const modules=document.querySelectorAll('[id^="mod-"]');
-  const allHidden=Array.from(modules).every(m=>m.style.display==='none');
-  modules.forEach(m=>{
-    m.style.display=allHidden?'grid':'none';
-    const modId=m.id.replace('mod-','');
-    const icon=document.getElementById('toggle-'+modId);
-    if(icon)icon.textContent=allHidden?'▼':'▶';
-  });
-}
-
-async function updateTaskStatus(id,status){
-  try{
-    const r=await fetch('/api/styly/tasks/'+id,{method:'PUT',headers:hdrs,body:JSON.stringify({status})});
-    const d=await r.json();if(d.error)throw new Error(d.error);
-    tasks=tasks.map(t=>t.id===id?d.task:t);
-    renderTareas(document.getElementById('modContent'));
-    toast('Tarea actualizada');
-  }catch(e){toast('Error: '+e.message)}
-}
-
-async function updateTaskAssigned(id,assigned_to){
-  try{
-    const r=await fetch('/api/styly/tasks/'+id,{method:'PUT',headers:hdrs,body:JSON.stringify({assigned_to:assigned_to||null})});
-    const d=await r.json();if(d.error)throw new Error(d.error);
-    tasks=tasks.map(t=>t.id===id?d.task:t);
-    renderTareas(document.getElementById('modContent'));
-    toast('Asignación actualizada');
-  }catch(e){toast('Error: '+e.message)}
-}
-
-async function deleteTask(id){
-  if(!confirm('¿Eliminar esta tarea?'))return;
-  try{
-    const r=await fetch('/api/styly/tasks/'+id,{method:'DELETE',headers:hdrs});
-    if(!r.ok)throw new Error('Error al eliminar');
-    tasks=tasks.filter(t=>t.id!==id);
-    renderTareas(document.getElementById('modContent'));
-    toast('Tarea eliminada');
-  }catch(e){toast('Error: '+e.message)}
-}
-
-function openNewProjectModal(){
-  showModal(`<div class="modal-title">➕ Nuevo Proyecto</div>
-    <div class="modal-field"><label>Nombre</label><input type="text" id="newProjName" placeholder="Ej: Landing Page, Modulo Panel..."></div>
-    <div class="modal-field"><label>Descripción (opcional)</label><textarea id="newProjDesc" rows="2" placeholder="Descripción del proyecto..."></textarea></div>
-    <div class="modal-actions"><button class="m-cancel" onclick="closeModal()">Cancelar</button><button class="m-ok" onclick="saveNewProject()">➕ Crear Proyecto</button></div>`);
-}
-
-async function saveNewProject(){
-  const name=document.getElementById('newProjName')?.value?.trim();
-  const description=document.getElementById('newProjDesc')?.value?.trim();
-
-  if(!name)return toast('Nombre requerido');
-
-  try{
-    const r=await fetch('/api/styly/projects',{method:'POST',headers:hdrs,body:JSON.stringify({name,description})});
-    const d=await r.json();if(d.error)throw new Error(d.error);
-    projects.push(d.project);
-    closeModal();
-    renderTareas(document.getElementById('modContent'));
-    toast('✅ Proyecto creado');
-  }catch(e){toast('Error: '+e.message)}
-}
-
-function openNewTaskModal(){
-  showModal(`<div class="modal-title">➕ Nueva Tarea</div>
-    <div class="modal-field"><label>Proyecto</label><select id="newTaskProj"><option value="">Sin asignar</option>${projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}</select></div>
-    <div class="modal-field"><label>ID de Tarea</label><input type="text" id="newTaskId" placeholder="Ej: P-99"></div>
-    <div class="modal-field"><label>Descripción</label><textarea id="newTaskDesc" rows="3" placeholder="Descripcion de la tarea..."></textarea></div>
-    <div class="modal-field"><label>Módulo</label><input type="text" id="newTaskModule" placeholder="Ej: Dashboard, Mensajes..."></div>
-    <div class="modal-field"><label>Prioridad</label><select id="newTaskPrio"><option value="Media">Media</option><option value="Alta">Alta</option><option value="Baja">Baja</option></select></div>
-    <div class="modal-field"><label>Asignado a</label><select id="newTaskUser"><option value="">Sin asignar</option>${users.map(u=>`<option value="${u.name}">${u.name}</option>`).join('')}</select></div>
-    <div class="modal-actions"><button class="m-cancel" onclick="closeModal()">Cancelar</button><button class="m-ok" onclick="saveNewTask()">➕ Crear Tarea</button></div>`);
-}
-
-async function saveNewTask(){
-  const project_id=document.getElementById('newTaskProj')?.value||null;
-  const id=document.getElementById('newTaskId')?.value?.trim();
-  const description=document.getElementById('newTaskDesc')?.value?.trim();
-  const module=document.getElementById('newTaskModule')?.value?.trim();
-  const priority=document.getElementById('newTaskPrio')?.value;
-  const assigned_to=document.getElementById('newTaskUser')?.value||null;
-
-  if(!id||!description||!module)return toast('Completa los campos requeridos');
-
-  try{
-    const r=await fetch('/api/styly/tasks',{method:'POST',headers:hdrs,body:JSON.stringify({task_id:id,project_id:project_id?parseInt(project_id):null,description,module,priority,assigned_to})});
-    const d=await r.json();if(d.error)throw new Error(d.error);
-    tasks.push(d.task);
-    closeModal();
-    renderTareas(document.getElementById('modContent'));
-    toast('✅ Tarea creada');
-  }catch(e){toast('Error: '+e.message)}
 }
 
 renderTab();
 </script>
-</body>
+<script src="/emoji-to-svg.js"></script></body>
 </html>

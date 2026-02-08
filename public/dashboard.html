@@ -22,7 +22,7 @@
     <div id="reportBody"></div>
     <div class="report-actions">
       <button onclick="closeReport()">Cerrar</button>
-      <button onclick="copyReport()">📋 Copiar</button>
+      <button onclick="copyReport()"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Copiar</button>
       <button onclick="downloadReport()">📥 Descargar</button>
       <button class="primary" onclick="closeReport()">Listo</button>
     </div>
@@ -31,13 +31,13 @@
 
 <script>
 const BUSINESSES=[
-  {id:'nosotros',name:'NOSOTROS',icon:'📰',color:'#8B5CF6',desc:'Plataforma de contenido digital con IA',url:'/nosotros.html'},
-  {id:'duelazo',name:'DUELAZO',icon:'⚽',color:'#10B981',desc:'Contenido deportivo y apuestas',url:'/duelazo.html'},
-  {id:'spacebox',name:'SPACEBOX',icon:'📦',color:'#3B82F6',desc:'Mini bodegas y almacenaje',url:'/spacebox.html'},
-  {id:'styly',name:'STYLY',icon:'💻',color:'#EC4899',desc:'Software para belleza y bienestar',url:'/styly.html'}
+  {id:'nosotros',name:'NOSOTROS',icon:'<i class="feather" data-icon="newspaper" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#8B5CF6',desc:'Plataforma de contenido digital con IA',url:'/nosotros.html'},
+  {id:'duelazo',name:'DUELAZO',icon:'<i class="feather" data-icon="activity" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#10B981',desc:'Contenido deportivo y apuestas',url:'/duelazo.html'},
+  {id:'spacebox',name:'SPACEBOX',icon:'<i class="feather" data-icon="package" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#3B82F6',desc:'Mini bodegas y almacenaje',url:'/spacebox.html'},
+  {id:'styly',name:'STYLY',icon:'<i class="feather" data-icon="monitor" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#EC4899',desc:'Software para belleza y bienestar',url:'/styly.html'}
 ];
 const BIZ_COLORS={nosotros:'#8B5CF6',duelazo:'#10B981',spacebox:'#3B82F6',styly:'#EC4899'};
-const BIZ_ICONS={nosotros:'📰',duelazo:'⚽',spacebox:'📦',styly:'💻'};
+const BIZ_ICONS={nosotros:'<i class="feather" data-icon="newspaper" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',duelazo:'<i class="feather" data-icon="activity" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',spacebox:'<i class="feather" data-icon="package" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',styly:'<i class="feather" data-icon="monitor" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'};
 const EMP_COLORS=['#8B5CF6','#10B981','#3B82F6','#EC4899','#F59E0B','#EF4444','#06B6D4','#84CC16'];
 
 let user=null, token='';
@@ -63,18 +63,18 @@ function renderSidebar(active){
     <div class="sidebar-header"><h2>Panel <span>Central</span></h2></div>
     <div class="sidebar-section">
       <div class="sidebar-label">General</div>
-      <a href="/dashboard.html" class="sidebar-item ${active==='dashboard'?'active':''}"><span class="icon">📊</span>Dashboard</a>
+      <a href="/dashboard.html" class="sidebar-item ${active==='dashboard'?'active':''}"><span class="icon"><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></span>Dashboard</a>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Negocios</div>
       ${items.map(b=>`<a href="${b.url}" class="sidebar-item ${active===b.id?'active':''}" style="--accent:${b.color}"><span class="icon">${b.icon}</span>${b.name}</a>`).join('')}
     </div>
-    ${isAdmin?`<div class="sidebar-section"><div class="sidebar-label">Admin</div><a href="/admin.html" class="sidebar-item ${active==='admin'?'active':''}"><span class="icon">👥</span>Usuarios</a></div>`:''}
+    ${isAdmin?`<div class="sidebar-section"><div class="sidebar-label">Admin</div><a href="/admin.html" class="sidebar-item ${active==='admin'?'active':''}"><span class="icon"><i class="feather" data-icon="users" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></span>Usuarios</a></div>`:''}
     <div class="sidebar-footer">
       <div class="sidebar-avatar">${(user.name||'U')[0].toUpperCase()}</div>
       <div class="sidebar-user"><div class="name">${user.name||'Usuario'}</div><div class="role">${user.role||'editor'}</div></div>
-      <button class="theme-btn" onclick="toggleTheme()" title="Cambiar tema">🌙</button>
-      <button class="theme-btn" onclick="logout()" title="Cerrar sesion" style="font-size:.75rem">↪</button>
+      <button class="theme-btn" onclick="toggleTheme()" title="Cambiar tema"><i class="feather" data-icon="moon" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>
+      <button class="theme-btn" onclick="logout()" title="Cerrar sesion" style="font-size:.75rem"><i class="feather" data-icon="share-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>
     </div>`;
 }
 
@@ -88,11 +88,11 @@ function renderDashboard(){
     <div class="dash-section" id="aiSection">
       <div class="ai-bar">
         <input type="text" id="aiInput" placeholder="Pregunta algo..." onkeydown="if(event.key==='Enter')askAI()">
-        <button onclick="askAI()" id="aiBtn">🧠 Preguntar</button>
+        <button onclick="askAI()" id="aiBtn"><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Preguntar</button>
       </div>
       <div class="ai-chips" id="aiChips"></div>
       <div id="aiAnswer" style="display:none"></div>
-      <span class="chat-toggle" id="chatToggle" onclick="toggleChat()">💬 Abrir chat completo con IA</span>
+      <span class="chat-toggle" id="chatToggle" onclick="toggleChat()"><i class="feather" data-icon="message-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Abrir chat completo con IA</span>
       <div id="chatPanel" style="display:none"></div>
     </div>
 
@@ -107,28 +107,28 @@ function renderDashboard(){
     <!-- TWO COLUMNS -->
     <div class="dash-cols">
       <div>
-        <div class="dash-section-title">👥 Equipo — Esta semana</div>
+        <div class="dash-section-title"><i class="feather" data-icon="users" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Equipo — Esta semana</div>
         <div class="emp-card" id="empCard"><div style="color:var(--mt);font-size:.82rem;padding:1rem;text-align:center">Cargando...</div></div>
       </div>
       <div>
-        <div class="dash-section-title">📅 Proximos 7 dias</div>
+        <div class="dash-section-title"><i class="feather" data-icon="calendar" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Proximos 7 dias</div>
         <div class="cal-mini" id="calMini"><div style="color:var(--mt);font-size:.82rem;padding:1rem;text-align:center">Cargando...</div></div>
       </div>
     </div>
 
     <!-- BIZ INTEL GRID -->
     <div class="dash-section">
-      <div class="dash-section-title">📈 Inteligencia por Negocio</div>
+      <div class="dash-section-title"><i class="feather" data-icon="trending-up" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Inteligencia por Negocio</div>
       <div class="biz-intel-grid" id="bizGrid"></div>
     </div>
 
     <!-- STYLY TASKS INTEGRATION -->
     <div class="dash-section">
       <div class="dash-section-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
-        <span>✅ Tareas STYLY — Panel de Desarrollo</span>
+        <span><i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Tareas STYLY — Panel de Desarrollo</span>
         <div style="display:flex;gap:.5rem">
-          <button onclick="askAI('Dame un análisis completo del estado de las tareas de desarrollo de Styly: bottlenecks, prioridades y recomendaciones')" style="padding:.4rem .8rem;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass);color:var(--fg);font-size:.75rem;cursor:pointer;font-weight:600">🧠 Analizar con IA</button>
-          <a href="/styly.html" onclick="localStorage.setItem('styly_tab','tareas')" style="padding:.4rem .8rem;border-radius:8px;background:#EC4899;color:#fff;font-size:.75rem;text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:.3rem">💻 Ir a STYLY →</a>
+          <button onclick="askAI('Dame un análisis completo del estado de las tareas de desarrollo de Styly: bottlenecks, prioridades y recomendaciones')" style="padding:.4rem .8rem;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass);color:var(--fg);font-size:.75rem;cursor:pointer;font-weight:600"><i class="feather" data-icon="cpu" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Analizar con IA</button>
+          <a href="/styly.html" onclick="localStorage.setItem('styly_tab','tareas')" style="padding:.4rem .8rem;border-radius:8px;background:#EC4899;color:#fff;font-size:.75rem;text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:.3rem"><i class="feather" data-icon="monitor" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Ir a STYLY</a>
         </div>
       </div>
       <div id="stylyTasksArea"></div>
@@ -136,12 +136,12 @@ function renderDashboard(){
 
     <!-- TRENDS -->
     <div class="dash-section">
-      <div class="dash-section-title">🔥 Tendencias Detectadas</div>
+      <div class="dash-section-title"><i class="feather" data-icon="flame" style="display:inline-block;width:1em;height:1em;color:#F59E0B" aria-hidden="true"></i> Tendencias Detectadas</div>
       <div id="trendsArea"></div>
     </div>
 
     <!-- WEEKLY REPORT -->
-    <button class="report-btn" onclick="genReport()" id="reportBtn">📊 Generar Reporte Semanal</button>
+    <button class="report-btn" onclick="genReport()" id="reportBtn"><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Generar Reporte Semanal</button>
   `;
 
   // Start placeholder rotation
@@ -186,7 +186,7 @@ async function askAI(q){
     // Typing effect
     typeEffect(ansDiv.querySelector('.ai-answer'));
   }catch(e){ansDiv.innerHTML=`<div class="ai-answer" style="border-left-color:#EF4444">Error: ${esc(e.message)}<button class="close-btn" onclick="this.parentElement.parentElement.style.display='none'">&times;</button></div>`}
-  btn.disabled=false;btn.textContent='🧠 Preguntar';
+  btn.disabled=false;btn.textContent='<i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Preguntar';
 }
 
 function typeEffect(el){
@@ -227,12 +227,12 @@ function toggleChat(){
   const toggle=document.getElementById('chatToggle');
   if(chatOpen){
     panel.style.display='block';
-    toggle.textContent='💬 Cerrar chat';
+    toggle.textContent='<i class="feather" data-icon="message-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Cerrar chat';
     renderChat();
     loadConversations();
   }else{
     panel.style.display='none';
-    toggle.textContent='💬 Abrir chat completo con IA';
+    toggle.textContent='<i class="feather" data-icon="message-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Abrir chat completo con IA';
   }
 }
 
@@ -256,7 +256,7 @@ function renderChat(){
   document.getElementById('chatPanel').innerHTML=`
     <div class="chat-panel">
       <div class="chat-header">
-        <span>🧠 Asistente IA</span>
+        <span><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Asistente IA</span>
         <select id="chatConvSel" onchange="switchConv(this.value)"><option value="">Nueva conversacion</option></select>
         <button onclick="newConv()">+ Nueva</button>
         <div style="margin-left:auto"><button onclick="toggleChat()">Cerrar</button></div>
@@ -401,7 +401,7 @@ async function loadTeam(){
         </div>
       </div>`;
     }).join('')+
-    (alerts.length?'<div style="margin-top:.5rem">'+alerts.slice(0,5).map(a=>`<div class="emp-alert ${a.type}">${a.type==='red'?'🔴':a.type==='yellow'?'🟡':'🟢'} ${esc(a.text)}</div>`).join('')+'</div>':'');
+    (alerts.length?'<div style="margin-top:.5rem">'+alerts.slice(0,5).map(a=>`<div class="emp-alert ${a.type}">${a.type==='red'?'<i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#EF4444" aria-hidden="true"></i>':a.type==='yellow'?'<i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#FCD34D" aria-hidden="true"></i>':'<i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#10B981" aria-hidden="true"></i>'} ${esc(a.text)}</div>`).join('')+'</div>':'');
   }catch(e){el.innerHTML=`<div style="color:var(--mt);font-size:.82rem;padding:1rem">${esc(e.message)}</div>`}
 }
 
@@ -429,7 +429,7 @@ async function loadCalendar(){
         <div class="cal-day-header"><span>${day.label}</span><span class="date">${day.date.slice(5)}</span></div>
         ${day.items.length?day.items.map(it=>`
           <div class="cal-day-item" style="background:${BIZ_COLORS[it.business]||'#666'}22">
-            <span>${BIZ_ICONS[it.business]||'📝'}</span>
+            <span>${BIZ_ICONS[it.business]||'<i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'}</span>
             <span>${esc(it.format_type||'')}</span>
             <span style="margin-left:auto;opacity:.6">${it.scheduled_platform||''}</span>
           </div>`).join('')
@@ -628,9 +628,9 @@ function renderStylyTasks(el,d){
   `;
 }
 
-async function updateStylyTask(id,status){
+async function updateStylyTask(id,estado){
   try{
-    const r=await fetch('/api/styly/tasks/'+id,{method:'PUT',headers:hdrs,body:JSON.stringify({status})});
+    const r=await fetch('/api/styly/tasks/'+id,{method:'PUT',headers:hdrs,body:JSON.stringify({estado})});
     const d=await r.json();if(d.error)throw new Error(d.error);
     loadStylyTasksIntel();
   }catch(e){console.error('Error updating task:',e.message)}
@@ -645,7 +645,7 @@ async function loadTrends(){
     const trends=d.trends||[];
     el.innerHTML=trends.length?trends.map(t=>`
       <div class="trend-card">
-        <span class="trend-icon">${t.icon||'🔥'}</span>
+        <span class="trend-icon">${t.icon||'<i class="feather" data-icon="flame" style="display:inline-block;width:1em;height:1em;color:#F59E0B" aria-hidden="true"></i>'}</span>
         <span class="trend-text">${esc(t.text)}</span>
         <a class="trend-action" href="${t.action||'#'}">Crear contenido →</a>
       </div>`).join(''):'<div style="color:var(--mt);font-size:.82rem;text-align:center;padding:1rem">No hay tendencias detectadas hoy</div>';
@@ -656,7 +656,7 @@ async function loadTrends(){
 let lastReport='';
 async function genReport(){
   const btn=document.getElementById('reportBtn');
-  btn.disabled=true;btn.textContent='📊 Analizando datos de la semana...';
+  btn.disabled=true;btn.textContent='<i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Analizando datos de la semana...';
   try{
     const r=await fetch('/api/ai/weekly-report',{method:'POST',headers:hdrs});
     const d=await r.json();if(d.error)throw new Error(d.error);
@@ -664,7 +664,7 @@ async function genReport(){
     document.getElementById('reportBody').innerHTML=`<div class="report-content">${md(d.report)}</div>`;
     document.getElementById('reportOverlay').style.display='flex';
   }catch(e){alert('Error: '+e.message)}
-  btn.disabled=false;btn.textContent='📊 Generar Reporte Semanal';
+  btn.disabled=false;btn.textContent='<i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Generar Reporte Semanal';
 }
 
 function closeReport(){document.getElementById('reportOverlay').style.display='none'}
@@ -706,5 +706,5 @@ function logout(){localStorage.clear();window.location.href='/index.html'}
 if(localStorage.getItem('theme')==='light') document.documentElement.setAttribute('data-theme','light');
 init();
 </script>
-</body>
+<script src="/emoji-to-svg.js"></script></body>
 </html>

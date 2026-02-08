@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Panel Central — Login</title>
+<style>
+/* Enhanced login styling */
+.login-card{background:rgba(255,255,255,0.08) !important;border:1px solid rgba(255,255,255,0.15) !important;-webkit-backdrop-filter:blur(20px) !important;backdrop-filter:blur(20px) !important;box-shadow:0 8px 32px 0 rgba(31,38,135,0.2) !important}
+</style>
 <link rel="icon" type="image/png" href="/favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/styles.css">
@@ -21,14 +25,14 @@
     </div>
     <form id="loginForm" onsubmit="return doLogin(event)">
       <div class="form-group"><label>Email</label><input type="email" id="l-email" required></div>
-      <div class="form-group"><label>Password</label><div style="position:relative"><input type="password" id="l-pass" required style="width:100%;padding-right:45px"><button type="button" onclick="togglePassword('l-pass')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--mt);font-size:1.3rem;padding:0;line-height:1">👁️</button></div></div>
+      <div class="form-group"><label>Password</label><div style="position:relative"><input type="password" id="l-pass" required style="width:100%;padding-right:45px"><button type="button" onclick="togglePassword('l-pass')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--mt);font-size:1.3rem;padding:0;line-height:1;width:32px;height:32px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button></div></div>
       <button type="submit" class="btn-primary" id="l-btn">Entrar</button>
     </form>
     <form id="registerForm" style="display:none" onsubmit="return doRegister(event)">
       <div class="form-group"><label>Nombre</label><input type="text" id="r-name" required></div>
       <div class="form-group"><label>Email</label><input type="email" id="r-email" required></div>
-      <div class="form-group"><label>Password</label><div style="position:relative"><input type="password" id="r-pass" required minlength="6" style="width:100%;padding-right:45px"><button type="button" onclick="togglePassword('r-pass')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--mt);font-size:1.3rem;padding:0;line-height:1">👁️</button></div></div>
-      <div class="form-group"><label>Confirmar Password</label><div style="position:relative"><input type="password" id="r-pass2" required style="width:100%;padding-right:45px"><button type="button" onclick="togglePassword('r-pass2')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--mt);font-size:1.3rem;padding:0;line-height:1">👁️</button></div></div>
+      <div class="form-group"><label>Password</label><div style="position:relative"><input type="password" id="r-pass" required minlength="6" style="width:100%;padding-right:45px"><button type="button" onclick="togglePassword('r-pass')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--mt);font-size:1.3rem;padding:0;line-height:1;width:32px;height:32px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button></div></div>
+      <div class="form-group"><label>Confirmar Password</label><div style="position:relative"><input type="password" id="r-pass2" required style="width:100%;padding-right:45px"><button type="button" onclick="togglePassword('r-pass2')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--mt);font-size:1.3rem;padding:0;line-height:1;width:32px;height:32px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button></div></div>
       <button type="submit" class="btn-primary" id="r-btn">Crear Cuenta</button>
     </form>
     <div id="msg" class="login-msg" style="display:none"></div>
@@ -85,5 +89,5 @@ async function doRegister(e){
   return false;
 }
 </script>
-</body>
+<script src="/emoji-to-svg.js"></script></body>
 </html>
