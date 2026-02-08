@@ -11,6 +11,7 @@
 <body>
 <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
 <div class="app">
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
   <nav class="sidebar" id="sidebar"></nav>
   <main class="content" id="content"></main>
 </div>
@@ -501,38 +502,38 @@ async function loadStylyTasksIntel(){
 
     el.innerHTML=`
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem;margin-bottom:1.5rem">
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem">
+        <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:10px;padding:1rem">
           <div style="font-size:.75rem;color:var(--mt);font-weight:600">Total de Tareas</div>
           <div style="font-size:1.8rem;font-weight:700;color:#3B82F6;margin-top:.25rem">${stats.total}</div>
         </div>
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem">
+        <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:10px;padding:1rem">
           <div style="font-size:.75rem;color:var(--mt);font-weight:600">Pendientes</div>
           <div style="font-size:1.8rem;font-weight:700;color:#F59E0B;margin-top:.25rem">${stats.pending}</div>
         </div>
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem">
+        <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:10px;padding:1rem">
           <div style="font-size:.75rem;color:var(--mt);font-weight:600">En Progreso</div>
           <div style="font-size:1.8rem;font-weight:700;color:#06B6D4;margin-top:.25rem">${stats.progress}</div>
         </div>
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem">
+        <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:10px;padding:1rem">
           <div style="font-size:.75rem;color:var(--mt);font-weight:600">Completadas</div>
           <div style="font-size:1.8rem;font-weight:700;color:#10B981;margin-top:.25rem">${stats.completed}</div>
         </div>
       </div>
 
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem">
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem">
+        <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:10px;padding:1rem">
           <div style="font-weight:600;color:var(--fg);margin-bottom:.75rem">⚠️ Tareas Críticas</div>
           <div style="font-size:.85rem;color:var(--mt);line-height:1.5">
             ${stats.high>0?`<strong style="color:#EF4444">${stats.high} tareas de alta prioridad</strong> requieren atención inmediata`:'✅ No hay tareas críticas pendientes'}
           </div>
         </div>
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem">
+        <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:10px;padding:1rem">
           <div style="font-weight:600;color:var(--fg);margin-bottom:.75rem">👥 Tareas Sin Asignar</div>
           <div style="font-size:.85rem;color:var(--mt);line-height:1.5">
             ${stats.unassigned>0?`<strong style="color:#F59E0B">${stats.unassigned} tareas sin asignar</strong> necesitan ser distribuidas`:'✅ Todas las tareas están asignadas'}
           </div>
         </div>
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem">
+        <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:10px;padding:1rem">
           <div style="font-weight:600;color:var(--fg);margin-bottom:.75rem">📊 Progreso General</div>
           <div style="font-size:.85rem;color:var(--mt);line-height:1.5">
             ${stats.total>0?`${Math.round(stats.completed/stats.total*100)}% completado`:'Sin datos'}
@@ -610,7 +611,7 @@ function md(text){
     .replace(/\n/g,'<br>');
 }
 
-function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show')}
 function toggleTheme(){
   const t=document.documentElement.getAttribute('data-theme')==='light'?'':'light';
   document.documentElement.setAttribute('data-theme',t);
