@@ -60,6 +60,55 @@ async function initDB() {
       CREATE INDEX IF NOT EXISTS idx_ai_conv_expires ON ai_conversations(expires_at);
     `);
 
+    // Styly Projects table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS styly_projects (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL UNIQUE,
+        description TEXT,
+        color VARCHAR(10),
+        order_index INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Styly Tasks table - first ensure project_id column exists
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS styly_tasks (
+        id SERIAL PRIMARY KEY,
+        task_id VARCHAR(10) NOT NULL UNIQUE,
+        module VARCHAR(50) NOT NULL,
+        description TEXT NOT NULL,
+        priority VARCHAR(10),
+        assigned_to VARCHAR(100),
+        status VARCHAR(20) DEFAULT 'pendiente',
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Add project_id column if missing (safe for existing tables)
+    await client.query(`
+      ALTER TABLE styly_tasks ADD COLUMN IF NOT EXISTS project_id INTEGER;
+    `);
+
+    // Add foreign key constraint if missing
+    try {
+      await client.query(`
+        ALTER TABLE styly_tasks ADD CONSTRAINT fk_styly_tasks_project
+        FOREIGN KEY (project_id) REFERENCES styly_projects(id) ON DELETE CASCADE;
+      `);
+    } catch (e) {
+      // Constraint might already exist, ignore
+    }
+
+    // Create indexes
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_styly_tasks_assigned ON styly_tasks(assigned_to);
+      CREATE INDEX IF NOT EXISTS idx_styly_tasks_status ON styly_tasks(status);
+      CREATE INDEX IF NOT EXISTS idx_styly_tasks_project ON styly_tasks(project_id);
+    `);
+
     // Crear admin si no existe
     const { rows } = await client.query("SELECT id FROM users WHERE email = 'yan@admin.com'");
     if (rows.length === 0) {

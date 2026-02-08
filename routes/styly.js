@@ -505,4 +505,101 @@ router.post('/approve', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ========== STYLY PROJECTS ==========
+router.get('/projects', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM styly_projects ORDER BY order_index ASC'
+    );
+    res.json({ projects: rows });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/projects', async (req, res) => {
+  try {
+    const { name, description, color } = req.body;
+    if (!name) return res.status(400).json({ error: 'Nombre requerido' });
+    const { rows } = await pool.query(
+      'INSERT INTO styly_projects (name, description, color, order_index) VALUES ($1, $2, $3, (SELECT COALESCE(MAX(order_index), 0) + 1 FROM styly_projects)) RETURNING *',
+      [name, description || null, color || '#3B82F6']
+    );
+    res.json({ project: rows[0] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ========== STYLY TASKS ==========
+router.get('/tasks', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM styly_tasks ORDER BY priority DESC, task_id ASC'
+    );
+    res.json({ tasks: rows });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/users', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT id, name, email FROM users ORDER BY name ASC'
+    );
+    res.json({ users: rows });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/tasks', async (req, res) => {
+  try {
+    const { task_id, project_id, module, description, priority, assigned_to } = req.body;
+    if (!task_id || !module || !description) return res.status(400).json({ error: 'Faltan campos requeridos' });
+
+    const { rows } = await pool.query(
+      'INSERT INTO styly_tasks (task_id, project_id, module, description, priority, assigned_to, status) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [task_id, project_id || null, module, description, priority || 'media', assigned_to || null, 'pendiente']
+    );
+    res.json({ task: rows[0] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.put('/tasks/:id', async (req, res) => {
+  try {
+    const { status, assigned_to, priority } = req.body;
+    const updates = [];
+    const params = [];
+    let paramCount = 1;
+
+    if (status !== undefined) {
+      updates.push(`status = $${paramCount++}`);
+      params.push(status);
+    }
+    if (assigned_to !== undefined) {
+      updates.push(`assigned_to = $${paramCount++}`);
+      params.push(assigned_to);
+    }
+    if (priority !== undefined) {
+      updates.push(`priority = $${paramCount++}`);
+      params.push(priority);
+    }
+
+    if (!updates.length) return res.status(400).json({ error: 'No hay campos para actualizar' });
+
+    updates.push(`updated_at = NOW()`);
+    params.push(req.params.id);
+
+    const { rows } = await pool.query(
+      `UPDATE styly_tasks SET ${updates.join(', ')} WHERE id = $${paramCount} RETURNING *`,
+      params
+    );
+
+    if (!rows.length) return res.status(404).json({ error: 'Tarea no encontrada' });
+    res.json({ task: rows[0] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.delete('/tasks/:id', async (req, res) => {
+  try {
+    const { rowCount } = await pool.query('DELETE FROM styly_tasks WHERE id = $1', [req.params.id]);
+    if (!rowCount) return res.status(404).json({ error: 'Tarea no encontrada' });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 module.exports = router;

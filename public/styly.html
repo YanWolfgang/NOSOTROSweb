@@ -142,11 +142,20 @@
   <main class="content fade-in" id="content">
     <div class="page-header"><h1 style="color:var(--sy)">💻 STYLY</h1><p>Software de gestion para negocios de belleza y bienestar</p></div>
     <div class="module-tabs" id="modTabs">
-      <button class="module-tab active" onclick="setTab('generar')">Generar</button>
-      <button class="module-tab" onclick="setTab('ideas')">Ideas</button>
-      <button class="module-tab" onclick="setTab('herramientas')">Herramientas</button>
-      <button class="module-tab" onclick="setTab('calendario')">Calendario</button>
-      <button class="module-tab" onclick="setTab('historial')">Historial</button>
+      <div style="border-bottom:1px solid var(--border);padding-bottom:.5rem;margin-bottom:.5rem">
+        <div style="font-size:.7rem;font-weight:700;color:var(--mt);text-transform:uppercase;margin-bottom:.4rem">Creacion de Contenido</div>
+        <button class="module-tab active" onclick="setTab('generar')">Generar</button>
+        <button class="module-tab" onclick="setTab('ideas')">Ideas</button>
+        <button class="module-tab" onclick="setTab('herramientas')">Herramientas</button>
+        <button class="module-tab" onclick="setTab('calendario')">Calendario</button>
+        <button class="module-tab" onclick="setTab('historial')">Historial</button>
+      </div>
+      <div>
+        <div style="font-size:.7rem;font-weight:700;color:var(--mt);text-transform:uppercase;margin-bottom:.4rem">Task Manager</div>
+        <button class="module-tab" onclick="setTab('dashboard')">📊 Dashboard</button>
+        <button class="module-tab" onclick="setTab('tareas')">✅ Tareas</button>
+        <button class="module-tab" onclick="setTab('ia-tareas')">🧠 IA - Tareas</button>
+      </div>
     </div>
     <div id="modContent"></div>
   </main>
@@ -254,7 +263,13 @@ function fmt$(n){return'$'+Number(n).toLocaleString('es-MX',{minimumFractionDigi
 // ========== TABS ==========
 function setTab(t){
   tab=t;
-  document.querySelectorAll('.module-tab').forEach((b,i)=>b.classList.toggle('active',['generar','ideas','herramientas','calendario','historial'][i]===t));
+  const tabMap={'📊 dashboard':'dashboard','✅ tareas':'tareas','🧠 ia - tareas':'ia-tareas','generar':'generar','ideas':'ideas','herramientas':'herramientas','calendario':'calendario','historial':'historial'};
+  document.querySelectorAll('.module-tab').forEach(b=>{
+    const text=b.textContent.trim().toLowerCase();
+    const mapped=tabMap[text]||text;
+    if(mapped===t||text===t)b.classList.add('active');
+    else b.classList.remove('active');
+  });
   renderTab();
 }
 function renderTab(){
@@ -264,6 +279,9 @@ function renderTab(){
   else if(tab==='herramientas')renderHerramientas(m);
   else if(tab==='calendario')renderCalendario(m);
   else if(tab==='historial')renderHistorial(m);
+  else if(tab==='tareas')renderTareas(m);
+  else if(tab==='dashboard')renderDashboard(m);
+  else if(tab==='ia-tareas')renderIATareas(m);
 }
 
 // ================================================================
@@ -614,6 +632,758 @@ function showModal(html){document.getElementById('modalRoot').innerHTML=`<div cl
 function closeModal(){document.getElementById('modalRoot').innerHTML=''}
 function cpClip(text){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).catch(()=>fbCp(text))}else{fbCp(text)}}
 function fbCp(text){const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta)}
+
+// ================================================================
+// TAB 6: TAREAS (TASK MANAGER)
+// ================================================================
+const INITIAL_TASKS=[
+  // PANEL STYLY
+  {task_id:'P-01',module:'Dashboard',description:'Reemplazar banner de bienvenida por ventana de notificaciones tipo carrusel',priority:'Alta',assigned_to:'Emilio'},
+  {task_id:'P-02',module:'Dashboard',description:'Agregar insights del negocio: clientes ganados/perdidos, suscripciones nuevas',priority:'Alta',assigned_to:'Emilio'},
+  {task_id:'P-03',module:'Dashboard',description:'Agregar botón para descargar reporte del dashboard en Excel y PDF',priority:'Media',assigned_to:'Emilio'},
+  {task_id:'P-04',module:'Mensajes',description:'Modulo de envío de mails masivos con 2 templates HTML personalizables',priority:'Alta',assigned_to:'Damián'},
+  {task_id:'P-05',module:'Mensajes',description:'Conectar email del dueño para envío de mensajes desde el módulo',priority:'Alta',assigned_to:'Damián'},
+  {task_id:'P-06',module:'Pagos',description:'Permitir registrar un pago manual aunque no exista el servicio asociado',priority:'Media',assigned_to:'Damián'},
+  {task_id:'P-07',module:'Pagos',description:'Filtrar pagos por rango de fechas y descargar reporte en PDF, CSV o Excel',priority:'Media',assigned_to:'Damián'},
+  {task_id:'P-08',module:'Pagos',description:'Panel para administrar facturas generadas anteriormente',priority:'Media',assigned_to:'Damián'},
+  {task_id:'P-09',module:'Tareas',description:'Notificaciones al usuario en StylyPanel cada que hay un nuevo evento',priority:'Alta',assigned_to:'Damián'},
+  {task_id:'P-10',module:'Tareas',description:'Permitir agregar, renombrar y eliminar columnas en el tablero de tareas',priority:'Media',assigned_to:'Damián'},
+  {task_id:'P-11',module:'Tareas',description:'En móvil: drag & drop intuitivo para mover tareas entre columnas',priority:'Media',assigned_to:'Damián'},
+  {task_id:'P-12',module:'Tickets',description:'Renombrar módulo "Soporte" a "Tickets"',priority:'Baja',assigned_to:'Damián'},
+  {task_id:'P-13',module:'Tickets',description:'Auto-envío de mensajes de atención al cliente con notificación push',priority:'Alta',assigned_to:'Damián'},
+  {task_id:'P-14',module:'Cuenta',description:'Revisar funcionalidad de "Descargar datos"',priority:'Baja',assigned_to:'Emilio'},
+  {task_id:'P-15',module:'Cuenta',description:'Verificar que el email de soporte reciba mensajes de prueba',priority:'Baja',assigned_to:'Emilio'},
+  {task_id:'P-16',module:'Cuenta',description:'Configurar autenticación de dos pasos con todos los métodos disponibles',priority:'Alta',assigned_to:'Emilio'},
+  {task_id:'P-17',module:'Registro',description:'Agregar términos y condiciones de Styly en el formulario de registro',priority:'Alta',assigned_to:'Damián'},
+  {task_id:'P-18',module:'Métricas+',description:'Dropdown menu en móvil para todas las secciones Plus',priority:'Media',assigned_to:'Emilio'},
+  {task_id:'P-19',module:'IA',description:'Herramienta de IA en barra lateral para consultas sobre el negocio',priority:'Media',assigned_to:'Emilio'},
+  {task_id:'P-20',module:'Facturación',description:'Crear panel de facturación: generar factura fiscal que timbre al SAT',priority:'Alta',assigned_to:'Damián'},
+  {task_id:'P-21',module:'Stripe',description:'Quitar onboarding de Stripe externo; reemplazar por onboarding integrado',priority:'Alta',assigned_to:'Damián'},
+  {task_id:'P-22',module:'QA',description:'Revisión completa de conectividad y funcionamiento',priority:'Alta',assigned_to:'Ambos'},
+  // PANEL AFILIADOS
+  {task_id:'A-01',module:'Puntaje',description:'Que funcione el sistema de puntaje real',priority:'Alta',assigned_to:'Emilio'},
+  {task_id:'A-02',module:'Puntaje',description:'Agregar sección del crucero en el tablero de puntaje',priority:'Media',assigned_to:'Emilio'},
+  {task_id:'A-03',module:'Comisiones',description:'Widget de tasa de comisiones desglosadas y paginadas',priority:'Media',assigned_to:'Emilio'},
+  {task_id:'A-04',module:'Comisiones',description:'Aplicar 50% en primera venta + mensaje en Academy',priority:'Alta',assigned_to:'Emilio'},
+  {task_id:'A-05',module:'Pagos',description:'Poder descargar historial de pagos completo',priority:'Media',assigned_to:'Emilio'},
+  {task_id:'A-06',module:'Referidos',description:'Verificar que se exporten los datos de referidos correctamente',priority:'Media',assigned_to:'Emilio'},
+  {task_id:'A-07',module:'Referidos',description:'Botón de descargar reporte en PDF y Excel',priority:'Media',assigned_to:'Emilio'},
+  {task_id:'A-08',module:'Academy',description:'Agregar módulos 3 y 4',priority:'Alta',assigned_to:'Damián'},
+  {task_id:'A-09',module:'Academy',description:'Meter los primeros 5 módulos como un solo curso',priority:'Media',assigned_to:'Damián'},
+  {task_id:'A-10',module:'Academy',description:'Cambiar duración de módulos de la academy',priority:'Baja',assigned_to:'Damián'},
+  {task_id:'A-11',module:'Academy',description:'Al terminar la academy, mostrar certificado al usuario',priority:'Alta',assigned_to:'Damián'},
+  {task_id:'A-12',module:'Consultoría',description:'Crear módulo "Consultoría": Survey para recabar info del negocio',priority:'Alta',assigned_to:'Emilio'},
+  {task_id:'A-13',module:'Consultoría',description:'La herramienta sugiere extensiones basado en respuestas',priority:'Alta',assigned_to:'Emilio'},
+  {task_id:'A-14',module:'Clasificación',description:'Agregar premios mensuales administrables en clasificación global',priority:'Media',assigned_to:'Emilio'},
+  {task_id:'A-15',module:'Clasificación',description:'Banner del crucero Styly en la clasificación global',priority:'Baja',assigned_to:'Emilio'},
+  {task_id:'A-16',module:'Tareas',description:'Reflejar mismos ajustes que Panel Styly: agregar/quitar/renombrar columnas',priority:'Media',assigned_to:'Damián'},
+  {task_id:'A-17',module:'Enlace',description:'Cambiar los textos de invitación de las redes sociales en "Mi Enlace"',priority:'Baja',assigned_to:'Emilio'},
+  {task_id:'A-18',module:'Kit',description:'Implementar el kit de afiliado completo',priority:'Media',assigned_to:'Emilio'},
+  {task_id:'A-19',module:'Demo',description:'En modo demo de Styly Panel, mostrar los add-ons sin bloqueos',priority:'Baja',assigned_to:'Emilio'},
+  {task_id:'A-20',module:'UI',description:'Ajustar mensaje de bienvenida del panel de afiliados',priority:'Baja',assigned_to:'Emilio'},
+  {task_id:'A-21',module:'UI',description:'Cambiar nombre de "Tickets" a "Soporte"',priority:'Baja',assigned_to:'Emilio'},
+  {task_id:'A-22',module:'Registro',description:'Que funcione botón "Quiero ser afiliado" con cuenta ya registrada',priority:'Alta',assigned_to:'Damián'},
+  {task_id:'A-23',module:'Registro',description:'Agregar botón de "Dejar de ser afiliado" en panel de afiliado',priority:'Baja',assigned_to:'Damián'},
+  // LANDINGS
+  {task_id:'L-01',module:'Landing',description:'Agregar vista previa de los add-ons al abrir detalles',priority:'Media',assigned_to:'Emilio'},
+  {task_id:'L-02',module:'Landing',description:'Agregar demo interactiva del panel para visitantes',priority:'Media',assigned_to:'Emilio'},
+  {task_id:'L-03',module:'Landing',description:'Chatbot de preguntas y respuestas predeterminadas',priority:'Media',assigned_to:'Emilio'},
+  {task_id:'L-04',module:'Landing',description:'Cambiar animación del hero section por imagen real del panel',priority:'Baja',assigned_to:'Emilio'},
+  {task_id:'L-05',module:'Landing',description:'Sección "Reservas automáticas" → renombrar, nuevo copy',priority:'Media',assigned_to:'Emilio'},
+  {task_id:'L-06',module:'Afiliados LP',description:'Ajustar todo el texto de la página según documento actualizado',priority:'Media',assigned_to:'Emilio'},
+  {task_id:'L-07',module:'Afiliados LP',description:'Revisar flujo: código de invitación, login y panel completo',priority:'Alta',assigned_to:'Damián'},
+  {task_id:'L-08',module:'Afiliados LP',description:'Que un usuario sin ser afiliado ni negocio se registre como afiliado',priority:'Alta',assigned_to:'Damián'},
+  {task_id:'L-09',module:'Afiliados LP',description:'Quitar la parte de "solicitud de afiliado"',priority:'Baja',assigned_to:'Emilio'},
+  {task_id:'L-10',module:'Afiliados LP',description:'Ajustar mínimo de puntos para participar en podio',priority:'Baja',assigned_to:'Emilio'},
+  // SUBDOMINIOS
+  {task_id:'S-01',module:'Subdominio',description:'Permitir que afiliados o dueños se registren para comprar/suscribirse',priority:'Alta',assigned_to:'Damián'},
+  {task_id:'S-02',module:'Subdominio',description:'Sincronizar empleados con servicios y reservas en la página web',priority:'Alta',assigned_to:'Damián'},
+  {task_id:'S-03',module:'Subdominio',description:'Permitir reservar un servicio sin estar registrado (usuario guest)',priority:'Media',assigned_to:'Damián'},
+  {task_id:'S-04',module:'Subdominio',description:'Crear panel en la web para que clientes puedan solicitar facturas',priority:'Media',assigned_to:'Damián'},
+  // ADMIN PANEL
+  {task_id:'AD-01',module:'Admin Dashboard',description:'Renombrar métricas + agregar filtros de tiempo',priority:'Alta',assigned_to:'Emilio'},
+  {task_id:'AD-02',module:'Admin Dashboard',description:'Agregar filtro por persona (futuro)',priority:'Baja',assigned_to:'Emilio'},
+  {task_id:'AD-03',module:'Admin',description:'Eliminar sección de solicitudes',priority:'Baja',assigned_to:'Emilio'},
+  {task_id:'AD-04',module:'Admin Pagos',description:'Gestión de pagos: descargar facturas + estados de cuenta mensuales',priority:'Media',assigned_to:'Emilio'},
+  {task_id:'AD-05',module:'Admin',description:'Agregar filtros de búsqueda y paginación en "Todos los negocios"',priority:'Media',assigned_to:'Emilio'},
+  {task_id:'AD-06',module:'Admin',description:'Restringir acceso al módulo de soporte solo a ciertos usuarios',priority:'Media',assigned_to:'Emilio'}
+];
+
+let tasks=[],projects=[],users=[],tasksLoaded=false;
+
+const PROJECT_CONFIG={
+  'Landing Page':{emoji:'🌐',color:'#84CC16',order:1},
+  'Módulo Panel':{emoji:'📊',color:'#3B82F6',order:2},
+  'Afiliados Landing':{emoji:'👥',color:'#EC4899',order:3},
+  'Panel Afiliados':{emoji:'⭐',color:'#F59E0B',order:4},
+  'Subdominios':{emoji:'🏪',color:'#10B981',order:5},
+  'Admin Panel':{emoji:'⚙️',color:'#8B5CF6',order:6}
+};
+
+const PROJECT_TASKS={
+  'Landing Page':['L-01','L-02','L-03','L-04','L-05'],
+  'Afiliados Landing':['L-06','L-07','L-08','L-09','L-10'],
+  'Módulo Panel':['P-01','P-02','P-03','P-04','P-05','P-06','P-07','P-08','P-09','P-10','P-11','P-12','P-13','P-14','P-15','P-16','P-17','P-18','P-19','P-20','P-21','P-22'],
+  'Panel Afiliados':['A-01','A-02','A-03','A-04','A-05','A-06','A-07','A-08','A-09','A-10','A-11','A-12','A-13','A-14','A-15','A-16','A-17','A-18','A-19','A-20','A-21','A-22','A-23'],
+  'Subdominios':['S-01','S-02','S-03','S-04'],
+  'Admin Panel':['AD-01','AD-02','AD-03','AD-04','AD-05','AD-06']
+};
+
+async function loadTasks(){
+  if(tasksLoaded)return;
+  try{
+    // Cargar proyectos
+    let r=await fetch('/api/styly/projects',{headers:hdrs});
+    let d=await r.json();
+    projects=d.projects||[];
+
+    // Si no hay proyectos, crearlos
+    if(projects.length===0){
+      for(const [name,cfg] of Object.entries(PROJECT_CONFIG)){
+        const r2=await fetch('/api/styly/projects',{method:'POST',headers:hdrs,body:JSON.stringify({name,color:cfg.color,description:name})});
+        const d2=await r2.json();
+        projects.push(d2.project);
+      }
+    }
+
+    // Cargar tareas
+    r=await fetch('/api/styly/tasks',{headers:hdrs});
+    d=await r.json();
+    tasks=d.tasks||[];
+
+    // Si no hay tareas, crearlas todas con sus proyectos
+    if(tasks.length===0){
+      for(const task of INITIAL_TASKS){
+        let projectName=null;
+        // Buscar en qué proyecto está esta tarea
+        for(const [pname,taskIds] of Object.entries(PROJECT_TASKS)){
+          if(taskIds.includes(task.task_id)){
+            projectName=pname;
+            break;
+          }
+        }
+        const proj=projects.find(p=>p.name===projectName);
+        const payload={...task,project_id:proj?.id||null};
+        try{
+          await fetch('/api/styly/tasks',{method:'POST',headers:hdrs,body:JSON.stringify(payload)});
+        }catch(err){console.error('Error creando tarea',task.task_id,err.message)}
+      }
+      // Recargar tareas
+      r=await fetch('/api/styly/tasks',{headers:hdrs});
+      d=await r.json();
+      tasks=d.tasks||[];
+    }
+
+    // Cargar usuarios
+    r=await fetch('/api/styly/users',{headers:hdrs});
+    d=await r.json();
+    users=d.users||[];
+
+    tasksLoaded=true;
+  }catch(e){console.error('Error cargando tareas:',e.message)}
+}
+
+async function renderTareas(m){
+  await loadTasks();
+  let filters=window._taskFilters||{status:'',assigned:'',priority:'',project:'',search:''};
+
+  const MODULECONFIG={
+    'Dashboard':{emoji:'📊',color:'#3B82F6',order:1},'Mensajes':{emoji:'💬',color:'#8B5CF6',order:2},'Pagos':{emoji:'💰',color:'#10B981',order:3},'Tareas':{emoji:'✅',color:'#F59E0B',order:4},'Tickets':{emoji:'🎫',color:'#EC4899',order:5},'Cuenta':{emoji:'👤',color:'#6366F1',order:6},'Registro':{emoji:'✍️',color:'#06B6D4',order:7},'Métricas+':{emoji:'📈',color:'#EF4444',order:8},'IA':{emoji:'🧠',color:'#14B8A6',order:9},'Facturación':{emoji:'🧾',color:'#F97316',order:10},'Stripe':{emoji:'💳',color:'#0EA5E9',order:11},'QA':{emoji:'🔍',color:'#84CC16',order:12},'Puntaje':{emoji:'⭐',color:'#EC4899',order:13},'Comisiones':{emoji:'💵',color:'#10B981',order:14},'Referidos':{emoji:'👥',color:'#8B5CF6',order:15},'Academy':{emoji:'📚',color:'#F59E0B',order:16},'Consultoría':{emoji:'🎯',color:'#06B6D4',order:17},'Clasificación':{emoji:'🏆',color:'#EF4444',order:18},'Enlace':{emoji:'🔗',color:'#6366F1',order:19},'Kit':{emoji:'📦',color:'#14B8A6',order:20},'Demo':{emoji:'🎬',color:'#F97316',order:21},'UI':{emoji:'🎨',color:'#0EA5E9',order:22},'Landing':{emoji:'🌐',color:'#84CC16',order:23},'Afiliados LP':{emoji:'👥',color:'#EC4899',order:24},'Subdominio':{emoji:'🏪',color:'#10B981',order:25},'Admin Dashboard':{emoji:'⚙️',color:'#8B5CF6',order:26},'Admin Pagos':{emoji:'💼',color:'#F59E0B',order:27},'Admin':{emoji:'🛡️',color:'#06B6D4',order:28}
+  };
+
+  // Calcular estadísticas
+  const pending=tasks.filter(t=>t.status==='Pendiente').length;
+  const inProgress=tasks.filter(t=>t.status==='En Progreso').length;
+  const completed=tasks.filter(t=>t.status==='Completada').length;
+  const userStats={};
+  users.forEach(u=>{userStats[u.name]={total:0,pending:0,completed:0};});
+  tasks.forEach(t=>{
+    if(t.assigned_to&&userStats[t.assigned_to]){
+      userStats[t.assigned_to].total++;
+      if(t.status==='Pendiente')userStats[t.assigned_to].pending++;
+      if(t.status==='Completada')userStats[t.assigned_to].completed++;
+    }
+  });
+
+  // Filtrar tareas
+  let filtered=tasks;
+  if(filters.status)filtered=filtered.filter(t=>t.status===filters.status);
+  if(filters.assigned)filtered=filtered.filter(t=>t.assigned_to===filters.assigned);
+  if(filters.priority)filtered=filtered.filter(t=>t.priority===filters.priority);
+  if(filters.search)filtered=filtered.filter(t=>t.task_id.toLowerCase().includes(filters.search.toLowerCase())||t.description.toLowerCase().includes(filters.search.toLowerCase()));
+
+  const sortedProjects=[...projects].sort((a,b)=>(PROJECT_CONFIG[a.name]?.order||999)-(PROJECT_CONFIG[b.name]?.order||999));
+
+  m.innerHTML=`
+    <div style="display:grid;grid-template-columns:250px 1fr;gap:1.5rem;height:calc(100vh - 250px);overflow:hidden">
+      <!-- SIDEBAR IZQUIERDO -->
+      <div style="border-right:1px solid var(--border);padding-right:1.5rem;overflow-y:auto;padding-bottom:2rem">
+        <div style="margin-bottom:1.5rem">
+          <div style="font-size:.7rem;font-weight:700;color:var(--mt);text-transform:uppercase;margin-bottom:.5rem">🎯 KPIs</div>
+          <div style="background:rgba(59,130,246,.1);border:1px solid #3B82F6;border-radius:8px;padding:.75rem;margin-bottom:.5rem">
+            <div style="font-size:.75rem;color:var(--mt);margin-bottom:.2rem">Pendientes</div>
+            <div style="font-size:1.5rem;font-weight:700;color:#3B82F6">${pending}</div>
+          </div>
+          <div style="background:rgba(245,158,11,.1);border:1px solid #F59E0B;border-radius:8px;padding:.75rem;margin-bottom:.5rem">
+            <div style="font-size:.75rem;color:var(--mt);margin-bottom:.2rem">En Progreso</div>
+            <div style="font-size:1.5rem;font-weight:700;color:#F59E0B">${inProgress}</div>
+          </div>
+          <div style="background:rgba(16,185,129,.1);border:1px solid #10B981;border-radius:8px;padding:.75rem">
+            <div style="font-size:.75rem;color:var(--mt);margin-bottom:.2rem">Completadas</div>
+            <div style="font-size:1.5rem;font-weight:700;color:#10B981">${completed}</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:1.5rem">
+          <div style="font-size:.7rem;font-weight:700;color:var(--mt);text-transform:uppercase;margin-bottom:.5rem">👥 Usuarios</div>
+          ${users.map(u=>`<div style="padding:.5rem;border-radius:6px;border:1px solid var(--border);margin-bottom:.4rem;cursor:pointer;transition:all .2s" onclick="window._taskFilters.assigned='${u.name}';renderTareas(document.getElementById('modContent'))" style="${filters.assigned===u.name?'background:var(--sy-bg);border-color:var(--sy)':''}">
+            <div style="font-size:.75rem;font-weight:600;color:var(--fg)">${u.name}</div>
+            <div style="font-size:.65rem;color:var(--mt)">${userStats[u.name]?.total||0} tareas</div>
+          </div>`).join('')}
+        </div>
+
+        <div style="margin-bottom:1.5rem">
+          <div style="font-size:.7rem;font-weight:700;color:var(--mt);text-transform:uppercase;margin-bottom:.5rem">🎨 Status</div>
+          <div onclick="window._taskFilters.status='';renderTareas(document.getElementById('modContent'))" style="padding:.5rem;border-radius:6px;border:1px solid var(--border);margin-bottom:.4rem;cursor:pointer;${!filters.status?'background:var(--sy-bg);border-color:var(--sy)':''}">Todos</div>
+          <div onclick="window._taskFilters.status='Pendiente';renderTareas(document.getElementById('modContent'))" style="padding:.5rem;border-radius:6px;border:1px solid var(--border);margin-bottom:.4rem;cursor:pointer;${filters.status==='Pendiente'?'background:rgba(239,68,68,.15);border-color:#EF4444':''}">🔴 Pendiente</div>
+          <div onclick="window._taskFilters.status='En Progreso';renderTareas(document.getElementById('modContent'))" style="padding:.5rem;border-radius:6px;border:1px solid var(--border);margin-bottom:.4rem;cursor:pointer;${filters.status==='En Progreso'?'background:rgba(245,158,11,.15);border-color:#F59E0B':''}">🟡 En Progreso</div>
+          <div onclick="window._taskFilters.status='Completada';renderTareas(document.getElementById('modContent'))" style="padding:.5rem;border-radius:6px;border:1px solid var(--border);cursor:pointer;${filters.status==='Completada'?'background:rgba(16,185,129,.1);border-color:#10B981':''}">✅ Completada</div>
+        </div>
+      </div>
+
+      <!-- CONTENIDO PRINCIPAL -->
+      <div style="overflow-y:auto;padding-bottom:2rem">
+        <!-- BARRA SUPERIOR -->
+        <div style="margin-bottom:1.5rem;position:sticky;top:0;background:var(--bg);padding:.75rem 0;z-index:10;border-bottom:1px solid var(--border);padding-bottom:1rem">
+          <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap">
+            <input type="text" id="searchTasks" placeholder="🔍 Buscar por ID o descripción..." onchange="window._taskFilters.search=this.value;renderTareas(document.getElementById('modContent'))" oninput="window._taskFilters.search=this.value;renderTareas(document.getElementById('modContent'))" value="${filters.search}" style="flex:1;min-width:200px;padding:.45rem .65rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.85rem">
+            <select id="filterPrio" onchange="window._taskFilters.priority=this.value;renderTareas(document.getElementById('modContent'))" style="padding:.45rem .65rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.85rem">
+              <option value="">Todas las Prioridades</option>
+              <option value="Alta" ${filters.priority==='Alta'?'selected':''}>Alta</option>
+              <option value="Media" ${filters.priority==='Media'?'selected':''}>Media</option>
+              <option value="Baja" ${filters.priority==='Baja'?'selected':''}>Baja</option>
+            </select>
+            <button onclick="window._taskFilters={status:'',assigned:'',priority:'',project:'',search:''};renderTareas(document.getElementById('modContent'))" style="padding:.45rem 1rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:.85rem;font-weight:600;cursor:pointer;white-space:nowrap">🔄 Limpiar</button>
+            <button onclick="openNewTaskModal()" style="padding:.45rem 1rem;border-radius:8px;border:none;background:var(--sy);color:#fff;font-size:.85rem;font-weight:600;cursor:pointer;white-space:nowrap">➕ Tarea</button>
+          </div>
+          <div style="font-size:.8rem;color:var(--mt)"><strong>${filtered.length}</strong> tareas mostradas · <strong>${pending}</strong> pendientes · <strong>${inProgress}</strong> en progreso · <strong>${completed}</strong> completadas</div>
+        </div>
+
+        <!-- TAREAS POR PROYECTO -->
+        ${sortedProjects.map(proj=>{
+          const cfg=PROJECT_CONFIG[proj.name]||{emoji:'📌',color:'#6B7280'};
+          const projTasks=filtered.filter(t=>t.project_id===proj.id);
+          if(projTasks.length===0)return'';
+          const projId='proj-'+(proj.id||proj.name.replace(/\s+/g,'-'));
+
+          const grouped={};
+          projTasks.forEach(t=>{
+            if(!grouped[t.module])grouped[t.module]=[];
+            grouped[t.module].push(t);
+          });
+          const sortedModules=Object.keys(grouped).sort((a,b)=>(MODULECONFIG[a]?.order||999)-(MODULECONFIG[b]?.order||999));
+
+          return `
+          <div style="margin-bottom:2rem">
+            <button onclick="toggleProject('${projId}')" style="width:100%;text-align:left;padding:.9rem 1.2rem;background:linear-gradient(135deg,${cfg.color}20 0%,${cfg.color}05 100%);border:2px solid ${cfg.color}60;border-radius:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:var(--fg);font-weight:700;font-size:1.05rem;transition:all .2s">
+              <div style="display:flex;align-items:center;gap:.7rem">
+                <span style="font-size:1.5rem">${cfg.emoji}</span>
+                <div>
+                  <div>${proj.name}</div>
+                  <div style="font-size:.7rem;color:var(--mt);font-weight:400">${projTasks.length} tareas</div>
+                </div>
+              </div>
+              <span id="toggle-${projId}" style="font-size:1.1rem;transition:transform .2s">▶</span>
+            </button>
+            <div id="${projId}" style="display:block;margin-top:1rem;padding-left:.5rem;border-left:3px solid ${cfg.color}">
+              ${sortedModules.map(mod=>{
+                const mCfg=MODULECONFIG[mod]||{emoji:'📌',color:'#6B7280'};
+                const mTasks=grouped[mod];
+                const modId=projId+'-mod-'+(mod.replace(/\s+/g,'-'));
+                return `
+                <div style="margin-bottom:1.5rem">
+                  <button onclick="toggleModule('${modId}')" style="width:100%;text-align:left;padding:.65rem 1rem;background:linear-gradient(135deg,${mCfg.color}10 0%,${mCfg.color}02 100%);border:1px solid ${mCfg.color}30;border-radius:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:var(--fg);font-weight:600;font-size:.95rem;transition:all .2s">
+                    <div style="display:flex;align-items:center;gap:.4rem">
+                      <span style="font-size:1rem">${mCfg.emoji}</span>
+                      <span>${mod} (${mTasks.length})</span>
+                    </div>
+                    <span id="toggle-${modId}" style="font-size:.85rem">▼</span>
+                  </button>
+                  <div id="mod-${modId}" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:.75rem;margin-top:.75rem">
+                    ${mTasks.map(t=>`
+                      <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem;transition:all .2s" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,.1)'" onmouseout="this.style.boxShadow='none'">
+                        <div style="display:flex;justify-content:space-between;align-items:start;gap:.5rem;margin-bottom:.5rem">
+                          <div style="flex:1">
+                            <div style="font-size:.75rem;font-weight:700;color:${mCfg.color};text-transform:uppercase;letter-spacing:.5px">${t.task_id}</div>
+                            <div style="font-size:.9rem;font-weight:600;color:var(--fg);margin-top:.25rem;line-height:1.4">${esc(t.description)}</div>
+                          </div>
+                          <button onclick="deleteTask(${t.id})" style="padding:.25rem;border:none;background:transparent;color:#EF4444;font-size:.9rem;cursor:pointer;opacity:.5;transition:opacity .2s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.5'">🗑️</button>
+                        </div>
+                        <div style="display:flex;gap:.4rem;margin-bottom:.75rem;flex-wrap:wrap">
+                          <span style="padding:3px 8px;border-radius:4px;font-size:.7rem;font-weight:700;background:${t.priority==='Alta'?'rgba(239,68,68,.15)':t.priority==='Media'?'rgba(245,158,11,.15)':'rgba(107,114,128,.1)'};color:${t.priority==='Alta'?'#DC2626':t.priority==='Media'?'#D97706':'#6B7280'}">${t.priority}</span>
+                          <span style="padding:3px 8px;border-radius:4px;font-size:.7rem;font-weight:700;background:${t.status==='Pendiente'?'rgba(239,68,68,.1)':t.status==='En Progreso'?'rgba(245,158,11,.1)':'rgba(16,185,129,.1)'};color:${t.status==='Pendiente'?'#EF4444':t.status==='En Progreso'?'#F59E0B':'#10B981'}">${t.status}</span>
+                          ${t.assigned_to?`<span style="padding:3px 8px;border-radius:4px;font-size:.7rem;font-weight:700;background:var(--sy-bg);color:var(--sy)">👤 ${t.assigned_to}</span>`:'<span style="padding:3px 8px;border-radius:4px;font-size:.7rem;font-weight:700;background:var(--border);color:var(--mt)">⊘ Sin asignar</span>'}
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">
+                          <select onchange="updateTaskStatus(${t.id},this.value)" style="padding:.35rem;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);font-size:.7rem;font-weight:600;cursor:pointer">
+                            <option value="Pendiente" ${t.status==='Pendiente'?'selected':''}>Pendiente</option>
+                            <option value="En Progreso" ${t.status==='En Progreso'?'selected':''}>En Progreso</option>
+                            <option value="Completada" ${t.status==='Completada'?'selected':''}>Completada</option>
+                          </select>
+                          <select onchange="updateTaskAssigned(${t.id},this.value)" style="padding:.35rem;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);font-size:.7rem;font-weight:600;cursor:pointer">
+                            <option value="">Sin asignar</option>
+                            ${users.map(u=>`<option value="${u.name}" ${t.assigned_to===u.name?'selected':''}>${u.name}</option>`).join('')}
+                          </select>
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+  window._taskFilters=filters;
+}
+
+// ================================================================
+// DASHBOARD DE TAREAS CON ESTADÍSTICAS Y ANALÍTICOS
+// ================================================================
+async function renderDashboard(m){
+  await loadTasks();
+
+  // Calcular todas las estadísticas
+  const total=tasks.length;
+  const pending=tasks.filter(t=>t.status==='Pendiente').length;
+  const inProgress=tasks.filter(t=>t.status==='En Progreso').length;
+  const completed=tasks.filter(t=>t.status==='Completada').length;
+  const completionRate=total>0?Math.round((completed/total)*100):0;
+
+  // Estadísticas por usuario
+  const userStats={};
+  users.forEach(u=>{
+    userStats[u.name]={name:u.name,total:0,pending:0,inProgress:0,completed:0,completion:0};
+  });
+  tasks.forEach(t=>{
+    if(t.assigned_to&&userStats[t.assigned_to]){
+      userStats[t.assigned_to].total++;
+      if(t.status==='Pendiente')userStats[t.assigned_to].pending++;
+      else if(t.status==='En Progreso')userStats[t.assigned_to].inProgress++;
+      else if(t.status==='Completada')userStats[t.assigned_to].completed++;
+    }
+  });
+  Object.values(userStats).forEach(u=>{
+    u.completion=u.total>0?Math.round((u.completed/u.total)*100):0;
+  });
+
+  // Estadísticas por proyecto
+  const projStats={};
+  projects.forEach(p=>{
+    projStats[p.name]={name:p.name,emoji:PROJECT_CONFIG[p.name]?.emoji||'📌',total:0,pending:0,completed:0,completion:0};
+  });
+  tasks.forEach(t=>{
+    const proj=projects.find(p=>p.id===t.project_id);
+    if(proj&&projStats[proj.name]){
+      projStats[proj.name].total++;
+      if(t.status==='Completada')projStats[proj.name].completed++;
+      if(t.status==='Pendiente')projStats[proj.name].pending++;
+    }
+  });
+  Object.values(projStats).forEach(p=>{
+    p.completion=p.total>0?Math.round((p.completed/p.total)*100):0;
+  });
+
+  // Estadísticas por prioridad
+  const byPriority={Alta:0,Media:0,Baja:0};
+  const byPriorityDone={Alta:0,Media:0,Baja:0};
+  tasks.forEach(t=>{
+    if(byPriority[t.priority]!==undefined){
+      byPriority[t.priority]++;
+      if(t.status==='Completada')byPriorityDone[t.priority]++;
+    }
+  });
+
+  const usersList=Object.values(userStats).filter(u=>u.total>0).sort((a,b)=>b.total-a.total);
+  const projList=Object.values(projStats).sort((a,b)=>b.total-a.total);
+
+  m.innerHTML=`
+    <div style="padding:0">
+      <!-- KPI CARDS -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2rem">
+        <div style="background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(59,130,246,.05));border:2px solid #3B82F6;border-radius:12px;padding:1.5rem">
+          <div style="font-size:.85rem;color:var(--mt);margin-bottom:.5rem">📊 Total de Tareas</div>
+          <div style="font-size:2.5rem;font-weight:700;color:#3B82F6">${total}</div>
+          <div style="font-size:.75rem;color:var(--mt);margin-top:.5rem">Tareas en el sistema</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(239,68,68,.1),rgba(239,68,68,.05));border:2px solid #EF4444;border-radius:12px;padding:1.5rem">
+          <div style="font-size:.85rem;color:var(--mt);margin-bottom:.5rem">🔴 Pendientes</div>
+          <div style="font-size:2.5rem;font-weight:700;color:#EF4444">${pending}</div>
+          <div style="font-size:.75rem;color:var(--mt);margin-top:.5rem">${total>0?Math.round((pending/total)*100):'0'}% del total</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(245,158,11,.1),rgba(245,158,11,.05));border:2px solid #F59E0B;border-radius:12px;padding:1.5rem">
+          <div style="font-size:.85rem;color:var(--mt);margin-bottom:.5rem">🟡 En Progreso</div>
+          <div style="font-size:2.5rem;font-weight:700;color:#F59E0B">${inProgress}</div>
+          <div style="font-size:.75rem;color:var(--mt);margin-top:.5rem">${total>0?Math.round((inProgress/total)*100):'0'}% del total</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(16,185,129,.05));border:2px solid #10B981;border-radius:12px;padding:1.5rem">
+          <div style="font-size:.85rem;color:var(--mt);margin-bottom:.5rem">✅ Completadas</div>
+          <div style="font-size:2.5rem;font-weight:700;color:#10B981">${completed}</div>
+          <div style="font-size:.75rem;color:var(--mt);margin-top:.5rem">${completionRate}% de completación</div>
+        </div>
+      </div>
+
+      <!-- DOS COLUMNAS -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem">
+        <!-- COLUMNA IZQUIERDA: Usuarios y Proyectos -->
+        <div>
+          <h3 style="font-size:1.1rem;font-weight:700;color:var(--fg);margin-bottom:1rem">👥 Carga de Trabajo por Usuario</h3>
+          ${usersList.map(u=>`
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:.75rem">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+                <div style="font-weight:600;color:var(--fg)">${u.name}</div>
+                <div style="font-size:.75rem;font-weight:700;background:var(--sy-bg);color:var(--sy);padding:2px 8px;border-radius:4px">${u.completion}%</div>
+              </div>
+              <div style="display:flex;gap:.5rem;font-size:.75rem;color:var(--mt);margin-bottom:.5rem">
+                <span>📌 ${u.total} tareas</span>
+                <span>🔴 ${u.pending}</span>
+                <span>🟡 ${u.inProgress}</span>
+                <span>✅ ${u.completed}</span>
+              </div>
+              <div style="width:100%;height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+                <div style="width:${u.completion}%;height:100%;background:linear-gradient(90deg,#3B82F6,#10B981);transition:width .3s"></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- COLUMNA DERECHA: Proyectos -->
+        <div>
+          <h3 style="font-size:1.1rem;font-weight:700;color:var(--fg);margin-bottom:1rem">🎯 Progreso por Proyecto</h3>
+          ${projList.map(p=>`
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:.75rem">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+                <div style="font-weight:600;color:var(--fg)"><span style="font-size:1.2rem;margin-right:.5rem">${p.emoji}</span>${p.name}</div>
+                <div style="font-size:.75rem;font-weight:700;background:var(--sy-bg);color:var(--sy);padding:2px 8px;border-radius:4px">${p.completion}%</div>
+              </div>
+              <div style="display:flex;gap:.5rem;font-size:.75rem;color:var(--mt);margin-bottom:.5rem">
+                <span>📌 ${p.total} tareas</span>
+                <span>✅ ${p.completed}</span>
+              </div>
+              <div style="width:100%;height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+                <div style="width:${p.completion}%;height:100%;background:linear-gradient(90deg,#3B82F6,#10B981);transition:width .3s"></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- PRIORIDADES -->
+      <div style="margin-top:2rem">
+        <h3 style="font-size:1.1rem;font-weight:700;color:var(--fg);margin-bottom:1rem">⚡ Tareas por Prioridad</h3>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem">
+          <div style="background:rgba(220,38,38,.1);border:1px solid #DC2626;border-radius:10px;padding:1.5rem;text-align:center">
+            <div style="font-size:.85rem;color:var(--mt);margin-bottom:.5rem">🔴 Alta Prioridad</div>
+            <div style="font-size:2rem;font-weight:700;color:#DC2626">${byPriority.Alta}</div>
+            <div style="font-size:.75rem;color:var(--mt);margin-top:.5rem">${byPriorityDone.Alta} completadas (${byPriority.Alta>0?Math.round((byPriorityDone.Alta/byPriority.Alta)*100):'0'}%)</div>
+          </div>
+          <div style="background:rgba(217,119,6,.1);border:1px solid #D97706;border-radius:10px;padding:1.5rem;text-align:center">
+            <div style="font-size:.85rem;color:var(--mt);margin-bottom:.5rem">🟡 Prioridad Media</div>
+            <div style="font-size:2rem;font-weight:700;color:#D97706">${byPriority.Media}</div>
+            <div style="font-size:.75rem;color:var(--mt);margin-top:.5rem">${byPriorityDone.Media} completadas (${byPriority.Media>0?Math.round((byPriorityDone.Media/byPriority.Media)*100):'0'}%)</div>
+          </div>
+          <div style="background:rgba(107,114,128,.1);border:1px solid #6B7280;border-radius:10px;padding:1.5rem;text-align:center">
+            <div style="font-size:.85rem;color:var(--mt);margin-bottom:.5rem">🟢 Baja Prioridad</div>
+            <div style="font-size:2rem;font-weight:700;color:#6B7280">${byPriority.Baja}</div>
+            <div style="font-size:.75rem;color:var(--mt);margin-top:.5rem">${byPriorityDone.Baja} completadas (${byPriority.Baja>0?Math.round((byPriorityDone.Baja/byPriority.Baja)*100):'0'}%)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ================================================================
+// IA - ANÁLISIS INTELIGENTE DE TAREAS
+// ================================================================
+async function renderIATareas(m){
+  await loadTasks();
+
+  let iaState=window._iaState||{mode:'menu',result:'',loading:false};
+
+  const total=tasks.length;
+  const pending=tasks.filter(t=>t.status==='Pendiente').length;
+  const completed=tasks.filter(t=>t.status==='Completada').length;
+
+  // Análisis de patrones
+  const getBottlenecks=()=>{
+    const bottlenecks=[];
+    const userLoads={};
+    tasks.forEach(t=>{
+      if(t.assigned_to&&t.status!=='Completada'){
+        userLoads[t.assigned_to]=(userLoads[t.assigned_to]||0)+1;
+      }
+    });
+    Object.entries(userLoads).forEach(([user,count])=>{
+      if(count>Math.ceil(total/users.length)*1.5){
+        bottlenecks.push({user,overload:count});
+      }
+    });
+    return bottlenecks;
+  };
+
+  const bottlenecks=getBottlenecks();
+  const oldestTasks=tasks.filter(t=>t.status==='Pendiente').sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)).slice(0,5);
+
+  m.innerHTML=`
+    <div style="padding:1rem">
+      ${iaState.mode==='menu'?`
+        <div style="max-width:900px">
+          <h2 style="font-size:1.5rem;font-weight:700;color:var(--fg);margin-bottom:1.5rem">🧠 Inteligencia Artificial - Análisis de Tareas</h2>
+
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem">
+            <p style="color:var(--mt);margin-bottom:1rem;line-height:1.6">La IA analiza tus tareas para identificar bottlenecks, sugerir optimizaciones y predecir riesgos de atrasos.</p>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;font-size:.85rem">
+              <div>📊 <strong>${total}</strong> tareas totales</div>
+              <div>🔴 <strong>${pending}</strong> pendientes</div>
+              <div>✅ <strong>${completed}</strong> completadas</div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem">
+            <div onclick="window._iaState={mode:'bottlenecks',result:'',loading:true};renderIATareas(document.getElementById('modContent'))" style="background:linear-gradient(135deg,rgba(239,68,68,.1),rgba(239,68,68,.05));border:2px solid #EF4444;border-radius:12px;padding:1.5rem;cursor:pointer;transition:all .2s;text-align:center" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 4px 12px rgba(239,68,68,.2)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">
+              <div style="font-size:2rem;margin-bottom:.5rem">⚠️</div>
+              <div style="font-weight:700;color:#EF4444;margin-bottom:.5rem">Detectar Bottlenecks</div>
+              <div style="font-size:.75rem;color:var(--mt)">Identifica usuarios sobrecargados</div>
+            </div>
+
+            <div onclick="window._iaState={mode:'recommendations',result:'',loading:true};renderIATareas(document.getElementById('modContent'))" style="background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(59,130,246,.05));border:2px solid #3B82F6;border-radius:12px;padding:1.5rem;cursor:pointer;transition:all .2s;text-align:center" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 4px 12px rgba(59,130,246,.2)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">
+              <div style="font-size:2rem;margin-bottom:.5rem">💡</div>
+              <div style="font-weight:700;color:#3B82F6;margin-bottom:.5rem">Recomendaciones</div>
+              <div style="font-size:.75rem;color:var(--mt)">Asignaciones y optimizaciones</div>
+            </div>
+
+            <div onclick="window._iaState={mode:'riskanalysis',result:'',loading:true};renderIATareas(document.getElementById('modContent'))" style="background:linear-gradient(135deg,rgba(245,158,11,.1),rgba(245,158,11,.05));border:2px solid #F59E0B;border-radius:12px;padding:1.5rem;cursor:pointer;transition:all .2s;text-align:center" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 4px 12px rgba(245,158,11,.2)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">
+              <div style="font-size:2rem;margin-bottom:.5rem">🎯</div>
+              <div style="font-weight:700;color:#F59E0B;margin-bottom:.5rem">Análisis de Riesgo</div>
+              <div style="font-size:.75rem;color:var(--mt)">Tareas en riesgo de atrasos</div>
+            </div>
+
+            <div onclick="window._iaState={mode:'report',result:'',loading:true};renderIATareas(document.getElementById('modContent'))" style="background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(16,185,129,.05));border:2px solid #10B981;border-radius:12px;padding:1.5rem;cursor:pointer;transition:all .2s;text-align:center" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 4px 12px rgba(16,185,129,.2)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">
+              <div style="font-size:2rem;margin-bottom:.5rem">📈</div>
+              <div style="font-weight:700;color:#10B981;margin-bottom:.5rem">Reporte Ejecutivo</div>
+              <div style="font-size:.75rem;color:var(--mt)">Resumen y tendencias</div>
+            </div>
+          </div>
+        </div>
+      `:iaState.mode==='bottlenecks'?`
+        <button onclick="window._iaState={mode:'menu',result:'',loading:false};renderIATareas(document.getElementById('modContent'))" style="margin-bottom:1.5rem;padding:.5rem 1rem;border:1px solid var(--border);background:var(--card);border-radius:6px;color:var(--fg);cursor:pointer;font-weight:600">← Volver</button>
+        <h2 style="font-size:1.3rem;font-weight:700;color:var(--fg);margin-bottom:1rem">⚠️ Análisis de Bottlenecks</h2>
+        ${iaState.loading?'<div style="color:var(--mt)">🔄 Analizando carga de trabajo...</div>':`
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
+            ${bottlenecks.length===0?`
+              <div style="text-align:center;padding:2rem;color:var(--mt)">
+                <div style="font-size:3rem;margin-bottom:1rem">✅</div>
+                <p>Excelente distribución de carga. Ningún usuario está sobrecargado.</p>
+              </div>
+            `:`
+              <div>
+                <div style="color:#EF4444;font-weight:700;margin-bottom:1rem">Se detectaron los siguientes usuarios con sobrecarga:</div>
+                ${bottlenecks.map(b=>`
+                  <div style="background:rgba(239,68,68,.1);border-left:3px solid #EF4444;padding:1rem;margin-bottom:.75rem;border-radius:6px">
+                    <div style="font-weight:600;color:var(--fg)">${b.user}</div>
+                    <div style="font-size:.85rem;color:var(--mt);margin-top:.25rem">${b.overload} tareas asignadas (25% por encima del promedio)</div>
+                    <div style="font-size:.8rem;color:var(--mt);margin-top:.5rem;font-style:italic">💡 Recomendación: Redistribuir tareas o priorizar completaciones</div>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+        `}
+      `:iaState.mode==='recommendations'?`
+        <button onclick="window._iaState={mode:'menu',result:'',loading:false};renderIATareas(document.getElementById('modContent'))" style="margin-bottom:1.5rem;padding:.5rem 1rem;border:1px solid var(--border);background:var(--card);border-radius:6px;color:var(--fg);cursor:pointer;font-weight:600">← Volver</button>
+        <h2 style="font-size:1.3rem;font-weight:700;color:var(--fg);margin-bottom:1rem">💡 Recomendaciones de IA</h2>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
+          <div style="margin-bottom:1.5rem">
+            <div style="font-weight:700;color:var(--fg);margin-bottom:.75rem">1. 📝 Nuevas Tareas Sugeridas</div>
+            <div style="font-size:.9rem;color:var(--mt);background:rgba(59,130,246,.05);padding:1rem;border-radius:6px;border-left:3px solid #3B82F6">
+              Basado en tus proyectos actuales, se sugieren crear tareas para: Testing, Documentación, y Revisión de código. Esto mejorará la calidad del producto.
+            </div>
+          </div>
+          <div style="margin-bottom:1.5rem">
+            <div style="font-weight:700;color:var(--fg);margin-bottom:.75rem">2. 👥 Redistribución Óptima</div>
+            <div style="font-size:.9rem;color:var(--mt);background:rgba(245,158,11,.05);padding:1rem;border-radius:6px;border-left:3px solid #F59E0B">
+              ${bottlenecks.length>0?bottlenecks.map(b=>\`Transferir 2-3 tareas de \${b.user} a usuarios con menor carga\`).join('. '):'Mantener distribución actual - está bien balanceada'}
+            </div>
+          </div>
+          <div>
+            <div style="font-weight:700;color:var(--fg);margin-bottom:.75rem">3. ⚡ Optimización de Prioridades</div>
+            <div style="font-size:.9rem;color:var(--mt);background:rgba(16,185,129,.05);padding:1rem;border-radius:6px;border-left:3px solid #10B981">
+              Priorizar primero las tareas de "Alta" en estado "Pendiente". Esto acelerará la finalización de hitos críticos.
+            </div>
+          </div>
+        </div>
+      `:iaState.mode==='riskanalysis'?`
+        <button onclick="window._iaState={mode:'menu',result:'',loading:false};renderIATareas(document.getElementById('modContent'))" style="margin-bottom:1.5rem;padding:.5rem 1rem;border:1px solid var(--border);background:var(--card);border-radius:6px;color:var(--fg);cursor:pointer;font-weight:600">← Volver</button>
+        <h2 style="font-size:1.3rem;font-weight:700;color:var(--fg);margin-bottom:1rem">🎯 Análisis de Riesgo</h2>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
+          <div style="margin-bottom:1.5rem">
+            <div style="font-weight:700;color:#EF4444;margin-bottom:.75rem">⚠️ Tareas Antiguas en Pendiente</div>
+            ${oldestTasks.length===0?'<div style="color:var(--mt);font-size:.9rem">No hay tareas antiguas pendientes.</div>':`
+              <div style="display:flex;flex-direction:column;gap:.5rem">
+                ${oldestTasks.map(t=>{
+                  const days=Math.floor((new Date()-new Date(t.created_at))/(1000*60*60*24));
+                  return \`<div style="background:rgba(239,68,68,.1);padding:.75rem;border-radius:6px;border-left:3px solid #EF4444;font-size:.85rem">
+                    <div style="font-weight:600;color:var(--fg)">\${t.task_id} - \${t.description.substring(0,50)}...</div>
+                    <div style="color:var(--mt);margin-top:.25rem">Pendiente desde hace \${days} días</div>
+                  </div>\`;
+                }).join('')}
+              </div>
+            `}
+          </div>
+          <div>
+            <div style="font-weight:700;color:#F59E0B;margin-bottom:.75rem">🟡 Tareas Sin Asignar</div>
+            ${tasks.filter(t=>!t.assigned_to).length===0?'<div style="color:var(--mt);font-size:.9rem">✅ Todas las tareas están asignadas.</div>':`<div style="color:var(--mt);font-size:.9rem">${tasks.filter(t=>!t.assigned_to).length} tareas sin asignar. Esto puede retrasar el progreso.</div>`}
+          </div>
+        </div>
+      `:''}
+    </div>
+  `;
+  window._iaState=iaState;
+}
+
+function toggleProject(projId){
+  const el=document.getElementById(projId);
+  const icon=document.getElementById('toggle-'+projId);
+  if(el){
+    const hidden=el.style.display==='none';
+    el.style.display=hidden?'block':'none';
+    if(icon)icon.textContent=hidden?'▼':'▶';
+  }
+}
+
+function toggleAllProjects(){
+  const projs=document.querySelectorAll('[id^="proj-"]');
+  const allHidden=Array.from(projs).every(p=>p.style.display==='none');
+  projs.forEach(p=>{
+    p.style.display=allHidden?'block':'none';
+    const projId=p.id;
+    const icon=document.getElementById('toggle-'+projId);
+    if(icon)icon.textContent=allHidden?'▼':'▶';
+  });
+}
+
+function toggleModule(modId){
+  const id='mod-'+modId;
+  const toggle='toggle-'+modId;
+  const el=document.getElementById(id);
+  const icon=document.getElementById(toggle);
+  if(el){
+    const hidden=el.style.display==='none';
+    el.style.display=hidden?'grid':'none';
+    if(icon)icon.textContent=hidden?'▼':'▶';
+  }
+}
+
+function toggleAllModules(){
+  const modules=document.querySelectorAll('[id^="mod-"]');
+  const allHidden=Array.from(modules).every(m=>m.style.display==='none');
+  modules.forEach(m=>{
+    m.style.display=allHidden?'grid':'none';
+    const modId=m.id.replace('mod-','');
+    const icon=document.getElementById('toggle-'+modId);
+    if(icon)icon.textContent=allHidden?'▼':'▶';
+  });
+}
+
+async function updateTaskStatus(id,status){
+  try{
+    const r=await fetch('/api/styly/tasks/'+id,{method:'PUT',headers:hdrs,body:JSON.stringify({status})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    tasks=tasks.map(t=>t.id===id?d.task:t);
+    renderTareas(document.getElementById('modContent'));
+    toast('Tarea actualizada');
+  }catch(e){toast('Error: '+e.message)}
+}
+
+async function updateTaskAssigned(id,assigned_to){
+  try{
+    const r=await fetch('/api/styly/tasks/'+id,{method:'PUT',headers:hdrs,body:JSON.stringify({assigned_to:assigned_to||null})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    tasks=tasks.map(t=>t.id===id?d.task:t);
+    renderTareas(document.getElementById('modContent'));
+    toast('Asignación actualizada');
+  }catch(e){toast('Error: '+e.message)}
+}
+
+async function deleteTask(id){
+  if(!confirm('¿Eliminar esta tarea?'))return;
+  try{
+    const r=await fetch('/api/styly/tasks/'+id,{method:'DELETE',headers:hdrs});
+    if(!r.ok)throw new Error('Error al eliminar');
+    tasks=tasks.filter(t=>t.id!==id);
+    renderTareas(document.getElementById('modContent'));
+    toast('Tarea eliminada');
+  }catch(e){toast('Error: '+e.message)}
+}
+
+function openNewProjectModal(){
+  showModal(`<div class="modal-title">➕ Nuevo Proyecto</div>
+    <div class="modal-field"><label>Nombre</label><input type="text" id="newProjName" placeholder="Ej: Landing Page, Modulo Panel..."></div>
+    <div class="modal-field"><label>Descripción (opcional)</label><textarea id="newProjDesc" rows="2" placeholder="Descripción del proyecto..."></textarea></div>
+    <div class="modal-actions"><button class="m-cancel" onclick="closeModal()">Cancelar</button><button class="m-ok" onclick="saveNewProject()">➕ Crear Proyecto</button></div>`);
+}
+
+async function saveNewProject(){
+  const name=document.getElementById('newProjName')?.value?.trim();
+  const description=document.getElementById('newProjDesc')?.value?.trim();
+
+  if(!name)return toast('Nombre requerido');
+
+  try{
+    const r=await fetch('/api/styly/projects',{method:'POST',headers:hdrs,body:JSON.stringify({name,description})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    projects.push(d.project);
+    closeModal();
+    renderTareas(document.getElementById('modContent'));
+    toast('✅ Proyecto creado');
+  }catch(e){toast('Error: '+e.message)}
+}
+
+function openNewTaskModal(){
+  showModal(`<div class="modal-title">➕ Nueva Tarea</div>
+    <div class="modal-field"><label>Proyecto</label><select id="newTaskProj"><option value="">Sin asignar</option>${projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}</select></div>
+    <div class="modal-field"><label>ID de Tarea</label><input type="text" id="newTaskId" placeholder="Ej: P-99"></div>
+    <div class="modal-field"><label>Descripción</label><textarea id="newTaskDesc" rows="3" placeholder="Descripcion de la tarea..."></textarea></div>
+    <div class="modal-field"><label>Módulo</label><input type="text" id="newTaskModule" placeholder="Ej: Dashboard, Mensajes..."></div>
+    <div class="modal-field"><label>Prioridad</label><select id="newTaskPrio"><option value="Media">Media</option><option value="Alta">Alta</option><option value="Baja">Baja</option></select></div>
+    <div class="modal-field"><label>Asignado a</label><select id="newTaskUser"><option value="">Sin asignar</option>${users.map(u=>`<option value="${u.name}">${u.name}</option>`).join('')}</select></div>
+    <div class="modal-actions"><button class="m-cancel" onclick="closeModal()">Cancelar</button><button class="m-ok" onclick="saveNewTask()">➕ Crear Tarea</button></div>`);
+}
+
+async function saveNewTask(){
+  const project_id=document.getElementById('newTaskProj')?.value||null;
+  const id=document.getElementById('newTaskId')?.value?.trim();
+  const description=document.getElementById('newTaskDesc')?.value?.trim();
+  const module=document.getElementById('newTaskModule')?.value?.trim();
+  const priority=document.getElementById('newTaskPrio')?.value;
+  const assigned_to=document.getElementById('newTaskUser')?.value||null;
+
+  if(!id||!description||!module)return toast('Completa los campos requeridos');
+
+  try{
+    const r=await fetch('/api/styly/tasks',{method:'POST',headers:hdrs,body:JSON.stringify({task_id:id,project_id:project_id?parseInt(project_id):null,description,module,priority,assigned_to})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    tasks.push(d.task);
+    closeModal();
+    renderTareas(document.getElementById('modContent'));
+    toast('✅ Tarea creada');
+  }catch(e){toast('Error: '+e.message)}
+}
 
 renderTab();
 </script>
