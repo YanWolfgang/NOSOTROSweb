@@ -74,6 +74,7 @@
 <body>
 <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
 <div class="app">
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
   <nav class="sidebar" id="sidebar"></nav>
   <main class="content fade-in" id="content">
     <div class="page-header"><h1 style="color:#10B981">⚽ DUELAZO</h1><p>Contenido deportivo para apuestas con IA</p></div>
@@ -116,7 +117,7 @@ function renderSidebar(){
       <button class="theme-btn" onclick="logout()" style="font-size:.75rem">↪</button>
     </div>`;
 }
-function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show')}
 function toggleTheme(){const t=document.documentElement.getAttribute('data-theme')==='light'?'':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t)}
 function logout(){localStorage.clear();window.location.href='/index.html'}
 if(localStorage.getItem('theme')==='light') document.documentElement.setAttribute('data-theme','light');
