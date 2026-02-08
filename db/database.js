@@ -61,76 +61,168 @@ async function initDB() {
       CREATE INDEX IF NOT EXISTS idx_ai_conv_expires ON ai_conversations(expires_at);
     `);
 
-    // Styly Projects table
+    // ========== STYLY: DROP OLD TABLES ==========
+    // Drop all Styly tables to recreate with new schema (CASCADE will handle foreign keys)
+    await client.query(`DROP TABLE IF EXISTS styly_comentarios CASCADE;`);
+    await client.query(`DROP TABLE IF EXISTS styly_subtasks CASCADE;`);
+    await client.query(`DROP TABLE IF EXISTS styly_task_observadores CASCADE;`);
+    await client.query(`DROP TABLE IF EXISTS styly_task_asignados CASCADE;`);
+    await client.query(`DROP TABLE IF EXISTS styly_tasks CASCADE;`);
+    await client.query(`DROP TABLE IF EXISTS styly_projects CASCADE;`);
+    await client.query(`DROP TABLE IF EXISTS styly_equipo_miembros CASCADE;`);
+    await client.query(`DROP TABLE IF EXISTS styly_equipos CASCADE;`);
+    await client.query(`DROP TABLE IF EXISTS styly_roles CASCADE;`);
+    await client.query(`DROP TABLE IF EXISTS styly_user_permissions CASCADE;`);
+
+    // ========== STYLY: ROLES Y PERMISOS ==========
     await client.query(`
-      CREATE TABLE IF NOT EXISTS styly_projects (
+      CREATE TABLE IF NOT EXISTS styly_roles (
         id SERIAL PRIMARY KEY,
-        name VARCHAR(100) NOT NULL UNIQUE,
-        description TEXT,
+        nombre VARCHAR(50) NOT NULL UNIQUE,
+        permisos JSONB DEFAULT '{}',
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // ========== STYLY: EQUIPOS ==========
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS styly_equipos (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(100) NOT NULL,
+        descripcion TEXT,
+        lider_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS styly_equipo_miembros (
+        id SERIAL PRIMARY KEY,
+        equipo_id INTEGER REFERENCES styly_equipos(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(equipo_id, user_id)
+      );
+    `);
+
+    // ========== STYLY: USUARIOS (extender tabla users) ==========
+    await client.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar VARCHAR(255);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS styly_role_id INTEGER REFERENCES styly_roles(id) ON DELETE SET NULL;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS styly_equipo_id INTEGER REFERENCES styly_equipos(id) ON DELETE SET NULL;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS activo BOOLEAN DEFAULT true;
+    `);
+
+    // ========== STYLY: PROYECTOS ==========
+    await client.query(`
+      CREATE TABLE styly_projects (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(100) NOT NULL,
+        descripcion TEXT,
         color VARCHAR(10),
+        propietario_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        equipo_id INTEGER REFERENCES styly_equipos(id) ON DELETE SET NULL,
+        fecha_inicio DATE,
+        fecha_fin DATE,
+        estado VARCHAR(20) DEFAULT 'activo',
+        permisos JSONB DEFAULT '{}',
         order_index INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);
 
-    // Styly Tasks table - first ensure project_id column exists
+    // ========== STYLY: TAREAS ==========
     await client.query(`
-      CREATE TABLE IF NOT EXISTS styly_tasks (
+      CREATE TABLE styly_tasks (
         id SERIAL PRIMARY KEY,
         task_id VARCHAR(10) NOT NULL UNIQUE,
-        module VARCHAR(50) NOT NULL,
-        description TEXT NOT NULL,
-        priority VARCHAR(10),
-        assigned_to VARCHAR(100),
-        status VARCHAR(20) DEFAULT 'pendiente',
+        titulo VARCHAR(255) NOT NULL,
+        descripcion TEXT,
+        proyecto_id INTEGER REFERENCES styly_projects(id) ON DELETE CASCADE,
+        seccion VARCHAR(50),
+        estado VARCHAR(20) DEFAULT 'Pendiente',
+        prioridad VARCHAR(10) DEFAULT 'Media',
+        etiquetas JSONB DEFAULT '[]',
+        duracion_estimada INTEGER,
+        progreso INTEGER DEFAULT 0,
+        fecha_inicio DATE,
+        fecha_vencimiento DATE,
+        creado_por INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        position INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `);
 
-    // Add project_id column if missing (safe for existing tables)
+    // Tareas: Asignados (muchos a muchos)
     await client.query(`
-      ALTER TABLE styly_tasks ADD COLUMN IF NOT EXISTS project_id INTEGER;
+      CREATE TABLE styly_task_asignados (
+        id SERIAL PRIMARY KEY,
+        task_id INTEGER REFERENCES styly_tasks(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(task_id, user_id)
+      );
     `);
 
-    // Add foreign key constraint if missing
-    try {
-      await client.query(`
-        ALTER TABLE styly_tasks ADD CONSTRAINT fk_styly_tasks_project
-        FOREIGN KEY (project_id) REFERENCES styly_projects(id) ON DELETE CASCADE;
-      `);
-    } catch (e) {
-      // Constraint might already exist, ignore
-    }
+    // Tareas: Observadores (muchos a muchos)
+    await client.query(`
+      CREATE TABLE styly_task_observadores (
+        id SERIAL PRIMARY KEY,
+        task_id INTEGER REFERENCES styly_tasks(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(task_id, user_id)
+      );
+    `);
+
+    // Tareas: Subtareas
+    await client.query(`
+      CREATE TABLE styly_subtasks (
+        id SERIAL PRIMARY KEY,
+        parent_task_id INTEGER REFERENCES styly_tasks(id) ON DELETE CASCADE,
+        titulo VARCHAR(255) NOT NULL,
+        completada BOOLEAN DEFAULT false,
+        order_index INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // ========== STYLY: COMENTARIOS ==========
+    await client.query(`
+      CREATE TABLE styly_comentarios (
+        id SERIAL PRIMARY KEY,
+        task_id INTEGER REFERENCES styly_tasks(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        contenido TEXT NOT NULL,
+        archivos JSONB DEFAULT '[]',
+        created_at TIMESTAMP DEFAULT NOW(),
+        editado_en TIMESTAMP
+      );
+    `);
 
     // Create indexes
     await client.query(`
-      CREATE INDEX IF NOT EXISTS idx_styly_tasks_assigned ON styly_tasks(assigned_to);
-      CREATE INDEX IF NOT EXISTS idx_styly_tasks_status ON styly_tasks(status);
-      CREATE INDEX IF NOT EXISTS idx_styly_tasks_project ON styly_tasks(project_id);
+      CREATE INDEX idx_styly_tasks_proyecto ON styly_tasks(proyecto_id);
+      CREATE INDEX idx_styly_tasks_estado ON styly_tasks(estado);
+      CREATE INDEX idx_styly_tasks_creado_por ON styly_tasks(creado_por);
+      CREATE INDEX idx_styly_task_asignados_task ON styly_task_asignados(task_id);
+      CREATE INDEX idx_styly_task_asignados_user ON styly_task_asignados(user_id);
+      CREATE INDEX idx_styly_comentarios_task ON styly_comentarios(task_id);
     `);
 
-    // Add new columns for task manager redesign
-    await client.query(`
-      ALTER TABLE styly_tasks ADD COLUMN IF NOT EXISTS due_date DATE;
-      ALTER TABLE styly_tasks ADD COLUMN IF NOT EXISTS start_date DATE;
-      ALTER TABLE styly_tasks ADD COLUMN IF NOT EXISTS position INTEGER DEFAULT 0;
-    `);
-
-    // Clear all existing tasks (fresh start) and reset sequence
-    await client.query(`DELETE FROM styly_tasks;`);
-    await client.query(`ALTER SEQUENCE styly_tasks_id_seq RESTART WITH 1;`);
-
-    // Styly User Permissions table
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS styly_user_permissions (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        module VARCHAR(50) NOT NULL,
-        created_at TIMESTAMP DEFAULT NOW(),
-        UNIQUE(user_id, module)
-      );
-    `);
+    // ========== STYLY: ROLES POR DEFECTO ==========
+    const { rows: rolesExist } = await client.query("SELECT id FROM styly_roles LIMIT 1");
+    if (rolesExist.length === 0) {
+      await client.query(`
+        INSERT INTO styly_roles (nombre, permisos) VALUES
+        ('Admin', '{"crear_tarea":true,"asignar":true,"cambiar_estado":true,"eliminar":true,"comentar":true,"ver_reportes":true,"gestionar_equipo":true}'),
+        ('Manager', '{"crear_tarea":true,"asignar":true,"cambiar_estado":true,"eliminar":false,"comentar":true,"ver_reportes":true,"gestionar_equipo":false}'),
+        ('Developer', '{"crear_tarea":true,"asignar":false,"cambiar_estado":true,"eliminar":false,"comentar":true,"ver_reportes":false,"gestionar_equipo":false}'),
+        ('Viewer', '{"crear_tarea":false,"asignar":false,"cambiar_estado":false,"eliminar":false,"comentar":true,"ver_reportes":false,"gestionar_equipo":false}')
+      `);
+      console.log('Roles de STYLY creados');
+    }
 
     // Crear admin si no existe
     const { rows } = await client.query("SELECT id FROM users WHERE email = 'yan@admin.com'");
@@ -142,6 +234,16 @@ async function initDB() {
       );
       console.log('Admin creado: yan@admin.com / admin123');
     }
+
+    // Asignar rol Admin de STYLY al admin principal
+    const { rows: adminRows } = await client.query("SELECT id FROM users WHERE email = 'yan@admin.com'");
+    if (adminRows.length > 0) {
+      const { rows: adminRole } = await client.query("SELECT id FROM styly_roles WHERE nombre = 'Admin'");
+      if (adminRole.length > 0) {
+        await client.query("UPDATE users SET styly_role_id = $1 WHERE id = $2", [adminRole[0].id, adminRows[0].id]);
+      }
+    }
+
     console.log('Base de datos inicializada');
   } finally {
     client.release();

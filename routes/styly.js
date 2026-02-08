@@ -1,4 +1,5 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
 const { verifyToken, requireBusiness } = require('../middleware/auth');
 const { generate } = require('../services/ai');
 const { pool } = require('../db/database');
@@ -509,7 +510,7 @@ router.post('/approve', async (req, res) => {
 router.get('/projects', async (req, res) => {
   try {
     const { rows } = await pool.query(
-      'SELECT * FROM styly_projects ORDER BY order_index ASC'
+      'SELECT id, nombre AS name, descripcion AS description, color, estado, propietario_id, equipo_id, fecha_inicio, fecha_fin, permisos, order_index, created_at FROM styly_projects ORDER BY order_index ASC'
     );
     res.json({ projects: rows });
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -520,88 +521,155 @@ router.post('/projects', async (req, res) => {
     const { name, description, color } = req.body;
     if (!name) return res.status(400).json({ error: 'Nombre requerido' });
     const { rows } = await pool.query(
-      'INSERT INTO styly_projects (name, description, color, order_index) VALUES ($1, $2, $3, (SELECT COALESCE(MAX(order_index), 0) + 1 FROM styly_projects)) RETURNING *',
+      'INSERT INTO styly_projects (nombre, descripcion, color, order_index) VALUES ($1, $2, $3, (SELECT COALESCE(MAX(order_index), 0) + 1 FROM styly_projects)) RETURNING id, nombre AS name, descripcion AS description, color, estado, order_index, created_at',
       [name, description || null, color || '#3B82F6']
     );
     res.json({ project: rows[0] });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ========== STYLY TASKS ==========
+router.delete('/projects/:id', async (req, res) => {
+  try {
+    const { rows: projectRows } = await pool.query(
+      'SELECT COUNT(*) as task_count FROM styly_tasks WHERE proyecto_id = $1',
+      [req.params.id]
+    );
+    const taskCount = parseInt(projectRows[0].task_count);
+    if (taskCount > 0) {
+      return res.status(400).json({ error: `No se puede eliminar. El proyecto tiene ${taskCount} tarea(s). Elimina las tareas primero.` });
+    }
+    const { rowCount } = await pool.query(
+      'DELETE FROM styly_projects WHERE id = $1',
+      [req.params.id]
+    );
+    if (!rowCount) return res.status(404).json({ error: 'Proyecto no encontrado' });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ========== STYLY TASKS (NEW SCHEMA) ==========
 router.get('/tasks', async (req, res) => {
   try {
-    const { rows } = await pool.query(
-      'SELECT * FROM styly_tasks ORDER BY priority DESC, task_id ASC'
-    );
-    res.json({ tasks: rows });
+    // Get all tasks with related data
+    const { rows: tasks } = await pool.query(`
+      SELECT t.*,
+        p.nombre as proyecto_nombre, p.color as proyecto_color,
+        u.name as creador_nombre,
+        (SELECT COUNT(*) FROM styly_subtasks WHERE parent_task_id = t.id) as subtasks_count,
+        (SELECT COUNT(*) FROM styly_comentarios WHERE task_id = t.id) as comentarios_count
+      FROM styly_tasks t
+      LEFT JOIN styly_projects p ON t.proyecto_id = p.id
+      LEFT JOIN users u ON t.creado_por = u.id
+      ORDER BY t.position ASC, t.created_at DESC
+    `);
+
+    // Get asignados for all tasks
+    const { rows: asignados } = await pool.query(`
+      SELECT ta.task_id, u.id, u.name, u.email, u.avatar
+      FROM styly_task_asignados ta
+      JOIN users u ON ta.user_id = u.id
+    `);
+
+    // Get observadores for all tasks
+    const { rows: observadores } = await pool.query(`
+      SELECT tobs.task_id, u.id, u.name, u.email, u.avatar
+      FROM styly_task_observadores tobs
+      JOIN users u ON tobs.user_id = u.id
+    `);
+
+    // Group asignados and observadores by task_id
+    const tasksWithRelations = tasks.map(t => ({
+      ...t,
+      asignados: asignados.filter(a => a.task_id === t.id),
+      observadores: observadores.filter(o => o.task_id === t.id)
+    }));
+
+    res.json({ tasks: tasksWithRelations });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 router.get('/users', async (req, res) => {
   try {
     const { rows } = await pool.query(
-      'SELECT id, name, email FROM users ORDER BY name ASC'
+      'SELECT id, name, email, avatar, styly_role_id FROM users WHERE activo = true ORDER BY name ASC'
     );
     res.json({ users: rows });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+router.post('/users', async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'Nombre, email y contraseña son requeridos' });
+    }
+
+    const hash = await bcrypt.hash(password, 10);
+
+    // Get Developer role ID
+    const { rows: roleRows } = await pool.query(
+      "SELECT id FROM styly_roles WHERE nombre = 'Developer' LIMIT 1"
+    );
+    const roleId = roleRows.length > 0 ? roleRows[0].id : null;
+
+    // Create user with status = 'active' and Developer role
+    const { rows } = await pool.query(
+      'INSERT INTO users (name, email, password_hash, role, status, activo, styly_role_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, name, email, avatar, styly_role_id',
+      [name, email, hash, 'editor', 'active', true, roleId]
+    );
+
+    res.json({ user: rows[0] });
+  } catch (e) {
+    if (e.code === '23505') return res.status(400).json({ error: 'Email ya registrado' });
+    res.status(500).json({ error: e.message });
+  }
+});
+
 router.post('/tasks', async (req, res) => {
   try {
-    const { task_id, project_id, module, description, priority, assigned_to, start_date, due_date } = req.body;
-    if (!task_id || !module || !description) return res.status(400).json({ error: 'Faltan campos requeridos' });
+    const { task_id, titulo, descripcion, proyecto_id, seccion, prioridad, asignados, fecha_inicio, fecha_vencimiento } = req.body;
+    if (!task_id || !titulo) return res.status(400).json({ error: 'Faltan campos requeridos' });
 
+    // Create task
     const { rows } = await pool.query(
-      'INSERT INTO styly_tasks (task_id, project_id, module, description, priority, assigned_to, status, start_date, due_date) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-      [task_id, project_id || null, module, description, priority || 'Media', assigned_to || null, 'Pendiente', start_date || null, due_date || null]
+      'INSERT INTO styly_tasks (task_id, titulo, descripcion, proyecto_id, seccion, prioridad, estado, creado_por, fecha_inicio, fecha_vencimiento) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
+      [task_id, titulo, descripcion || null, proyecto_id || null, seccion || null, prioridad || 'Media', 'Pendiente', req.user.id, fecha_inicio || null, fecha_vencimiento || null]
     );
-    res.json({ task: rows[0] });
+
+    const newTask = rows[0];
+
+    // Add asignados if provided
+    if (asignados && Array.isArray(asignados) && asignados.length > 0) {
+      for (const userId of asignados) {
+        await pool.query(
+          'INSERT INTO styly_task_asignados (task_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+          [newTask.id, userId]
+        );
+      }
+    }
+
+    res.json({ task: newTask });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 router.put('/tasks/:id', async (req, res) => {
   try {
-    const { status, assigned_to, priority, description, project_id, module, start_date, due_date, position } = req.body;
+    const { titulo, descripcion, estado, prioridad, proyecto_id, seccion, progreso, fecha_inicio, fecha_vencimiento, position, etiquetas } = req.body;
     const updates = [];
     const params = [];
     let paramCount = 1;
 
-    if (status !== undefined) {
-      updates.push(`status = $${paramCount++}`);
-      params.push(status);
-    }
-    if (assigned_to !== undefined) {
-      updates.push(`assigned_to = $${paramCount++}`);
-      params.push(assigned_to);
-    }
-    if (priority !== undefined) {
-      updates.push(`priority = $${paramCount++}`);
-      params.push(priority);
-    }
-    if (description !== undefined) {
-      updates.push(`description = $${paramCount++}`);
-      params.push(description);
-    }
-    if (project_id !== undefined) {
-      updates.push(`project_id = $${paramCount++}`);
-      params.push(project_id);
-    }
-    if (module !== undefined) {
-      updates.push(`module = $${paramCount++}`);
-      params.push(module);
-    }
-    if (start_date !== undefined) {
-      updates.push(`start_date = $${paramCount++}`);
-      params.push(start_date);
-    }
-    if (due_date !== undefined) {
-      updates.push(`due_date = $${paramCount++}`);
-      params.push(due_date);
-    }
-    if (position !== undefined) {
-      updates.push(`position = $${paramCount++}`);
-      params.push(position);
-    }
+    if (titulo !== undefined) { updates.push(`titulo = $${paramCount++}`); params.push(titulo); }
+    if (descripcion !== undefined) { updates.push(`descripcion = $${paramCount++}`); params.push(descripcion); }
+    if (estado !== undefined) { updates.push(`estado = $${paramCount++}`); params.push(estado); }
+    if (prioridad !== undefined) { updates.push(`prioridad = $${paramCount++}`); params.push(prioridad); }
+    if (proyecto_id !== undefined) { updates.push(`proyecto_id = $${paramCount++}`); params.push(proyecto_id); }
+    if (seccion !== undefined) { updates.push(`seccion = $${paramCount++}`); params.push(seccion); }
+    if (progreso !== undefined) { updates.push(`progreso = $${paramCount++}`); params.push(progreso); }
+    if (fecha_inicio !== undefined) { updates.push(`fecha_inicio = $${paramCount++}`); params.push(fecha_inicio); }
+    if (fecha_vencimiento !== undefined) { updates.push(`fecha_vencimiento = $${paramCount++}`); params.push(fecha_vencimiento); }
+    if (position !== undefined) { updates.push(`position = $${paramCount++}`); params.push(position); }
+    if (etiquetas !== undefined) { updates.push(`etiquetas = $${paramCount++}`); params.push(JSON.stringify(etiquetas)); }
 
     if (!updates.length) return res.status(400).json({ error: 'No hay campos para actualizar' });
 
@@ -660,6 +728,321 @@ router.delete('/tasks/all', async (req, res) => {
     const { rowCount } = await pool.query('DELETE FROM styly_tasks');
     await pool.query('ALTER SEQUENCE styly_tasks_id_seq RESTART WITH 1');
     res.json({ ok: true, deleted: rowCount });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ========== NEW SYSTEM: ROLES ==========
+router.get('/roles', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM styly_roles ORDER BY nombre ASC');
+    res.json({ roles: rows });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/roles/:id', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM styly_roles WHERE id = $1', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Rol no encontrado' });
+    res.json({ role: rows[0] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/roles', async (req, res) => {
+  try {
+    const { nombre, permisos } = req.body;
+    if (!nombre) return res.status(400).json({ error: 'Nombre requerido' });
+    const { rows } = await pool.query(
+      'INSERT INTO styly_roles (nombre, permisos) VALUES ($1, $2) RETURNING *',
+      [nombre, JSON.stringify(permisos || {})]
+    );
+    res.json({ role: rows[0] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.put('/roles/:id', async (req, res) => {
+  try {
+    const { nombre, permisos } = req.body;
+    const updates = [];
+    const params = [];
+    let count = 1;
+
+    if (nombre !== undefined) { updates.push(`nombre = $${count++}`); params.push(nombre); }
+    if (permisos !== undefined) { updates.push(`permisos = $${count++}`); params.push(JSON.stringify(permisos)); }
+
+    if (!updates.length) return res.status(400).json({ error: 'No hay campos para actualizar' });
+    params.push(req.params.id);
+
+    const { rows } = await pool.query(
+      `UPDATE styly_roles SET ${updates.join(', ')} WHERE id = $${count} RETURNING *`,
+      params
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Rol no encontrado' });
+    res.json({ role: rows[0] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.delete('/roles/:id', async (req, res) => {
+  try {
+    const { rowCount } = await pool.query('DELETE FROM styly_roles WHERE id = $1', [req.params.id]);
+    if (!rowCount) return res.status(404).json({ error: 'Rol no encontrado' });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ========== NEW SYSTEM: EQUIPOS ==========
+router.get('/equipos', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT e.*,
+        u.name as lider_nombre,
+        (SELECT COUNT(*) FROM styly_equipo_miembros WHERE equipo_id = e.id) as miembros_count
+      FROM styly_equipos e
+      LEFT JOIN users u ON e.lider_id = u.id
+      ORDER BY e.nombre ASC
+    `);
+    res.json({ equipos: rows });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/equipos/:id', async (req, res) => {
+  try {
+    const { rows: equipo } = await pool.query(`
+      SELECT e.*, u.name as lider_nombre
+      FROM styly_equipos e
+      LEFT JOIN users u ON e.lider_id = u.id
+      WHERE e.id = $1
+    `, [req.params.id]);
+
+    if (!equipo.length) return res.status(404).json({ error: 'Equipo no encontrado' });
+
+    const { rows: miembros } = await pool.query(`
+      SELECT u.id, u.name, u.email, u.avatar
+      FROM styly_equipo_miembros em
+      JOIN users u ON em.user_id = u.id
+      WHERE em.equipo_id = $1
+    `, [req.params.id]);
+
+    res.json({ equipo: { ...equipo[0], miembros } });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/equipos', async (req, res) => {
+  try {
+    const { nombre, descripcion, lider_id } = req.body;
+    if (!nombre) return res.status(400).json({ error: 'Nombre requerido' });
+    const { rows } = await pool.query(
+      'INSERT INTO styly_equipos (nombre, descripcion, lider_id) VALUES ($1, $2, $3) RETURNING *',
+      [nombre, descripcion || null, lider_id || null]
+    );
+    res.json({ equipo: rows[0] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.put('/equipos/:id', async (req, res) => {
+  try {
+    const { nombre, descripcion, lider_id } = req.body;
+    const updates = [];
+    const params = [];
+    let count = 1;
+
+    if (nombre !== undefined) { updates.push(`nombre = $${count++}`); params.push(nombre); }
+    if (descripcion !== undefined) { updates.push(`descripcion = $${count++}`); params.push(descripcion); }
+    if (lider_id !== undefined) { updates.push(`lider_id = $${count++}`); params.push(lider_id); }
+
+    if (!updates.length) return res.status(400).json({ error: 'No hay campos para actualizar' });
+    params.push(req.params.id);
+
+    const { rows } = await pool.query(
+      `UPDATE styly_equipos SET ${updates.join(', ')} WHERE id = $${count} RETURNING *`,
+      params
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Equipo no encontrado' });
+    res.json({ equipo: rows[0] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.delete('/equipos/:id', async (req, res) => {
+  try {
+    const { rowCount } = await pool.query('DELETE FROM styly_equipos WHERE id = $1', [req.params.id]);
+    if (!rowCount) return res.status(404).json({ error: 'Equipo no encontrado' });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Agregar miembro a equipo
+router.post('/equipos/:id/miembros', async (req, res) => {
+  try {
+    const { user_id } = req.body;
+    if (!user_id) return res.status(400).json({ error: 'user_id requerido' });
+    await pool.query(
+      'INSERT INTO styly_equipo_miembros (equipo_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [req.params.id, user_id]
+    );
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Remover miembro de equipo
+router.delete('/equipos/:id/miembros/:userId', async (req, res) => {
+  try {
+    await pool.query(
+      'DELETE FROM styly_equipo_miembros WHERE equipo_id = $1 AND user_id = $2',
+      [req.params.id, req.params.userId]
+    );
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ========== NEW SYSTEM: ASIGNADOS Y OBSERVADORES ==========
+// Agregar asignado a tarea
+router.post('/tasks/:taskId/asignados', async (req, res) => {
+  try {
+    const { user_id } = req.body;
+    if (!user_id) return res.status(400).json({ error: 'user_id requerido' });
+    await pool.query(
+      'INSERT INTO styly_task_asignados (task_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [req.params.taskId, user_id]
+    );
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Remover asignado de tarea
+router.delete('/tasks/:taskId/asignados/:userId', async (req, res) => {
+  try {
+    await pool.query(
+      'DELETE FROM styly_task_asignados WHERE task_id = $1 AND user_id = $2',
+      [req.params.taskId, req.params.userId]
+    );
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Agregar observador a tarea
+router.post('/tasks/:taskId/observadores', async (req, res) => {
+  try {
+    const { user_id } = req.body;
+    if (!user_id) return res.status(400).json({ error: 'user_id requerido' });
+    await pool.query(
+      'INSERT INTO styly_task_observadores (task_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [req.params.taskId, user_id]
+    );
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Remover observador de tarea
+router.delete('/tasks/:taskId/observadores/:userId', async (req, res) => {
+  try {
+    await pool.query(
+      'DELETE FROM styly_task_observadores WHERE task_id = $1 AND user_id = $2',
+      [req.params.taskId, req.params.userId]
+    );
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ========== NEW SYSTEM: SUBTAREAS ==========
+router.get('/tasks/:taskId/subtasks', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM styly_subtasks WHERE parent_task_id = $1 ORDER BY order_index ASC',
+      [req.params.taskId]
+    );
+    res.json({ subtasks: rows });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/tasks/:taskId/subtasks', async (req, res) => {
+  try {
+    const { titulo, order_index } = req.body;
+    if (!titulo) return res.status(400).json({ error: 'Titulo requerido' });
+    const { rows } = await pool.query(
+      'INSERT INTO styly_subtasks (parent_task_id, titulo, order_index) VALUES ($1, $2, $3) RETURNING *',
+      [req.params.taskId, titulo, order_index || 0]
+    );
+    res.json({ subtask: rows[0] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.put('/subtasks/:id', async (req, res) => {
+  try {
+    const { titulo, completada, order_index } = req.body;
+    const updates = [];
+    const params = [];
+    let count = 1;
+
+    if (titulo !== undefined) { updates.push(`titulo = $${count++}`); params.push(titulo); }
+    if (completada !== undefined) { updates.push(`completada = $${count++}`); params.push(completada); }
+    if (order_index !== undefined) { updates.push(`order_index = $${count++}`); params.push(order_index); }
+
+    if (!updates.length) return res.status(400).json({ error: 'No hay campos para actualizar' });
+    params.push(req.params.id);
+
+    const { rows } = await pool.query(
+      `UPDATE styly_subtasks SET ${updates.join(', ')} WHERE id = $${count} RETURNING *`,
+      params
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Subtarea no encontrada' });
+    res.json({ subtask: rows[0] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.delete('/subtasks/:id', async (req, res) => {
+  try {
+    const { rowCount } = await pool.query('DELETE FROM styly_subtasks WHERE id = $1', [req.params.id]);
+    if (!rowCount) return res.status(404).json({ error: 'Subtarea no encontrada' });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ========== NEW SYSTEM: COMENTARIOS ==========
+router.get('/tasks/:taskId/comentarios', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT c.*, u.name as usuario_nombre, u.avatar as usuario_avatar
+      FROM styly_comentarios c
+      LEFT JOIN users u ON c.user_id = u.id
+      WHERE c.task_id = $1
+      ORDER BY c.created_at DESC
+    `, [req.params.taskId]);
+    res.json({ comentarios: rows });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/tasks/:taskId/comentarios', async (req, res) => {
+  try {
+    const { contenido, archivos } = req.body;
+    if (!contenido) return res.status(400).json({ error: 'Contenido requerido' });
+    const { rows } = await pool.query(
+      'INSERT INTO styly_comentarios (task_id, user_id, contenido, archivos) VALUES ($1, $2, $3, $4) RETURNING *',
+      [req.params.taskId, req.user.id, contenido, JSON.stringify(archivos || [])]
+    );
+    res.json({ comentario: rows[0] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.put('/comentarios/:id', async (req, res) => {
+  try {
+    const { contenido } = req.body;
+    if (!contenido) return res.status(400).json({ error: 'Contenido requerido' });
+    const { rows } = await pool.query(
+      'UPDATE styly_comentarios SET contenido = $1, editado_en = NOW() WHERE id = $2 AND user_id = $3 RETURNING *',
+      [contenido, req.params.id, req.user.id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Comentario no encontrado o sin permisos' });
+    res.json({ comentario: rows[0] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.delete('/comentarios/:id', async (req, res) => {
+  try {
+    const { rowCount } = await pool.query(
+      'DELETE FROM styly_comentarios WHERE id = $1 AND user_id = $2',
+      [req.params.id, req.user.id]
+    );
+    if (!rowCount) return res.status(404).json({ error: 'Comentario no encontrado o sin permisos' });
+    res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
