@@ -913,136 +913,15 @@ async function renderDashboard(m){
   `;
 }
 
-function toggleProject(projId){
+function toggleProject(projId){const el=document.getElementById(projId);const icon=document.getElementById('toggle-'+projId);if(el){const hidden=el.style.display==='none';el.style.display=hidden?'block':'none';if(icon)icon.textContent=hidden?'▼':'▶'}}
 
-function toggleProject(projId){
-  const el=document.getElementById(projId);
-  const icon=document.getElementById('toggle-'+projId);
-  if(el){
-    const hidden=el.style.display==='none';
-    el.style.display=hidden?'block':'none';
-    if(icon)icon.textContent=hidden?'▼':'▶';
-  }
-}
+function openTaskModal(taskId){const task=tasks.find(t=>t.id===taskId);if(!task)return;const modal=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-box" style="max-width:600px"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1.5rem"><div style="font-size:1.15rem;font-weight:700;color:var(--fg)">Editar Tarea<span style="font-size:.75rem;font-weight:600;color:var(--sy);margin-left:.5rem">${task.task_id||'#'+task.id}</span></div><button onclick="closeModal()" style="padding:.5rem;border:none;background:transparent;color:var(--mt);cursor:pointer;font-size:1.2rem">&times;</button></div><div class="modal-field"><label>Descripción</label><textarea id="editDesc" rows="3" style="resize:vertical">${esc(task.description)}</textarea></div><div class="modal-field"><label>Proyecto</label><select id="editProject">${projects.map(p=>`<option value="${p.id}" ${task.project_id==p.id?'selected':''}>${p.name}</option>`).join('')}</select></div><div class="modal-field"><label>Módulo (opcional)</label><input type="text" id="editModule" value="${task.module||''}" placeholder="Ej: Dashboard, Pagos, etc."></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem"><div class="modal-field"><label>Estado</label><select id="editStatus"><option value="Pendiente" ${task.status==='Pendiente'?'selected':''}>🔴 Pendiente</option><option value="En Progreso" ${task.status==='En Progreso'?'selected':''}>🟡 En Progreso</option><option value="Completada" ${task.status==='Completada'?'selected':''}>✅ Completada</option></select></div><div class="modal-field"><label>Prioridad</label><select id="editPriority"><option value="Alta" ${task.priority==='Alta'?'selected':''}>🔴 Alta</option><option value="Media" ${task.priority==='Media'?'selected':''}>🟡 Media</option><option value="Baja" ${task.priority==='Baja'?'selected':''}>🟢 Baja</option></select></div></div><div class="modal-field"><label>Asignado a</label><select id="editAssigned"><option value="">Sin asignar</option>${users.map(u=>`<option value="${u.name}" ${task.assigned_to===u.name?'selected':''}>${u.name}</option>`).join('')}</select></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem"><div class="modal-field"><label>Fecha de Inicio</label><input type="date" id="editStartDate" value="${task.start_date||''}"></div><div class="modal-field"><label>Fecha de Vencimiento</label><input type="date" id="editDueDate" value="${task.due_date||''}"></div></div><div style="display:flex;justify-content:space-between;gap:1rem;margin-top:1.5rem"><button onclick="deleteTask(${task.id});closeModal()" style="padding:.65rem 1.25rem;border-radius:10px;border:1px solid #EF4444;background:transparent;color:#EF4444;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#EF4444';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#EF4444'"><i class="fas fa-trash"></i> Eliminar</button><div style="display:flex;gap:.75rem"><button onclick="closeModal()" class="m-cancel">Cancelar</button><button onclick="saveTask(${task.id})" class="m-ok"><i class="fas fa-save"></i> Guardar</button></div></div></div></div>`;document.getElementById('modalRoot').innerHTML=modal}
 
-function toggleAllProjects(){
-  const projs=document.querySelectorAll('[id^="proj-"]');
-  const allHidden=Array.from(projs).every(p=>p.style.display==='none');
-  projs.forEach(p=>{
-    p.style.display=allHidden?'block':'none';
-    const projId=p.id;
-    const icon=document.getElementById('toggle-'+projId);
-    if(icon)icon.textContent=allHidden?'▼':'▶';
-  });
-}
+async function saveTask(taskId){const desc=document.getElementById('editDesc')?.value?.trim();const project=document.getElementById('editProject')?.value;const module=document.getElementById('editModule')?.value?.trim()||null;const status=document.getElementById('editStatus')?.value;const priority=document.getElementById('editPriority')?.value;const assigned=document.getElementById('editAssigned')?.value||null;const startDate=document.getElementById('editStartDate')?.value||null;const dueDate=document.getElementById('editDueDate')?.value||null;if(!desc)return toast('Descripción requerida');try{const r=await fetch(`/api/styly/tasks/${taskId}`,{method:'PUT',headers:hdrs,body:JSON.stringify({description:desc,project_id:project,module:module,status:status,priority:priority,assigned_to:assigned,start_date:startDate,due_date:dueDate})});const d=await r.json();if(d.error)throw new Error(d.error);const idx=tasks.findIndex(t=>t.id===taskId);if(idx!==-1)tasks[idx]=d.task;toast('Tarea actualizada');closeModal();renderTareas(document.getElementById('modContent'))}catch(e){toast('Error: '+e.message)}}
 
-function toggleModule(modId){
-  const id='mod-'+modId;
-  const toggle='toggle-'+modId;
-  const el=document.getElementById(id);
-  const icon=document.getElementById(toggle);
-  if(el){
-    const hidden=el.style.display==='none';
-    el.style.display=hidden?'grid':'none';
-    if(icon)icon.textContent=hidden?'▼':'▶';
-  }
-}
+function openNewTaskModal(projectId=null,status='Pendiente'){const modal=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-box" style="max-width:600px"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1.5rem"><div style="font-size:1.15rem;font-weight:700;color:var(--fg)"><i class="fas fa-plus-circle" style="color:var(--sy);margin-right:.5rem"></i>Nueva Tarea</div><button onclick="closeModal()" style="padding:.5rem;border:none;background:transparent;color:var(--mt);cursor:pointer;font-size:1.2rem">&times;</button></div><div class="modal-field"><label>Descripción *</label><textarea id="newDesc" rows="3" placeholder="Describe la tarea..." style="resize:vertical"></textarea></div><div class="modal-field"><label>Proyecto *</label><select id="newProject">${projects.map(p=>`<option value="${p.id}" ${projectId==p.id?'selected':''}>${p.name}</option>`).join('')}</select></div><div class="modal-field"><label>Módulo (opcional)</label><input type="text" id="newModule" placeholder="Ej: Dashboard, Pagos, etc."></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem"><div class="modal-field"><label>Estado</label><select id="newStatus"><option value="Pendiente" ${status==='Pendiente'?'selected':''}>🔴 Pendiente</option><option value="En Progreso" ${status==='En Progreso'?'selected':''}>🟡 En Progreso</option><option value="Completada" ${status==='Completada'?'selected':''}>✅ Completada</option></select></div><div class="modal-field"><label>Prioridad</label><select id="newPriority"><option value="Media" selected>🟡 Media</option><option value="Alta">🔴 Alta</option><option value="Baja">🟢 Baja</option></select></div></div><div class="modal-field"><label>Asignado a</label><select id="newAssigned"><option value="">Sin asignar</option>${users.map(u=>`<option value="${u.name}">${u.name}</option>`).join('')}</select></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem"><div class="modal-field"><label>Fecha de Inicio</label><input type="date" id="newStartDate"></div><div class="modal-field"><label>Fecha de Vencimiento</label><input type="date" id="newDueDate"></div></div><div class="modal-actions" style="margin-top:1.5rem;display:flex;justify-content:flex-end;gap:.75rem"><button onclick="closeModal()" class="m-cancel">Cancelar</button><button onclick="createTask()" class="m-ok"><i class="fas fa-plus"></i> Crear Tarea</button></div></div></div>`;document.getElementById('modalRoot').innerHTML=modal}
 
-function toggleAllModules(){
-  const modules=document.querySelectorAll('[id^="mod-"]');
-  const allHidden=Array.from(modules).every(m=>m.style.display==='none');
-  modules.forEach(m=>{
-    m.style.display=allHidden?'grid':'none';
-    const modId=m.id.replace('mod-','');
-    const icon=document.getElementById('toggle-'+modId);
-    if(icon)icon.textContent=allHidden?'▼':'▶';
-  });
-}
-
-async function updateTaskStatus(id,status){
-  try{
-    const r=await fetch('/api/styly/tasks/'+id,{method:'PUT',headers:hdrs,body:JSON.stringify({status})});
-    const d=await r.json();if(d.error)throw new Error(d.error);
-    tasks=tasks.map(t=>t.id===id?d.task:t);
-    renderTareas(document.getElementById('modContent'));
-    toast('Tarea actualizada');
-  }catch(e){toast('Error: '+e.message)}
-}
-
-async function updateTaskAssigned(id,assigned_to){
-  try{
-    const r=await fetch('/api/styly/tasks/'+id,{method:'PUT',headers:hdrs,body:JSON.stringify({assigned_to:assigned_to||null})});
-    const d=await r.json();if(d.error)throw new Error(d.error);
-    tasks=tasks.map(t=>t.id===id?d.task:t);
-    renderTareas(document.getElementById('modContent'));
-    toast('Asignación actualizada');
-  }catch(e){toast('Error: '+e.message)}
-}
-
-async function deleteTask(id){
-  if(!confirm('¿Eliminar esta tarea?'))return;
-  try{
-    const r=await fetch('/api/styly/tasks/'+id,{method:'DELETE',headers:hdrs});
-    if(!r.ok)throw new Error('Error al eliminar');
-    tasks=tasks.filter(t=>t.id!==id);
-    renderTareas(document.getElementById('modContent'));
-    toast('Tarea eliminada');
-  }catch(e){toast('Error: '+e.message)}
-}
-
-function openNewProjectModal(){
-  showModal(`<div class="modal-title">➕ Nuevo Proyecto</div>
-    <div class="modal-field"><label>Nombre</label><input type="text" id="newProjName" placeholder="Ej: Landing Page, Modulo Panel..."></div>
-    <div class="modal-field"><label>Descripción (opcional)</label><textarea id="newProjDesc" rows="2" placeholder="Descripción del proyecto..."></textarea></div>
-    <div class="modal-actions"><button class="m-cancel" onclick="closeModal()">Cancelar</button><button class="m-ok" onclick="saveNewProject()">➕ Crear Proyecto</button></div>`);
-}
-
-async function saveNewProject(){
-  const name=document.getElementById('newProjName')?.value?.trim();
-  const description=document.getElementById('newProjDesc')?.value?.trim();
-
-  if(!name)return toast('Nombre requerido');
-
-  try{
-    const r=await fetch('/api/styly/projects',{method:'POST',headers:hdrs,body:JSON.stringify({name,description})});
-    const d=await r.json();if(d.error)throw new Error(d.error);
-    projects.push(d.project);
-    closeModal();
-    renderTareas(document.getElementById('modContent'));
-    toast('✅ Proyecto creado');
-  }catch(e){toast('Error: '+e.message)}
-}
-
-function openNewTaskModal(){
-  showModal(`<div class="modal-title">➕ Nueva Tarea</div>
-    <div class="modal-field"><label>Proyecto</label><select id="newTaskProj"><option value="">Sin asignar</option>${projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}</select></div>
-    <div class="modal-field"><label>ID de Tarea</label><input type="text" id="newTaskId" placeholder="Ej: P-99"></div>
-    <div class="modal-field"><label>Descripción</label><textarea id="newTaskDesc" rows="3" placeholder="Descripcion de la tarea..."></textarea></div>
-    <div class="modal-field"><label>Módulo</label><input type="text" id="newTaskModule" placeholder="Ej: Dashboard, Mensajes..."></div>
-    <div class="modal-field"><label>Prioridad</label><select id="newTaskPrio"><option value="Media">Media</option><option value="Alta">Alta</option><option value="Baja">Baja</option></select></div>
-    <div class="modal-field"><label>Asignado a</label><select id="newTaskUser"><option value="">Sin asignar</option>${users.map(u=>`<option value="${u.name}">${u.name}</option>`).join('')}</select></div>
-    <div class="modal-actions"><button class="m-cancel" onclick="closeModal()">Cancelar</button><button class="m-ok" onclick="saveNewTask()">➕ Crear Tarea</button></div>`);
-}
-
-async function saveNewTask(){
-  const project_id=document.getElementById('newTaskProj')?.value||null;
-  const id=document.getElementById('newTaskId')?.value?.trim();
-  const description=document.getElementById('newTaskDesc')?.value?.trim();
-  const module=document.getElementById('newTaskModule')?.value?.trim();
-  const priority=document.getElementById('newTaskPrio')?.value;
-  const assigned_to=document.getElementById('newTaskUser')?.value||null;
-
-  if(!id||!description||!module)return toast('Completa los campos requeridos');
-
-  try{
-    const r=await fetch('/api/styly/tasks',{method:'POST',headers:hdrs,body:JSON.stringify({task_id:id,project_id:project_id?parseInt(project_id):null,description,module,priority,assigned_to})});
-    const d=await r.json();if(d.error)throw new Error(d.error);
-    tasks.push(d.task);
-    closeModal();
-    renderTareas(document.getElementById('modContent'));
-    toast('✅ Tarea creada');
-  }catch(e){toast('Error: '+e.message)}
-}
+async function createTask(){const desc=document.getElementById('newDesc')?.value?.trim();const project=document.getElementById('newProject')?.value;const module=document.getElementById('newModule')?.value?.trim()||null;const status=document.getElementById('newStatus')?.value;const priority=document.getElementById('newPriority')?.value;const assigned=document.getElementById('newAssigned')?.value||null;const startDate=document.getElementById('newStartDate')?.value||null;const dueDate=document.getElementById('newDueDate')?.value||null;if(!desc)return toast('Descripción requerida');if(!project)return toast('Proyecto requerido');try{const nextId=Math.max(0,...tasks.map(t=>{const match=t.task_id?.match(/T-(\d+)/);return match?parseInt(match[1]):0}))+1;const taskId=`T-${String(nextId).padStart(3,'0')}`;const r=await fetch('/api/styly/tasks',{method:'POST',headers:hdrs,body:JSON.stringify({task_id:taskId,description:desc,project_id:project,module:module||'General',status:status,priority:priority,assigned_to:assigned,start_date:startDate,due_date:dueDate})});const d=await r.json();if(d.error)throw new Error(d.error);tasks.push(d.task);toast('Tarea creada');closeModal();renderTareas(document.getElementById('modContent'))}catch(e){toast('Error: '+e.message)}}
 
 renderTab();
 </script>
