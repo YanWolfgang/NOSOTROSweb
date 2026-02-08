@@ -547,6 +547,99 @@ router.delete('/projects/:id', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ========== STYLY TASKS ANALYTICS (for Dashboard) ==========
+router.get('/tasks/analytics', async (req, res) => {
+  try {
+    const [tasksR, projR, asignadosR] = await Promise.all([
+      pool.query(
+        `SELECT t.*, p.nombre as proyecto_nombre, p.color as proyecto_color
+         FROM styly_tasks t LEFT JOIN styly_projects p ON t.proyecto_id = p.id
+         ORDER BY t.prioridad DESC, t.task_id ASC`
+      ),
+      pool.query('SELECT * FROM styly_projects ORDER BY order_index ASC'),
+      pool.query(
+        `SELECT ta.task_id, u.name FROM styly_task_asignados ta JOIN users u ON ta.user_id = u.id`
+      )
+    ]);
+
+    const allTasks = tasksR.rows;
+    const projects = projR.rows;
+
+    // Map asignados to tasks
+    const asignadosMap = {};
+    asignadosR.rows.forEach(a => {
+      if (!asignadosMap[a.task_id]) asignadosMap[a.task_id] = [];
+      asignadosMap[a.task_id].push(a.name);
+    });
+
+    // Overall stats
+    const stats = {
+      total: allTasks.length,
+      pendiente: allTasks.filter(t => (t.estado || '').toLowerCase() === 'pendiente').length,
+      enProgreso: allTasks.filter(t => (t.estado || '').toLowerCase() === 'en progreso').length,
+      completada: allTasks.filter(t => (t.estado || '').toLowerCase() === 'completada').length
+    };
+    stats.completionRate = stats.total > 0 ? Math.round((stats.completada / stats.total) * 100) : 0;
+
+    // By priority
+    const byPriority = { alta: { total: 0, done: 0 }, media: { total: 0, done: 0 }, baja: { total: 0, done: 0 } };
+    allTasks.forEach(t => {
+      const p = (t.prioridad || 'media').toLowerCase();
+      if (byPriority[p]) {
+        byPriority[p].total++;
+        if ((t.estado || '').toLowerCase() === 'completada') byPriority[p].done++;
+      }
+    });
+
+    // By user (from asignados)
+    const byUser = {};
+    allTasks.forEach(t => {
+      const users = asignadosMap[t.id] || ['Sin asignar'];
+      users.forEach(u => {
+        if (!byUser[u]) byUser[u] = { total: 0, pendiente: 0, enProgreso: 0, completada: 0 };
+        byUser[u].total++;
+        const s = (t.estado || '').toLowerCase();
+        if (s === 'pendiente') byUser[u].pendiente++;
+        else if (s === 'en progreso') byUser[u].enProgreso++;
+        else if (s === 'completada') byUser[u].completada++;
+      });
+    });
+
+    // By project
+    const byProject = {};
+    projects.forEach(p => {
+      byProject[p.nombre] = { id: p.id, color: p.color, total: 0, pendiente: 0, completada: 0, completion: 0 };
+    });
+    allTasks.forEach(t => {
+      const pn = t.proyecto_nombre || 'Sin proyecto';
+      if (!byProject[pn]) byProject[pn] = { total: 0, pendiente: 0, completada: 0, completion: 0 };
+      byProject[pn].total++;
+      const s = (t.estado || '').toLowerCase();
+      if (s === 'pendiente') byProject[pn].pendiente++;
+      if (s === 'completada') byProject[pn].completada++;
+    });
+    Object.values(byProject).forEach(p => {
+      p.completion = p.total > 0 ? Math.round((p.completada / p.total) * 100) : 0;
+    });
+
+    // High priority pending tasks
+    const urgent = allTasks
+      .filter(t => (t.prioridad || '').toLowerCase() === 'alta' && (t.estado || '').toLowerCase() !== 'completada')
+      .map(t => ({ id: t.id, task_id: t.task_id, description: t.titulo, module: t.seccion, assigned_to: (asignadosMap[t.id]||[]).join(', ') || null, status: t.estado, project: t.proyecto_nombre }));
+
+    // Recently updated
+    const recentlyUpdated = allTasks
+      .filter(t => t.updated_at)
+      .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+      .slice(0, 5)
+      .map(t => ({ task_id: t.task_id, description: t.titulo, status: t.estado, assigned_to: (asignadosMap[t.id]||[]).join(', ') || null, updated_at: t.updated_at }));
+
+    res.json({ stats, byPriority, byUser, byProject, urgent, recentlyUpdated, projects });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ========== STYLY TASKS (NEW SCHEMA) ==========
 router.get('/tasks', async (req, res) => {
   try {
