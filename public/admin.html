@@ -14,7 +14,7 @@
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
   <nav class="sidebar" id="sidebar"></nav>
   <main class="content fade-in" id="content">
-    <div class="page-header"><h1>👥 Usuarios</h1><p>Administrar usuarios y permisos</p></div>
+    <div class="page-header"><h1><i class="feather" data-icon="users" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Usuarios</h1><p>Administrar usuarios y permisos</p></div>
     <div id="userList"></div>
   </main>
 </div>
@@ -27,10 +27,10 @@ if(user.role!=='admin'){window.location.href='/dashboard.html';}
 const hdrs={'Content-Type':'application/json','Authorization':'Bearer '+token};
 
 const BUSINESSES=[
-  {id:'nosotros',name:'NOSOTROS',icon:'📰',color:'#8B5CF6',url:'/nosotros.html'},
-  {id:'duelazo',name:'DUELAZO',icon:'⚽',color:'#10B981',url:'/duelazo.html'},
-  {id:'spacebox',name:'SPACEBOX',icon:'📦',color:'#3B82F6',url:'/spacebox.html'},
-  {id:'styly',name:'STYLY',icon:'💻',color:'#EC4899',url:'/styly.html'}
+  {id:'nosotros',name:'NOSOTROS',icon:'<i class="feather" data-icon="newspaper" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#8B5CF6',url:'/nosotros.html'},
+  {id:'duelazo',name:'DUELAZO',icon:'<i class="feather" data-icon="activity" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#10B981',url:'/duelazo.html'},
+  {id:'spacebox',name:'SPACEBOX',icon:'<i class="feather" data-icon="package" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#3B82F6',url:'/spacebox.html'},
+  {id:'styly',name:'STYLY',icon:'<i class="feather" data-icon="monitor" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#EC4899',url:'/styly.html'}
 ];
 const ALL_BIZ=['nosotros','duelazo','spacebox','styly'];
 
@@ -40,16 +40,16 @@ function renderSidebar(){
   document.getElementById('sidebar').innerHTML=`
     <button class="sidebar-close" onclick="toggleSidebar()">&times;</button>
     <div class="sidebar-header"><h2>Panel <span>Central</span></h2></div>
-    <div class="sidebar-section"><div class="sidebar-label">General</div><a href="/dashboard.html" class="sidebar-item"><span class="icon">📊</span>Dashboard</a></div>
+    <div class="sidebar-section"><div class="sidebar-label">General</div><a href="/dashboard.html" class="sidebar-item"><span class="icon"><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></span>Dashboard</a></div>
     <div class="sidebar-section"><div class="sidebar-label">Negocios</div>
       ${items.map(b=>`<a href="${b.url}" class="sidebar-item" style="--accent:${b.color}"><span class="icon">${b.icon}</span>${b.name}</a>`).join('')}
     </div>
-    <div class="sidebar-section"><div class="sidebar-label">Admin</div><a href="/admin.html" class="sidebar-item active"><span class="icon">👥</span>Usuarios</a></div>
+    <div class="sidebar-section"><div class="sidebar-label">Admin</div><a href="/admin.html" class="sidebar-item active"><span class="icon"><i class="feather" data-icon="users" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></span>Usuarios</a></div>
     <div class="sidebar-footer">
       <div class="sidebar-avatar">${(user.name||'U')[0].toUpperCase()}</div>
       <div class="sidebar-user"><div class="name">${user.name||'Usuario'}</div><div class="role">${user.role||'editor'}</div></div>
-      <button class="theme-btn" onclick="toggleTheme()">🌙</button>
-      <button class="theme-btn" onclick="logout()" style="font-size:.75rem">↪</button>
+      <button class="theme-btn" onclick="toggleTheme()"><i class="feather" data-icon="moon" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>
+      <button class="theme-btn" onclick="logout()" style="font-size:.75rem"><i class="feather" data-icon="share-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>
     </div>`;
 }
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show')}
@@ -137,8 +137,8 @@ async function editStylyPermisos(id){
         <div class="modal">
           <h3>Permisos STYLY para ${u.name}</h3>
           <div class="biz-checks" id="stylyPermsChecks">
-            <label class="biz-check"><input type="checkbox" value="tareas" ${modules.includes('tareas')?'checked':''}>✅ Tareas</label>
-            <label class="biz-check"><input type="checkbox" value="ia-tareas" ${modules.includes('ia-tareas')?'checked':''}>🧠 IA - Tareas</label>
+            <label class="biz-check"><input type="checkbox" value="tareas" ${modules.includes('tareas')?'checked':''}><i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Tareas</label>
+            <label class="biz-check"><input type="checkbox" value="ia-tareas" ${modules.includes('ia-tareas')?'checked':''}><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> IA - Tareas</label>
           </div>
           <div class="modal-actions">
             <button class="btn-outline btn" onclick="closeModal()">Cancelar</button>
