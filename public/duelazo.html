@@ -26,8 +26,8 @@
 .date-btn:hover,.date-btn.active{border-color:#10B981;color:#10B981;background:rgba(16,185,129,.08)}
 /* Fixture cards */
 .fixtures-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem;margin:.75rem 0}
-.fixture-card{background:var(--card);border:1px solid var(--glass-border);border-radius:16px;padding:1rem;cursor:pointer;transition:all .3s ease;position:relative;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:var(--shadow-sm)}
-.fixture-card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.fixture-card{background:rgba(255,255,255,0.07);-webkit-backdrop-filter:blur(15px);backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:1rem;cursor:pointer;transition:all .3s ease;position:relative;box-shadow:0 8px 32px 0 rgba(31,38,135,0.1)}
+.fixture-card:hover{transform:translateY(-3px);background:rgba(255,255,255,0.1);box-shadow:0 12px 40px rgba(31,38,135,0.2)}
 .fixture-card.on{border-color:#10B981;background:rgba(16,185,129,.06)}
 .fixture-teams{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
 .fixture-team{display:flex;flex-direction:column;align-items:center;gap:.25rem;flex:1;text-align:center}

@@ -11,8 +11,8 @@
 :root{--sb:#3B82F6;--sb-bg:rgba(59,130,246,.06);--sb-border:rgba(59,130,246,.2)}
 /* Format cards */
 .sb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.75rem;margin:1rem 0}
-.sb-fmt{background:var(--glass);border:2px solid var(--glass-border);border-radius:16px;padding:1.25rem 1rem;cursor:pointer;transition:all .3s ease;text-align:center;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
-.sb-fmt:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(59,130,246,.12)}
+.sb-fmt{background:rgba(255,255,255,0.07);border:2px solid rgba(255,255,255,0.12);border-radius:16px;padding:1.25rem 1rem;cursor:pointer;transition:all .3s ease;text-align:center;-webkit-backdrop-filter:blur(15px);backdrop-filter:blur(15px)}
+.sb-fmt:hover{transform:translateY(-3px);background:rgba(255,255,255,0.1);box-shadow:0 12px 40px rgba(31,38,135,0.2)}
 .sb-fmt.on{border-color:var(--sb);background:var(--sb-bg)}
 .sb-fmt .ico{font-size:2rem;margin-bottom:.5rem}
 .sb-fmt .nm{font-weight:700;font-size:.95rem;color:var(--fg);margin-bottom:.25rem}
@@ -22,7 +22,7 @@
 .sb-topic textarea{width:100%;min-height:90px;padding:.75rem;border-radius:12px;border:1px solid var(--glass-border);background:var(--glass);color:var(--fg);font-size:.88rem;font-family:inherit;resize:vertical;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);transition:all .3s ease}
 .sb-topic textarea:focus{border-color:var(--sb);outline:none;box-shadow:0 0 0 3px rgba(59,130,246,.12)}
 /* Result sections */
-.sb-result{background:var(--card);border:1px solid var(--glass-border);border-radius:16px;padding:1.25rem;margin:.75rem 0;position:relative;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:var(--shadow-sm)}
+.sb-result{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:1.25rem;margin:.75rem 0;position:relative;-webkit-backdrop-filter:blur(15px);backdrop-filter:blur(15px);box-shadow:0 8px 32px 0 rgba(31,38,135,0.1)}
 .sb-section{margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--glass-border);position:relative}
 .sb-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
 .sb-section-title{font-size:.75rem;font-weight:700;color:var(--sb);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem}
@@ -42,7 +42,8 @@
 /* Ideas */
 .ideas-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
 .ideas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.75rem}
-.idea-card{background:var(--card);border:1px solid var(--glass-border);border-radius:14px;padding:1rem;transition:all .3s ease;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.idea-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:1rem;transition:all .3s ease;-webkit-backdrop-filter:blur(15px);backdrop-filter:blur(15px);box-shadow:0 8px 32px 0 rgba(31,38,135,0.1)}
+.idea-card:hover{background:rgba(255,255,255,0.1);box-shadow:0 12px 40px rgba(31,38,135,0.2)}
 .idea-card.discarded{opacity:.3}.idea-card.used{opacity:.5}
 .idea-badge{display:inline-block;padding:3px 10px;border-radius:6px;font-size:.7rem;font-weight:700;margin-bottom:.5rem}
 .idea-badge.new{background:rgba(59,130,246,.1);color:var(--sb)}
@@ -63,7 +64,8 @@
 .cal-btn:hover{border-color:var(--sb);color:var(--sb)}
 .cal-title{font-size:.95rem;font-weight:600;color:var(--fg)}
 .cal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:.5rem;margin-top:.5rem}
-.cal-day{background:var(--card);border:1px solid var(--glass-border);border-radius:12px;padding:.75rem .5rem;min-height:120px;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.cal-day{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:.75rem .5rem;min-height:120px;-webkit-backdrop-filter:blur(15px);backdrop-filter:blur(15px);transition:all 0.3s ease}
+.cal-day:hover{background:rgba(255,255,255,0.1);box-shadow:0 8px 32px 0 rgba(31,38,135,0.1)}
 .cal-day-name{font-size:.7rem;font-weight:700;color:var(--mt);text-transform:uppercase;text-align:center}
 .cal-day-num{font-size:1.1rem;font-weight:700;color:var(--fg);text-align:center;margin:.25rem 0}
 .cal-day.today{border-color:var(--sb);background:var(--sb-bg)}
@@ -72,7 +74,8 @@
 /* History */
 .hist-filters{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
 .hist-filters select{padding:.45rem .8rem;border-radius:10px;border:1px solid var(--glass-border);background:var(--glass);color:var(--fg);font-size:.82rem;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
-.hist-item{background:var(--card);border:1px solid var(--glass-border);border-radius:14px;padding:.85rem 1rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:var(--shadow-sm)}
+.hist-item{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:.85rem 1rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap;-webkit-backdrop-filter:blur(15px);backdrop-filter:blur(15px);box-shadow:0 8px 32px 0 rgba(31,38,135,0.1);transition:all 0.3s ease}
+.hist-item:hover{background:rgba(255,255,255,0.1);box-shadow:0 12px 40px rgba(31,38,135,0.2)}
 .hist-left{display:flex;align-items:center;gap:.5rem;flex:1;min-width:0}
 .hist-emoji{font-size:1.2rem}
 .hist-info{min-width:0}
