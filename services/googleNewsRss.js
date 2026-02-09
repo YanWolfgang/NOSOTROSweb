@@ -48,6 +48,35 @@ function buildGoogleNewsUrl(scope, category) {
   return `${baseUrl}?hl=${params.hl}&gl=${params.gl}&ceid=${params.ceid}`;
 }
 
+// ========== UTILITIES ==========
+function stripHtml(html) {
+  if (!html) return '';
+  // Remove HTML tags and entities
+  return html
+    .replace(/<[^>]*>/g, '') // Remove all HTML tags
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#39;/g, "'")
+    .replace(/&‌/g, '')  // Remove zero-width characters
+    .replace(/\s+/g, ' ') // Collapse multiple spaces
+    .trim();
+}
+
+function extractSummary(description, title) {
+  if (!description) return title || '';
+
+  const cleaned = stripHtml(description);
+
+  // If cleaned description is empty or too short, use title
+  if (cleaned.length < 20) return title || '';
+
+  return cleaned;
+}
+
 // ========== XML PARSER ==========
 async function fetchGoogleNewsRss(scope, category) {
   const cacheKey = `${scope}:${category || 'all'}`;
@@ -100,10 +129,13 @@ async function fetchGoogleNewsRss(scope, category) {
         sourceText = sourceText['#text'];
       }
 
+      // Extract and clean summary
+      const summary = extractSummary(item.description, item.title).slice(0, 400);
+
       return {
         id: i + 1,
         title: (item.title || '').slice(0, 300),
-        summary: (item.description || item.title || '').slice(0, 400),
+        summary: summary,
         source: sourceText,
         date: item.pubDate || new Date().toISOString()
       };
