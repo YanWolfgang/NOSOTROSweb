@@ -555,7 +555,13 @@ async function renderIdeas(m){
   try{
     const r=await fetch('/api/styly/ideas',{headers:hdrs});const d=await r.json();if(d.error)throw new Error(d.error);
     const ideas=d.ideas||[];
-    m.innerHTML=`<div class="ideas-hdr"><div><h3 style="color:var(--fg);margin:0">💡 Ideas Semanales</h3><span style="font-size:.75rem;color:var(--mt)">Balance: 60% clientes · 40% afiliadas</span></div><button class="btn" onclick="genIdeas()"><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Generar 4 ideas de la semana</button></div>
+    m.innerHTML=`<div class="ideas-hdr">
+      <div><h3 style="color:var(--fg);margin:0">💡 Ideas Semanales</h3><span style="font-size:.75rem;color:var(--mt)">Balance: 60% clientes · 40% afiliadas</span></div>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn" onclick="showFormatPickerModal()"><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Generar ideas</button>
+        ${ideas.length?`<button class="btn" style="background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.3)" onclick="deleteAllIdeas()"><i class="feather" data-icon="trash-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Eliminar todas</button>`:''}
+      </div>
+    </div>
       ${ideas.length?`<div class="ideas-grid">${ideas.map(renderIdeaCard).join('')}</div>`:'<p style="color:var(--mt);text-align:center;padding:2rem">No hay ideas. Genera las primeras 4.</p>'}`;
   }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
 }
@@ -573,10 +579,60 @@ function renderIdeaCard(idea){
     </div>`:''}
   </div>`;
 }
-async function genIdeas(){
+function showFormatPickerModal(){
+  const modal=document.getElementById('modalRoot');
+  modal.innerHTML=`<div class="modal-overlay" onclick="closeModal()"></div>
+    <div class="modal glass-card" style="max-width:500px">
+      <div class="modal-header">
+        <h3 style="margin:0;color:var(--fg)">Selecciona formato para ideas</h3>
+        <button class="modal-close" onclick="closeModal()"><i class="feather" data-icon="x" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="color:var(--mt);margin-bottom:1rem">Las 4 ideas se generarán con este formato:</p>
+        <div style="display:flex;flex-direction:column;gap:.75rem">
+          ${PUBLICATION_FORMATS.map(f=>`
+            <button class="sy-fmt" onclick="genIdeasWithFormat('${f.id}')" style="text-align:left;padding:1rem;cursor:pointer;border:1px solid rgba(255,255,255,0.12);border-radius:8px;background:rgba(255,255,255,0.05);transition:all 0.2s" onmouseover="this.style.background='rgba(139,92,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+              <div style="display:flex;align-items:center;gap:1rem">
+                <div style="font-size:2rem">${f.icon}</div>
+                <div>
+                  <div style="font-weight:600;color:var(--fg);margin-bottom:.25rem">${f.name}</div>
+                  <div style="font-size:.8rem;color:var(--mt)">${f.desc}</div>
+                </div>
+              </div>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    </div>`;
+  modal.style.display='flex';
+}
+function closeModal(){
+  const modal=document.getElementById('modalRoot');
+  modal.style.display='none';
+  modal.innerHTML='';
+}
+async function genIdeasWithFormat(format){
+  closeModal();
   const m=document.getElementById('modContent');
   m.innerHTML='<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div><div class="loader-text">Generando 4 ideas semanales...</div></div>';
-  try{await fetch('/api/styly/ideas/generate',{method:'POST',headers:hdrs,body:'{}'});toast('4 ideas generadas');renderIdeas(m)}catch(e){toast('Error: '+e.message);renderIdeas(m)}
+  try{
+    await fetch('/api/styly/ideas/generate',{method:'POST',headers:hdrs,body:JSON.stringify({format})});
+    toast('4 ideas generadas');
+    renderIdeas(m);
+  }catch(e){
+    toast('Error: '+e.message);
+    renderIdeas(m);
+  }
+}
+async function deleteAllIdeas(){
+  if(!confirm('¿Eliminar TODAS las ideas? Esta acción no se puede deshacer.')){return}
+  try{
+    await fetch('/api/styly/ideas',{method:'DELETE',headers:hdrs});
+    toast('Todas las ideas eliminadas');
+    renderIdeas(document.getElementById('modContent'));
+  }catch(e){
+    toast('Error: '+e.message);
+  }
 }
 function useIdea(id,format,aud,text){
   G.fmt=format;G.aud=aud==='affiliates'?'affiliates':'clients';G.topic=text;G.phase='topic';G.result='';G.resultId=null;

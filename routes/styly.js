@@ -79,6 +79,14 @@ ${feature ? `Feature: ${feature}` : ''}
     }
 
     const content = await generate(prompt, sys);
+
+    // DEBUG: Log raw AI response to diagnose parsing issues
+    console.log('=== AI RESPONSE DEBUG ===');
+    console.log('Category:', category, 'Format:', format);
+    console.log('First 600 chars:\n', content.substring(0, 600));
+    console.log('Has emoji headers:', /[\u{1F300}-\u{1FAFF}].+?:/u.test(content));
+    console.log('========================');
+
     const { rows } = await pool.query(
       'INSERT INTO content_history (user_id, business, format_type, input_data, output_text) VALUES ($1, $2, $3, $4, $5) RETURNING id',
       [req.user.id, 'styly', finalCategory || 'edit', JSON.stringify({ category, format, audience, topic, industry, context, feature }), content]
@@ -110,7 +118,16 @@ ${userContext.audience ? `- Target Audience: ${userContext.audience}` : ''}
   }
 
   // CRITICAL: Format FIRST (structure), then user context (content), then category guidelines
-  return `MANDATORY FORMAT STRUCTURE - FOLLOW EXACTLY:
+  return `🚨 INSTRUCCIONES CRÍTICAS - LEE PRIMERO 🚨
+
+1. Tu respuesta DEBE empezar con el primer emoji header del formato (📺, 📸, o 🎴 seguido de ":")
+2. Cada sección DEBE ser una línea separada que termine en ":" (emoji + espacio + texto + dos puntos)
+3. NO agregues títulos extras, NO uses markdown headers (###), NO agregues explicaciones fuera del formato
+4. Sigue la estructura EXACTA mostrada abajo - no la modifiques ni reorganices
+
+---
+
+MANDATORY FORMAT STRUCTURE - FOLLOW EXACTLY:
 ${formatInstructions}
 
 ---
@@ -118,7 +135,15 @@ ${userContextStr}
 CONTENT GUIDELINES (apply to format above):
 ${baseCategoryPrompt}
 
-CRITICAL: Your response MUST follow the EXACT format structure shown at the top. Include every emoji header (📺:, 🎬:, 📸:, 🎴:) and section listed. Do not deviate from the structure.`;
+---
+
+🚨 RECORDATORIO FINAL 🚨
+Tu primera línea DEBE ser el primer emoji header del formato elegido.
+Ejemplo para reel: "📺 TÍTULO PARA YOUTUBE:"
+Ejemplo para estático: "📸 SLIDE ÚNICO:"
+Ejemplo para carrusel: "🎴 SLIDE 1 - HOOK:"
+
+NO agregues introducciones, NO expliques el contenido, SOLO genera el contenido con los headers exactos.`;
 }
 
 function getCategoryPrompt(category, audience) {
@@ -269,10 +294,14 @@ TONO: Educativo, mentor, empoderador. Como si una Afiliada Senior te estuviera e
 function getFormatInstructions(format) {
   const formatInstructions = {
     reel: `FORMATO REEL: Guión de video con timeline (DIFERENTE a carrusel/estático)
-Responde EXACTAMENTE con estas secciones. Cada línea que termine en ":" será un header parseable.
+
+⚠️ CRITICAL: Tu respuesta DEBE empezar EXACTAMENTE con "📺 TÍTULO PARA YOUTUBE:" (emoji + espacio + texto + dos puntos)
+⚠️ Cada sección DEBE ser una línea que termine en ":" para que el parser pueda leerla.
+
+ESTRUCTURA OBLIGATORIA - Copia este formato EXACTO:
 
 📺 TÍTULO PARA YOUTUBE:
-[Escribe título de 60-70 caracteres]
+[Tu título aquí de 60-70 caracteres]
 
 🎬 GANCHO (0-3 seg):
 NARRACIÓN: [Qué se dice]
@@ -300,54 +329,91 @@ VISUAL: [Logo/CTA]
 EFECTOS: [Final]
 
 📝 COPY PARA DESCRIPCIÓN:
-[150-200 palabras]
+[150-200 palabras de copy persuasivo]
 
 #️⃣ HASHTAGS:
-[10-15 hashtags]`,
+[10-15 hashtags relevantes]
+
+EJEMPLO REAL DE OUTPUT:
+📺 TÍTULO PARA YOUTUBE:
+Cómo esta estética triplicó sus ventas con STYLY
+
+🎬 GANCHO (0-3 seg):
+NARRACIÓN: "¿Sabías que puedes triplicar tus ventas en solo 3 meses?"
+VISUAL: Texto animado sobre fondo morado STYLY
+EFECTOS: Zoom in rápido
+
+[continúa con el resto del guión...]`,
 
     estatico: `FORMATO ESTÁTICO: Post de UNA imagen (DIFERENTE a reel/carrusel)
-Responde EXACTAMENTE con estas secciones. Cada línea que termine en ":" será un header parseable.
+
+⚠️ CRITICAL: Tu respuesta DEBE empezar EXACTAMENTE con "📸 SLIDE ÚNICO:" (emoji + espacio + texto + dos puntos)
+⚠️ Cada sección DEBE ser una línea que termine en ":" para que el parser pueda leerla.
+
+ESTRUCTURA OBLIGATORIA - Copia este formato EXACTO:
 
 📸 SLIDE ÚNICO:
-TEXTO EN IMAGEN: [Headline + subtítulo]
+TEXTO EN IMAGEN: [Headline principal + subtítulo que aparece en la imagen]
 
 📸 DESCRIPCIÓN VISUAL:
-[Composición, colores, elementos de LA imagen]
+[Descripción detallada de composición, colores, elementos visuales de LA imagen]
 
 📝 COPY PRINCIPAL:
-[150-250 palabras]
+[150-250 palabras de copy persuasivo para la descripción del post]
 
 #️⃣ HASHTAGS:
-[10-15 hashtags]`,
+[10-15 hashtags relevantes]
+
+EJEMPLO REAL DE OUTPUT:
+📸 SLIDE ÚNICO:
+TEXTO EN IMAGEN: "Agenda Digital que SÍ funciona"
+Subtítulo: Tu negocio siempre organizado
+
+📸 DESCRIPCIÓN VISUAL:
+Fondo gradiente morado a negro. Celular en el centro mostrando la agenda de STYLY con citas del día. Iconos flotantes de calendario, notificaciones y recordatorios.
+
+[continúa con copy y hashtags...]`,
 
     carrusel: `FORMATO CARRUSEL: 4 slides separados (DIFERENTE a reel/estático)
-Responde EXACTAMENTE con estas secciones. Cada línea que termine en ":" será un header parseable.
+
+⚠️ CRITICAL: Tu respuesta DEBE empezar EXACTAMENTE con "🎴 SLIDE 1 - HOOK:" (emoji + espacio + texto + dos puntos)
+⚠️ Cada sección DEBE ser una línea que termine en ":" para que el parser pueda leerla.
+
+ESTRUCTURA OBLIGATORIA - Copia este formato EXACTO:
 
 🎴 SLIDE 1 - HOOK:
-HEADLINE: [Título]
-CONTENIDO: [Texto]
-VISUAL: [Descripción]
+HEADLINE: [Título gancho]
+CONTENIDO: [Texto del slide 1]
+VISUAL: [Descripción visual del slide 1]
 
 🎴 SLIDE 2 - PROBLEMA:
-TÍTULO: [Título]
-CONTENIDO: [Texto]
-VISUAL: [Descripción]
+TÍTULO: [Título del problema]
+CONTENIDO: [Texto del slide 2]
+VISUAL: [Descripción visual del slide 2]
 
 🎴 SLIDE 3 - SOLUCIÓN:
-TÍTULO: [Título]
-CONTENIDO: [Texto]
-VISUAL: [Descripción]
+TÍTULO: [Título de la solución]
+CONTENIDO: [Texto del slide 3]
+VISUAL: [Descripción visual del slide 3]
 
 🎴 SLIDE 4 - CTA:
-HEADLINE: [Título]
-CONTENIDO: [Texto]
-VISUAL: [Descripción]
+HEADLINE: [Título del CTA]
+CONTENIDO: [Texto del slide 4]
+VISUAL: [Descripción visual del slide 4]
 
 📝 COPY PARA DESCRIPCIÓN:
-[150-200 palabras]
+[150-200 palabras de copy persuasivo]
 
 #️⃣ HASHTAGS:
-[10-15 hashtags]`
+[10-15 hashtags relevantes]
+
+EJEMPLO REAL DE OUTPUT:
+🎴 SLIDE 1 - HOOK:
+HEADLINE: ¿Tu agenda es un caos?
+CONTENIDO: Libreta llena, citas olvidadas, clientes molestos...
+VISUAL: Imagen de libreta caótica tachada, fondo rojo
+
+[continúa con los demás slides...]`
   };
 
   return formatInstructions[format] || formatInstructions.reel;
@@ -492,6 +558,7 @@ router.get('/ideas', async (req, res) => {
 
 router.post('/ideas/generate', async (req, res) => {
   try {
+    const { format } = req.body; // Formato elegido por el usuario: reel, carrusel, estatico
     const { rows: existing } = await pool.query(
       "SELECT idea_text, format FROM ideas WHERE business = 'styly' AND created_at > NOW() - INTERVAL '4 weeks'"
     );
@@ -500,7 +567,15 @@ router.post('/ideas/generate', async (req, res) => {
     const mes = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][now.getMonth()];
     const año = now.getFullYear();
 
-    const prompt = `Genera 4 ideas de contenido semanal para STYLY, software de gestión para negocios de belleza y bienestar ($599/mes). Balance: 60% clientes (dueños de estéticas, barberías, spas, etc) y 40% afiliadas elite (vendedoras por comisión). De 4 ideas, 2-3 deben ser para clientes y 1-2 para afiliadas. Formatos CLIENTES: reel_educativo, carrusel_valor, caso_exito, post_feature, inspiracional. Formatos AFILIADAS: reclutamiento, exito_afiliadas, capacitacion. Estamos en ${mes} ${año}. NO repitas: ${usedList}\n\nResponde SOLO con JSON válido:\n{"ideas":[{"idea":"descripción de la idea","format":"formato_id","audience":"clients|affiliates","industry_focus":"industria específica o null"}]}`;
+    // Mapeo de formato de publicación a categorías de contenido
+    const formatToCategoryMap = {
+      reel: 'reel_educativo',
+      carrusel: 'carrusel_valor',
+      estatico: 'post_feature'
+    };
+    const selectedFormat = format && formatToCategoryMap[format] ? formatToCategoryMap[format] : 'reel_educativo';
+
+    const prompt = `Genera 4 ideas de contenido semanal para STYLY, software de gestión para negocios de belleza y bienestar ($599/mes). Balance: 60% clientes (dueños de estéticas, barberías, spas, etc) y 40% afiliadas elite (vendedoras por comisión). De 4 ideas, 2-3 deben ser para clientes y 1-2 para afiliadas. TODAS las ideas deben usar el formato: ${selectedFormat}. Estamos en ${mes} ${año}. NO repitas: ${usedList}\n\nResponde SOLO con JSON válido:\n{"ideas":[{"idea":"descripción de la idea","format":"${selectedFormat}","audience":"clients|affiliates","industry_focus":"industria específica o null"}]}`;
 
     const txt = await generate(prompt, SYS_CLIENTS);
     const start = txt.indexOf('{'), end = txt.lastIndexOf('}');
@@ -512,7 +587,7 @@ router.post('/ideas/generate', async (req, res) => {
     for (const idea of parsed.ideas.slice(0, 4)) {
       const { rows } = await pool.query(
         'INSERT INTO ideas (business, idea_text, format, season_relevance) VALUES ($1, $2, $3, $4) RETURNING *',
-        ['styly', idea.idea, idea.format, idea.audience || null]
+        ['styly', idea.idea, idea.format || selectedFormat, idea.audience || null]
       );
       saved.push({ ...rows[0], audience: idea.audience, industry_focus: idea.industry_focus });
     }
@@ -535,6 +610,19 @@ router.put('/ideas/:id', async (req, res) => {
     if (!rows.length) return res.status(404).json({ error: 'No encontrada' });
     res.json({ idea: rows[0] });
   } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.delete('/ideas', async (req, res) => {
+  try {
+    const { rowCount } = await pool.query(
+      "DELETE FROM ideas WHERE business = 'styly' AND user_id = $1",
+      [req.user.id]
+    );
+    res.json({ deleted: rowCount, message: `${rowCount} ideas eliminadas` });
+  } catch (e) {
+    console.error('Error styly/ideas delete:', e.message);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // ========== HISTORY ==========
