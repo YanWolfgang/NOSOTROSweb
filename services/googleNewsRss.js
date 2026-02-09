@@ -22,15 +22,15 @@ function setCache(key, data) {
 
 // ========== CATEGORY MAPPING (Improved with Google News standard categories) ==========
 const CATEGORY_QUERIES = {
-  internacional: '(política internacional OR diplomacia OR relaciones internacionales OR cumbre OR ONU OR OTAN OR G20 OR Unión Europea OR presidente OR primer ministro OR elecciones OR gobierno OR congreso OR parlamento OR tratado OR sanciones OR embajada) -deportes -entretenimiento',
-  economia: '(economía OR finanzas OR mercados OR negocios OR bolsa OR inversión OR bancos OR empresas) México -tecnología -política',
-  tecnologia: '(inteligencia artificial OR IA OR AI OR software OR tecnología OR apps OR programación OR ciberseguridad OR startup) -videojuegos',
-  deportes: '(fútbol OR football OR futbol OR championship OR liga OR NBA OR MLB OR NFL OR olimpiadas OR atletismo OR tenis) -noticias -política',
-  entretenimiento: '(cine OR películas OR series OR música OR artista OR cantante OR actor OR streaming OR entretenimiento OR famosos) -deportes -política',
-  salud: '(salud OR medicina OR doctor OR hospital OR vacuna OR enfermedad OR virus OR coronavirus OR psicología OR nutrición)',
-  ciencia: '(ciencia OR investigación OR descubrimiento OR física OR química OR biología OR espacio OR astronomía OR NASA) -videojuegos',
-  guerra: '(guerra OR conflicto OR militar OR ejército OR defensa OR armado OR ataque OR geopolítica) (Ucrania OR Rusia OR Gaza OR Israel OR Palestina)',
-  mexico: 'México'
+  internacional: '(política internacional OR diplomacia OR cumbre OR ONU OR OTAN OR G20 OR Unión Europea OR presidente OR elecciones OR sanciones OR embajada) -deportes -entretenimiento when:2d',
+  economia: '(economía OR finanzas OR mercados OR negocios OR bolsa OR inversión OR bancos OR empresas) México -tecnología -política when:2d',
+  tecnologia: '(inteligencia artificial OR IA OR AI OR software OR tecnología OR apps OR programación OR ciberseguridad OR startup) -videojuegos when:2d',
+  deportes: '(fútbol OR football OR futbol OR championship OR liga OR NBA OR MLB OR NFL OR olimpiadas OR atletismo OR tenis) -política when:2d',
+  entretenimiento: '(cine OR películas OR series OR música OR artista OR cantante OR actor OR streaming OR entretenimiento OR famosos) -deportes -política when:2d',
+  salud: '(salud OR medicina OR doctor OR hospital OR vacuna OR enfermedad OR virus OR psicología OR nutrición) when:2d',
+  ciencia: '(ciencia OR investigación OR descubrimiento OR física OR química OR biología OR espacio OR astronomía OR NASA) -videojuegos when:2d',
+  guerra: '(guerra OR conflicto OR militar OR ejército OR defensa OR armado OR ataque OR geopolítica) (Ucrania OR Rusia OR Gaza OR Israel OR Palestina) when:2d',
+  mexico: 'México when:2d'
 };
 
 // ========== URL BUILDER ==========
@@ -180,9 +180,21 @@ async function fetchGoogleNewsRss(scope, category) {
       ? result.rss.channel.item
       : [result.rss.channel.item];
 
-    // Transform to standard format with keyword filtering
+    // Filter: only articles from last 48 hours
+    const maxAge = 48 * 60 * 60 * 1000; // 48 hours in ms
+    const now = Date.now();
+
+    // Transform to standard format with keyword + freshness filtering
     const articles = items
-      .filter(item => isRelevantArticle(item.title, category))
+      .filter(item => {
+        if (!isRelevantArticle(item.title, category)) return false;
+        // Reject articles older than 48 hours
+        if (item.pubDate) {
+          const articleDate = new Date(item.pubDate).getTime();
+          if (now - articleDate > maxAge) return false;
+        }
+        return true;
+      })
       .map((item, i) => {
         let sourceText = item.source || 'Google News';
 
