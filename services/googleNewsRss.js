@@ -22,7 +22,7 @@ function setCache(key, data) {
 
 // ========== CATEGORY MAPPING (Improved with Google News standard categories) ==========
 const CATEGORY_QUERIES = {
-  politica: '(política OR gobierno OR elecciones OR congreso OR senado OR diputados OR presidente OR ministro) México -deportes',
+  internacional: '(política internacional OR diplomacia OR relaciones internacionales OR cumbre OR ONU OR OTAN OR G20 OR Unión Europea OR presidente OR primer ministro OR elecciones OR gobierno OR congreso OR parlamento OR tratado OR sanciones OR embajada) -deportes -entretenimiento',
   economia: '(economía OR finanzas OR mercados OR negocios OR bolsa OR inversión OR bancos OR empresas) México -tecnología -política',
   tecnologia: '(inteligencia artificial OR IA OR AI OR software OR tecnología OR apps OR programación OR ciberseguridad OR startup) -videojuegos',
   deportes: '(fútbol OR football OR futbol OR championship OR liga OR NBA OR MLB OR NFL OR olimpiadas OR atletismo OR tenis) -noticias -política',
@@ -36,10 +36,12 @@ const CATEGORY_QUERIES = {
 // ========== URL BUILDER ==========
 function buildGoogleNewsUrl(scope, category) {
   const baseUrl = 'https://news.google.com/rss';
+  // Internacional category always uses US scope for global news
+  const isIntl = scope === 'intl' || category === 'internacional';
   const params = {
     hl: 'es-419',
-    gl: scope === 'intl' ? 'US' : 'MX',
-    ceid: scope === 'intl' ? 'US:es' : 'MX:es-419'
+    gl: isIntl ? 'US' : 'MX',
+    ceid: isIntl ? 'US:es' : 'MX:es-419'
   };
 
   if (category && CATEGORY_QUERIES[category]) {
@@ -81,7 +83,7 @@ function extractSummary(description, title) {
 
 // ========== KEYWORD VALIDATION (Enhanced for accuracy) ==========
 const CATEGORY_KEYWORDS = {
-  politica: ['política', 'gobierno', 'elecciones', 'congreso', 'senado', 'diputado', 'senador', 'presidente', 'ministro', 'legislador', 'voto', 'candidato', 'campaña', 'reforma', 'ley', 'decreto', 'moción', 'comisión'],
+  internacional: ['política', 'gobierno', 'elecciones', 'congreso', 'senado', 'presidente', 'ministro', 'diplomacia', 'internacional', 'onu', 'otan', 'g20', 'unión europea', 'cumbre', 'tratado', 'sanciones', 'embajada', 'parlamento', 'primer ministro', 'canciller', 'relaciones', 'geopolítica', 'crisis', 'trump', 'biden', 'china', 'rusia', 'europa', 'estados unidos', 'reino unido', 'francia', 'alemania', 'japón', 'india', 'brasil', 'canadá', 'mundo'],
   economia: ['economía', 'mercado', 'finanza', 'negocio', 'inflación', 'salario', 'bolsa', 'inversión', 'comercio', 'precio', 'crecimiento', 'pib', 'ganancias', 'ingresos', 'banco', 'préstamo', 'empresa', 'industria', 'sector', 'dividendo'],
   tecnologia: ['tecnología', 'inteligencia artificial', 'ia', 'ai', 'software', 'hardware', 'digital', 'startup', 'computadora', 'innovación', 'programación', 'código', 'app', 'plataforma', 'internet', 'ciberseguridad', 'datos', 'algoritmo', 'servidor', 'nube'],
   deportes: ['deporte', 'fútbol', 'futbol', 'football', 'basketball', 'nba', 'mlb', 'nfl', 'olimpiada', 'atleta', 'equipo', 'campeonato', 'liga', 'jugador', 'entrenador', 'gol', 'partido', 'torneo', 'temporada', 'tenis', 'beisbol'],
@@ -94,7 +96,7 @@ const CATEGORY_KEYWORDS = {
 
 // Define exclusion keywords for each category (to filter out false positives)
 const CATEGORY_EXCLUSIONS = {
-  politica: ['deporte', 'futbol', 'película', 'serie', 'música', 'cine', 'actor', 'cantante', 'videojuego'],
+  internacional: ['deporte', 'futbol', 'película', 'serie', 'música', 'cine', 'actor', 'cantante', 'videojuego'],
   economia: ['película', 'serie', 'cine', 'actriz', 'cantante', 'deporte', 'futbol', 'videojuego'],
   tecnologia: ['película', 'serie', 'videojuego completo', 'consola de juego', 'juego en línea'],
   deportes: ['película', 'serie', 'música', 'cine', 'actor', 'cantante', 'política', 'gobierno'],
