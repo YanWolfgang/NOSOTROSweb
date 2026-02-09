@@ -20,16 +20,17 @@ function setCache(key, data) {
   }
 }
 
-// ========== CATEGORY MAPPING ==========
+// ========== CATEGORY MAPPING (Improved with Google News standard categories) ==========
 const CATEGORY_QUERIES = {
-  politica: 'política mexicana OR gobierno mexicano OR elecciones México OR congreso México OR presidente México',
-  economia: 'economía México OR mercados financieros OR negocios México OR inflación México OR finanzas',
-  tecnologia: 'inteligencia artificial OR tecnología OR startups OR innovación digital',
-  deportes: 'fútbol mexicano OR deportes México OR NBA OR F1 OR olimpiadas',
-  entretenimiento: 'cine México OR películas OR series televisión OR música OR entretenimiento',
-  guerra: 'guerra Ucrania OR conflicto Rusia OR conflicto Gaza OR defensa militar',
-  ciencia: 'ciencia salud OR medicina investigación OR salud pública OR investigación científica',
-  mexico: 'México noticias OR noticia México -política -economía -deportes -cine'
+  politica: '(política OR gobierno OR elecciones OR congreso OR senado OR diputados OR presidente OR ministro) México -deportes',
+  economia: '(economía OR finanzas OR mercados OR negocios OR bolsa OR inversión OR bancos OR empresas) México -tecnología -política',
+  tecnologia: '(inteligencia artificial OR IA OR AI OR software OR tecnología OR apps OR programación OR ciberseguridad OR startup) -videojuegos',
+  deportes: '(fútbol OR football OR futbol OR championship OR liga OR NBA OR MLB OR NFL OR olimpiadas OR atletismo OR tenis) -noticias -política',
+  entretenimiento: '(cine OR películas OR series OR música OR artista OR cantante OR actor OR streaming OR entretenimiento OR famosos) -deportes -política',
+  salud: '(salud OR medicina OR doctor OR hospital OR vacuna OR enfermedad OR virus OR coronavirus OR psicología OR nutrición)',
+  ciencia: '(ciencia OR investigación OR descubrimiento OR física OR química OR biología OR espacio OR astronomía OR NASA) -videojuegos',
+  guerra: '(guerra OR conflicto OR militar OR ejército OR defensa OR armado OR ataque OR geopolítica) (Ucrania OR Rusia OR Gaza OR Israel OR Palestina)',
+  mexico: '(México OR mexicano OR mexicana OR CDMX OR noticias México) -política -economía -deportes -entretenimiento -salud -ciencia -guerra'
 };
 
 // ========== URL BUILDER ==========
@@ -78,16 +79,30 @@ function extractSummary(description, title) {
   return cleaned;
 }
 
-// ========== KEYWORD VALIDATION ==========
+// ========== KEYWORD VALIDATION (Enhanced for accuracy) ==========
 const CATEGORY_KEYWORDS = {
-  politica: ['política', 'gobierno', 'elecciones', 'congreso', 'presidente', 'legislatura', 'diputado', 'senador', 'voto', 'candidato', 'ministro'],
-  economia: ['economía', 'mercado', 'finanza', 'negocio', 'inflación', 'salario', 'bolsa', 'inversión', 'comercio', 'precio', 'crecimiento'],
-  tecnologia: ['tecnología', 'inteligencia artificial', 'ia', 'ai', 'software', 'hardware', 'digital', 'startup', 'computadora', 'sistema', 'innovación', 'programación'],
-  deportes: ['deporte', 'fútbol', 'basketball', 'nba', 'f1', 'olímpico', 'atleta', 'equipo', 'campeonato', 'liga', 'jugador', 'entrenador'],
-  entretenimiento: ['cine', 'película', 'serie', 'música', 'artista', 'actor', 'cantante', 'show', 'concierto', 'televisión', 'famoso', 'estrella'],
-  guerra: ['guerra', 'conflicto', 'militar', 'ucrania', 'rusia', 'gaza', 'defensa', 'ataque', 'armado', 'ejército', 'soldado', 'batalla'],
-  ciencia: ['ciencia', 'salud', 'medicina', 'investigación', 'doctor', 'científico', 'laboratorio', 'espacio', 'físico', 'químico', 'descubrimiento', 'estudio'],
-  mexico: ['méxico', 'cdmx', 'jalisco', 'monterrey', 'guadalajara', 'veracruz', 'mexico', 'mexicano', 'mexicana', 'nacional', 'país']
+  politica: ['política', 'gobierno', 'elecciones', 'congreso', 'senado', 'diputado', 'senador', 'presidente', 'ministro', 'legislador', 'voto', 'candidato', 'campaña', 'reforma', 'ley', 'decreto', 'moción', 'comisión'],
+  economia: ['economía', 'mercado', 'finanza', 'negocio', 'inflación', 'salario', 'bolsa', 'inversión', 'comercio', 'precio', 'crecimiento', 'pib', 'ganancias', 'ingresos', 'banco', 'préstamo', 'empresa', 'industria', 'sector', 'dividendo'],
+  tecnologia: ['tecnología', 'inteligencia artificial', 'ia', 'ai', 'software', 'hardware', 'digital', 'startup', 'computadora', 'innovación', 'programación', 'código', 'app', 'plataforma', 'internet', 'ciberseguridad', 'datos', 'algoritmo', 'servidor', 'nube'],
+  deportes: ['deporte', 'fútbol', 'futbol', 'football', 'basketball', 'nba', 'mlb', 'nfl', 'olimpiada', 'atleta', 'equipo', 'campeonato', 'liga', 'jugador', 'entrenador', 'gol', 'partido', 'torneo', 'temporada', 'tenis', 'beisbol'],
+  entretenimiento: ['cine', 'película', 'serie', 'música', 'artista', 'actor', 'cantante', 'show', 'concierto', 'televisión', 'famoso', 'estrella', 'premiación', 'óscar', 'grammy', 'streaming', 'productor', 'director', 'coreografía'],
+  salud: ['salud', 'medicina', 'doctor', 'médico', 'hospital', 'paciente', 'enfermedad', 'tratamiento', 'virus', 'vacuna', 'psicología', 'nutrición', 'ejercicio', 'bienestar', 'síntoma', 'diagnóstico', 'cura', 'fármaco', 'epidemia'],
+  ciencia: ['ciencia', 'investigación', 'descubrimiento', 'física', 'química', 'biología', 'espacio', 'astronomía', 'nasa', 'planeta', 'estrella', 'científico', 'laboratorio', 'experimento', 'estudio', 'hallazgo', 'investigador', 'teoría'],
+  guerra: ['guerra', 'conflicto', 'militar', 'ejército', 'defensa', 'armado', 'ataque', 'batalla', 'geopolítica', 'soldado', 'ucrania', 'rusia', 'gaza', 'israel', 'palestina', 'tropas', 'misil', 'operación'],
+  mexico: ['méxico', 'mexicano', 'mexicana', 'cdmx', 'ciudad de méxico', 'jalisco', 'monterrey', 'guadalajara', 'veracruz', 'nacional']
+};
+
+// Define exclusion keywords for each category (to filter out false positives)
+const CATEGORY_EXCLUSIONS = {
+  politica: ['deporte', 'futbol', 'película', 'serie', 'música', 'cine', 'actor', 'cantante', 'videojuego'],
+  economia: ['película', 'serie', 'cine', 'actriz', 'cantante', 'deporte', 'futbol', 'videojuego'],
+  tecnologia: ['película', 'serie', 'videojuego completo', 'consola de juego', 'juego en línea'],
+  deportes: ['película', 'serie', 'música', 'cine', 'actor', 'cantante', 'política', 'gobierno'],
+  entretenimiento: ['economía', 'política', 'gobierno', 'mercado', 'bolsa', 'gráficos financieros'],
+  salud: ['película', 'serie', 'cine', 'actor', 'política', 'economía', 'videojuego'],
+  ciencia: ['película', 'serie', 'cine', 'videojuego', 'entretenimiento', 'música'],
+  guerra: ['película', 'serie', 'videojuego', 'ficción'],
+  mexico: []
 };
 
 function isRelevantArticle(title, category) {
@@ -95,6 +110,11 @@ function isRelevantArticle(title, category) {
 
   const title_lower = (title || '').toLowerCase();
   const keywords = CATEGORY_KEYWORDS[category];
+  const exclusions = CATEGORY_EXCLUSIONS[category] || [];
+
+  // Check if title contains any exclusion words (filter out false positives)
+  const hasExclusion = exclusions.some(exclude => title_lower.includes(exclude));
+  if (hasExclusion) return false;
 
   // Check if title contains at least one keyword from the category
   const hasKeyword = keywords.some(keyword => title_lower.includes(keyword));
