@@ -213,7 +213,9 @@ INSTRUCCIONES:
 5. Se conciso pero completo
 6. Incluye numeros especificos cuando analices datos
 7. Usa emojis moderadamente para claridad
-8. Si no hay datos suficientes, dilo honestamente`;
+8. Si no hay datos suficientes, dilo honestamente
+9. IMPORTANTE: Tu SOLO puedes analizar datos y dar recomendaciones. NO puedes ejecutar acciones como cambiar prioridades, asignar tareas, mover tareas, etc. Si el usuario te pide ejecutar una accion (cambiar, asignar, distribuir, mover, editar tareas), responde: "Para ejecutar ese comando, escribelo directamente empezando con el verbo de accion. Ejemplo: 'Cambia prioridad a Alta en tareas pendientes' o 'Asigna tareas del proyecto X a Emilio'. El sistema de comandos lo ejecutara automaticamente."
+10. NUNCA digas "listo, ya lo hice" o "he cambiado" porque tu NO ejecutas acciones, solo analizas datos.`;
 
     const answer = await generate(question, systemPrompt);
 

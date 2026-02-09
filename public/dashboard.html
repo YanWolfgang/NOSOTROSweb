@@ -426,8 +426,19 @@ function rotatePlaceholder(){
 function showToast(message,type='info'){let c=document.querySelector('.toast-container');if(!c){c=document.createElement('div');c.className='toast-container';document.body.appendChild(c)}const t=document.createElement('div');t.className='toast '+type;t.textContent=message;c.appendChild(t);setTimeout(()=>t.remove(),3000)}
 
 // ========== COMMAND DETECTION ==========
-const COMMAND_PREFIXES=['distribuye','distribui','reparte','asigna','genera','crea','agrega','cambia','actualiza','edita','modifica','analiza','reporta','resume','agenda','planifica','programa','duplica','copia','aprueba','completa'];
-function isCommand(text){const l=text.toLowerCase().trim();return COMMAND_PREFIXES.some(p=>l.startsWith(p))}
+const COMMAND_PREFIXES=['distribuye','distribui','reparte','asigna','genera','crea','agrega','cambia','actualiza','edita','modifica','analiza','reporta','resume','agenda','planifica','programa','duplica','copia','aprueba','completa','pon','mueve','pasa','sube','baja'];
+const COMMAND_KEYWORDS=['distribuir','repartir','asignar','generar','crear','cambiar','actualizar','editar','modificar','analizar','mover','pasar','subir','bajar','prioridad a ','estado a ','asigna a ','asignar a ','tareas de ','tareas del ','tareas en ','todas las tareas'];
+function isCommand(text){
+  const l=text.toLowerCase().trim();
+  // Direct prefix match (strongest signal)
+  if(COMMAND_PREFIXES.some(p=>l.startsWith(p)))return true;
+  // Keyword match — detect action intent in natural language
+  const keywordMatches=COMMAND_KEYWORDS.filter(k=>l.includes(k));
+  if(keywordMatches.length>=2)return true;
+  // Patterns like "quiero que cambies", "puedes asignar", "hay que mover"
+  if(/(?:quiero|necesito|podrias|puedes|hay que|deberias|favor de|por favor)\s+(?:que\s+)?(?:cambiar|asignar|distribuir|generar|mover|editar|modificar|actualizar|crear|analizar|completar)/i.test(l))return true;
+  return false;
+}
 
 // ========== AI QUICK ASK (with command routing) ==========
 async function askAI(q){
