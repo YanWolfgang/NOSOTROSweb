@@ -649,9 +649,9 @@ async function doApprove(){
 
 // ========== MODAL ==========
 function showModal(html){
-  document.getElementById('modalRoot').innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-box">${html}</div></div>`;
+  const m=document.getElementById('modalRoot');m.innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-box">${html}</div></div>`;m.classList.add('open');
 }
-function closeModal(){document.getElementById('modalRoot').innerHTML=''}
+function closeModal(){const m=document.getElementById('modalRoot');m.innerHTML='';m.classList.remove('open')}
 
 // ========== CLIPBOARD ==========
 function cpToClip(text,btn){

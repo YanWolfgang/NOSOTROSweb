@@ -219,8 +219,8 @@ button{font-family:inherit;cursor:pointer}
 .biz-check input{accent-color:var(--nosotros)}
 
 /* Modal */
-#modalRoot{position:fixed;inset:0;z-index:199;display:none}
-#modalRoot[style*="flex"]{display:flex}
+#modalRoot{position:fixed;inset:0;z-index:199;display:none;pointer-events:none}
+#modalRoot.open{display:block;pointer-events:auto}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:200}
 .modal{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:1.5rem;width:90%;max-width:420px;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 8px 32px 0 rgba(31,38,135,0.2)}
 .modal h3{font-size:1rem;margin-bottom:1rem}
