@@ -66,18 +66,16 @@ ${feature ? `Feature: ${feature}` : ''}
         });
       }
 
-      // CRITICAL: User inputs FIRST for maximum priority
-      const userContext = `USER REQUEST - CRITICAL CONTEXT (MUST BE APPLIED):
-${topic ? `Topic: ${topic}` : ''}
-${industry ? `Industry/Niche: ${industry}` : ''}
-${feature ? `Feature to Highlight: ${feature}` : ''}
-${context ? `Additional Context: ${context}` : ''}
-Target Audience: ${audience === 'affiliates' ? 'Affiliate Partners (Afiliadas Elite)' : 'Business Clients (Dueños de Negocios)'}
+      // Build prompt with user context injected into the structure
+      const userContext = {
+        topic: topic || '',
+        industry: industry || '',
+        feature: feature || '',
+        context: context || '',
+        audience: audience === 'affiliates' ? 'Affiliate Partners (Afiliadas Elite)' : 'Business Clients (Dueños de Negocios)'
+      };
 
----
-
-`;
-      prompt = userContext + buildCategoryFormatPrompt(category, format, audience);
+      prompt = buildCategoryFormatPrompt(category, format, audience, userContext);
     }
 
     const content = await generate(prompt, sys);
@@ -93,20 +91,34 @@ Target Audience: ${audience === 'affiliates' ? 'Affiliate Partners (Afiliadas El
 });
 
 // ========== NEW SYSTEM: CATEGORY + FORMAT ==========
-function buildCategoryFormatPrompt(category, format, audience) {
+function buildCategoryFormatPrompt(category, format, audience, userContext = {}) {
   const formatInstructions = getFormatInstructions(format);
   const baseCategoryPrompt = getCategoryPrompt(category, audience);
 
-  // CRITICAL: Format MUST come first and be mandatory
+  // Build user context string only if we have inputs
+  let userContextStr = '';
+  if (userContext.topic || userContext.industry || userContext.feature || userContext.context) {
+    userContextStr = `
+APPLY THIS SPECIFIC CONTEXT TO THE CONTENT:
+${userContext.topic ? `- Topic: ${userContext.topic}` : ''}
+${userContext.industry ? `- Industry/Niche: ${userContext.industry}` : ''}
+${userContext.feature ? `- Feature: ${userContext.feature}` : ''}
+${userContext.context ? `- Additional Context: ${userContext.context}` : ''}
+${userContext.audience ? `- Target Audience: ${userContext.audience}` : ''}
+
+`;
+  }
+
+  // CRITICAL: Format FIRST (structure), then user context (content), then category guidelines
   return `MANDATORY FORMAT STRUCTURE - FOLLOW EXACTLY:
 ${formatInstructions}
 
 ---
-
-CONTENT TOPIC & GUIDELINES:
+${userContextStr}
+CONTENT GUIDELINES (apply to format above):
 ${baseCategoryPrompt}
 
-IMPORTANT: Your response MUST follow EXACTLY the format structure above. Include every emoji header and section listed. Do not deviate from the structure.`;
+CRITICAL: Your response MUST follow the EXACT format structure shown at the top. Include every emoji header (📺:, 🎬:, 📸:, 🎴:) and section listed. Do not deviate from the structure.`;
 }
 
 function getCategoryPrompt(category, audience) {
@@ -256,86 +268,101 @@ TONO: Educativo, mentor, empoderador. Como si una Afiliada Senior te estuviera e
 
 function getFormatInstructions(format) {
   const formatInstructions = {
-    reel: `FORMATO OBLIGATORIO: Guión para Reel Cinematográfico
-🔴 ESTO DEBE PARECER DIFERENTE A CARRUSEL O ESTÁTICO. ESTRUCTURA ÚNICA.
+    reel: `🎬 FORMATO: GUIÓN PARA REEL (Video Timeline)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ ESTE ES UN GUIÓN DE VIDEO CON TIMELINE - NO ES UN CARRUSEL NI POST ESTÁTICO
+
+TU RESPUESTA DEBE INCLUIR ESTAS SECCIONES EN ORDEN:
 
 📺 TÍTULO PARA YOUTUBE:
-[Máx 70 caracteres, keywords SEO]
+[Escribe título de 60-70 caracteres]
 
-🎬 GANCHO (0-3 seg):
-NARRACIÓN: [Frase impactante]
-VISUAL: [Descripción creativa de pantalla]
-EFECTOS: [Transición]
+🎬 GANCHO (0-3 segundos):
+NARRACIÓN: [Qué se dice]
+VISUAL: [Qué se ve en pantalla]
+EFECTOS: [Efecto o transición]
 
-🎬 ESCENA 1 (3-10 seg):
-NARRACIÓN: [Contenido]
-VISUAL: [Qué aparece en pantalla]
-EFECTOS: [Movimiento]
+🎬 ESCENA 1 (3-10 segundos):
+NARRACIÓN: [Qué se dice]
+VISUAL: [Qué se ve en pantalla]
+EFECTOS: [Efecto o transición]
 
-🎬 ESCENA 2 (10-15 seg):
-NARRACIÓN: [Contenido]
-VISUAL: [Qué aparece en pantalla]
-EFECTOS: [Movimiento]
+🎬 ESCENA 2 (10-15 segundos):
+NARRACIÓN: [Qué se dice]
+VISUAL: [Qué se ve en pantalla]
+EFECTOS: [Efecto o transición]
 
-🎬 ESCENA 3 (15-22 seg):
-NARRACIÓN: [Contenido]
-VISUAL: [Qué aparece en pantalla]
-EFECTOS: [Movimiento]
+🎬 ESCENA 3 (15-22 segundos):
+NARRACIÓN: [Qué se dice]
+VISUAL: [Qué se ve en pantalla]
+EFECTOS: [Efecto o transición]
 
-🎬 CIERRE (22-30 seg):
-NARRACIÓN: [Dato final + CTA]
-VISUAL: [Logo/CTA final]
-EFECTOS: [Final impactante]
+🎬 CIERRE (22-30 segundos):
+NARRACIÓN: [Qué se dice + CTA]
+VISUAL: [Logo/CTA en pantalla]
+EFECTOS: [Efecto final]
 
 📝 COPY PARA DESCRIPCIÓN:
-[150-200 palabras: hook + beneficio + cómo + CTA]
+[Escribe 150-200 palabras de descripción]
 
 #️⃣ HASHTAGS:
-[10-15 hashtags]`,
+[Lista 10-15 hashtags]
 
-    estatico: `FORMATO OBLIGATORIO: Publicación Estática (UN SOLO SLIDE)
+⚠️ RECUERDA: Este es un GUIÓN con múltiples escenas con timeline (0-3s, 3-10s, etc)`,
+
+    estatico: `📸 FORMATO: POST ESTÁTICO (1 Imagen)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ ESTE ES UN POST DE UNA SOLA IMAGEN - NO ES UN VIDEO NI CARRUSEL
+
+TU RESPUESTA DEBE INCLUIR ESTAS SECCIONES EN ORDEN:
 
 📸 SLIDE ÚNICO:
-TEXTO: [Headline 5-7 palabras + subtítulo]
+TEXTO EN IMAGEN: [Headline corto 5-7 palabras + subtítulo]
 
 📸 DESCRIPCIÓN VISUAL:
-[Composición, colores, elementos, estilo]
+[Describe composición, colores, elementos, estilo de LA IMAGEN]
 
 📝 COPY PRINCIPAL:
-[Línea abre + problema + solución + resultado + CTA]
-[Total: 150-250 palabras]
+[Escribe 150-250 palabras de copy para el caption]
 
 #️⃣ HASHTAGS:
-[10-15 hashtags]`,
+[Lista 10-15 hashtags]
 
-    carrusel: `FORMATO OBLIGATORIO: Carrusel de 4 Slides
+⚠️ RECUERDA: Este es UN SOLO POST con UNA imagen - no múltiples slides ni video`,
+
+    carrusel: `🎴 FORMATO: CARRUSEL (4 Imágenes Secuenciales)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ ESTE ES UN CARRUSEL DE 4 SLIDES - NO ES UN VIDEO NI POST ÚNICO
+
+TU RESPUESTA DEBE INCLUIR ESTAS SECCIONES EN ORDEN:
 
 🎴 SLIDE 1 - HOOK:
-HEADLINE: [5-7 palabras impactantes]
-CONTENIDO: [Línea amplificadora]
-VISUAL: [Descripción creativa]
+HEADLINE: [Título impactante]
+CONTENIDO: [Texto del slide 1]
+VISUAL: [Descripción visual del slide 1]
 
 🎴 SLIDE 2 - PROBLEMA:
-TÍTULO: [Nombra el problema]
-CONTENIDO: [Descripción del problema]
-VISUAL: [Cómo se visualiza]
+TÍTULO: [Nombre del problema]
+CONTENIDO: [Texto del slide 2]
+VISUAL: [Descripción visual del slide 2]
 
 🎴 SLIDE 3 - SOLUCIÓN:
-TÍTULO: [La solución]
-CONTENIDO: [Cómo se resuelve]
-VISUAL: [Transformación visual]
+TÍTULO: [Nombre de la solución]
+CONTENIDO: [Texto del slide 3]
+VISUAL: [Descripción visual del slide 3]
 
 🎴 SLIDE 4 - CTA:
-HEADLINE: [Promesa final]
-CONTENIDO: [Instrucción de acción]
-VISUAL: [Imagen inspiradora]
+HEADLINE: [Llamada a acción]
+CONTENIDO: [Texto del slide 4]
+VISUAL: [Descripción visual del slide 4]
 
 📝 COPY PARA DESCRIPCIÓN:
-[Hook + problema + solución + CTA + proof]
-[Total: 150-200 palabras]
+[Escribe 150-200 palabras de copy para el caption]
 
 #️⃣ HASHTAGS:
-[10-15 hashtags]`
+[Lista 10-15 hashtags]
+
+⚠️ RECUERDA: Este es un CARRUSEL con exactamente 4 slides separados - no un video con timeline`
   };
 
   return formatInstructions[format] || formatInstructions.reel;
