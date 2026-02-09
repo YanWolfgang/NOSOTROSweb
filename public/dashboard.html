@@ -652,7 +652,7 @@ async function executeBulkEdit(params){
     return'No se encontraron tareas que coincidan con los filtros.\n\n**Proyectos disponibles:** '+projectNames.join(', ')+'\n**Estados encontrados:** '+estados.join(', ');
   }
   let updated=0;let errors=[];const results=[];
-  // Handle assignment change
+  // Handle assignment change — REPLACE all assignees with the new one
   const assignName=changes.asignado_nombre||changes.asignado||null;
   if(assignName){
     const usersR=await fetch('/api/styly/users',{headers:hdrs});
@@ -661,13 +661,19 @@ async function executeBulkEdit(params){
     if(!user)return'Usuario "'+assignName+'" no encontrado en el sistema.';
     for(const task of targetTasks){
       try{
+        // 1. Remove ALL current assignees
+        const currentAssignees=task.asignados||[];
+        for(const a of currentAssignees){
+          await fetch('/api/styly/tasks/'+task.id+'/asignados/'+a.id,{method:'DELETE',headers:hdrs});
+        }
+        // 2. Add the new assignee
         const r=await fetch('/api/styly/tasks/'+task.id+'/asignados',{method:'POST',headers:hdrs,body:JSON.stringify({user_id:user.id})});
         const d=await r.json();
-        if(r.ok&&(d.ok||d.asignado))updated++;
-        else errors.push(task.titulo+': '+(d.error||'error desconocido'));
+        if(r.ok)updated++;
+        else errors.push(task.titulo+': '+(d.error||'error'));
       }catch(e){errors.push(task.titulo+': '+e.message)}
     }
-    results.push('Asignadas a **'+user.name+'**');
+    results.push('Reasignadas a **'+user.name+'** (asignados anteriores removidos)');
   }
   // Handle other field changes (estado, prioridad)
   const fieldChanges={};
