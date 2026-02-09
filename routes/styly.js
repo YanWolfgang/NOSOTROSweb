@@ -883,7 +883,7 @@ router.post('/tasks', requirePermission('styly', 'crear'), async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.put('/tasks/:id', async (req, res) => {
+router.put('/tasks/:id', requirePermission('styly', 'editar'), async (req, res) => {
   try {
     const { titulo, descripcion, notas, estado, prioridad, proyecto_id, seccion, progreso, fecha_inicio, fecha_vencimiento, position, etiquetas } = req.body;
     const updates = [];
@@ -950,7 +950,7 @@ router.delete('/tasks/:id', requirePermission('styly', 'editar'), async (req, re
 });
 
 // Bulk create tasks
-router.post('/tasks/bulk-create', async (req, res) => {
+router.post('/tasks/bulk-create', requirePermission('styly', 'crear'), async (req, res) => {
   try {
     const { tasks } = req.body;
     if (!tasks || !Array.isArray(tasks)) {
@@ -1011,7 +1011,7 @@ router.post('/tasks/bulk-create', async (req, res) => {
 });
 
 // Bulk update for drag-and-drop operations
-router.post('/tasks/bulk-update', async (req, res) => {
+router.post('/tasks/bulk-update', requirePermission('styly', 'editar'), async (req, res) => {
   try {
     const { updates } = req.body;
     if (!updates || !Array.isArray(updates)) {
@@ -1211,7 +1211,7 @@ router.delete('/equipos/:id/miembros/:userId', async (req, res) => {
 
 // ========== NEW SYSTEM: ASIGNADOS Y OBSERVADORES ==========
 // Agregar asignado a tarea
-router.post('/tasks/:taskId/asignados', async (req, res) => {
+router.post('/tasks/:taskId/asignados', requirePermission('styly', 'editar'), async (req, res) => {
   try {
     const { user_id } = req.body;
     if (!user_id) return res.status(400).json({ error: 'user_id requerido' });
@@ -1224,7 +1224,7 @@ router.post('/tasks/:taskId/asignados', async (req, res) => {
 });
 
 // Remover asignado de tarea
-router.delete('/tasks/:taskId/asignados/:userId', async (req, res) => {
+router.delete('/tasks/:taskId/asignados/:userId', requirePermission('styly', 'editar'), async (req, res) => {
   try {
     await pool.query(
       'DELETE FROM styly_task_asignados WHERE task_id = $1 AND user_id = $2',
@@ -1235,7 +1235,7 @@ router.delete('/tasks/:taskId/asignados/:userId', async (req, res) => {
 });
 
 // Agregar observador a tarea
-router.post('/tasks/:taskId/observadores', async (req, res) => {
+router.post('/tasks/:taskId/observadores', requirePermission('styly', 'editar'), async (req, res) => {
   try {
     const { user_id } = req.body;
     if (!user_id) return res.status(400).json({ error: 'user_id requerido' });
@@ -1248,7 +1248,7 @@ router.post('/tasks/:taskId/observadores', async (req, res) => {
 });
 
 // Remover observador de tarea
-router.delete('/tasks/:taskId/observadores/:userId', async (req, res) => {
+router.delete('/tasks/:taskId/observadores/:userId', requirePermission('styly', 'editar'), async (req, res) => {
   try {
     await pool.query(
       'DELETE FROM styly_task_observadores WHERE task_id = $1 AND user_id = $2',
@@ -1269,7 +1269,7 @@ router.get('/tasks/:taskId/subtasks', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/tasks/:taskId/subtasks', async (req, res) => {
+router.post('/tasks/:taskId/subtasks', requirePermission('styly', 'editar'), async (req, res) => {
   try {
     const { titulo, order_index } = req.body;
     if (!titulo) return res.status(400).json({ error: 'Titulo requerido' });
@@ -1281,7 +1281,7 @@ router.post('/tasks/:taskId/subtasks', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.put('/subtasks/:id', async (req, res) => {
+router.put('/subtasks/:id', requirePermission('styly', 'editar'), async (req, res) => {
   try {
     const { titulo, completada, order_index } = req.body;
     const updates = [];
@@ -1304,7 +1304,7 @@ router.put('/subtasks/:id', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.delete('/subtasks/:id', async (req, res) => {
+router.delete('/subtasks/:id', requirePermission('styly', 'editar'), async (req, res) => {
   try {
     const { rowCount } = await pool.query('DELETE FROM styly_subtasks WHERE id = $1', [req.params.id]);
     if (!rowCount) return res.status(404).json({ error: 'Subtarea no encontrada' });
@@ -1326,7 +1326,7 @@ router.get('/tasks/:taskId/comentarios', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/tasks/:taskId/comentarios', async (req, res) => {
+router.post('/tasks/:taskId/comentarios', requirePermission('styly', 'ver'), async (req, res) => {
   try {
     const { contenido, archivos } = req.body;
     if (!contenido) return res.status(400).json({ error: 'Contenido requerido' });
@@ -1338,7 +1338,7 @@ router.post('/tasks/:taskId/comentarios', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.put('/comentarios/:id', async (req, res) => {
+router.put('/comentarios/:id', requirePermission('styly', 'editar'), async (req, res) => {
   try {
     const { contenido } = req.body;
     if (!contenido) return res.status(400).json({ error: 'Contenido requerido' });
@@ -1351,7 +1351,7 @@ router.put('/comentarios/:id', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.delete('/comentarios/:id', async (req, res) => {
+router.delete('/comentarios/:id', requirePermission('styly', 'editar'), async (req, res) => {
   try {
     const { rowCount } = await pool.query(
       'DELETE FROM styly_comentarios WHERE id = $1 AND user_id = $2',
@@ -1373,7 +1373,7 @@ router.get('/tasks/:taskId/archivos', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/tasks/:taskId/archivos', upload.array('archivos', 5), async (req, res) => {
+router.post('/tasks/:taskId/archivos', requirePermission('styly', 'editar'), upload.array('archivos', 5), async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'No se enviaron archivos' });
     const results = [];
@@ -1388,7 +1388,7 @@ router.post('/tasks/:taskId/archivos', upload.array('archivos', 5), async (req, 
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.delete('/archivos/:id', async (req, res) => {
+router.delete('/archivos/:id', requirePermission('styly', 'editar'), async (req, res) => {
   try {
     const { rows } = await pool.query('DELETE FROM styly_task_archivos WHERE id = $1 RETURNING ruta', [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: 'Archivo no encontrado' });
