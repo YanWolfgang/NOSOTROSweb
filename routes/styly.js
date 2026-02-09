@@ -44,22 +44,40 @@ router.post('/generate', async (req, res) => {
 
     let prompt, sys;
     if (previousContent && editInstructions) {
-      prompt = `Contenido original:\n${previousContent}\n\nEl usuario quiere estos cambios:\n${editInstructions}\n\nGenera una nueva versión aplicando SOLO los cambios solicitados. Mantén el mismo formato y estructura.`;
+      // PRESERVE context during regeneration
+      const originalContext = `ORIGINAL CONTENT CONTEXT:
+Category: ${category || 'N/A'}
+Format: ${format || 'N/A'}
+${topic ? `Topic: ${topic}` : ''}
+${industry ? `Industry: ${industry}` : ''}
+${feature ? `Feature: ${feature}` : ''}
+
+`;
+      prompt = originalContext + `Contenido original:\n${previousContent}\n\nEl usuario quiere estos cambios:\n${editInstructions}\n\nGenera una nueva versión aplicando SOLO los cambios solicitados. Mantén el mismo formato y estructura original.`;
       sys = audience === 'affiliates' ? SYS_AFFILIATES : SYS_CLIENTS;
     } else {
       sys = audience === 'affiliates' ? SYS_AFFILIATES : SYS_CLIENTS;
-      const indStr = industry ? `\nIndustria/nicho: ${industry}` : '';
-      const topicStr = topic ? `\nTema: ${topic}` : '';
-      const ctxStr = context ? `\nContexto: ${context}` : '';
-      const featStr = feature ? `\nFeature: ${feature}` : '';
 
-      // Usar nuevo sistema si viene category + format
-      if (category && format) {
-        prompt = buildCategoryFormatPrompt(category, format, audience) + indStr + topicStr + ctxStr + featStr;
-      } else {
-        // Compatibilidad con sistema antiguo
-        prompt = buildFormatPrompt(finalCategory, audience) + indStr + topicStr + ctxStr;
+      // Require both category AND format for new system
+      if (!category || !format) {
+        return res.status(400).json({
+          error: 'Category and format are required',
+          received: { category, format }
+        });
       }
+
+      // CRITICAL: User inputs FIRST for maximum priority
+      const userContext = `USER REQUEST - CRITICAL CONTEXT (MUST BE APPLIED):
+${topic ? `Topic: ${topic}` : ''}
+${industry ? `Industry/Niche: ${industry}` : ''}
+${feature ? `Feature to Highlight: ${feature}` : ''}
+${context ? `Additional Context: ${context}` : ''}
+Target Audience: ${audience === 'affiliates' ? 'Affiliate Partners (Afiliadas Elite)' : 'Business Clients (Dueños de Negocios)'}
+
+---
+
+`;
+      prompt = userContext + buildCategoryFormatPrompt(category, format, audience);
     }
 
     const content = await generate(prompt, sys);
@@ -321,210 +339,6 @@ VISUAL: [Imagen inspiradora]
   };
 
   return formatInstructions[format] || formatInstructions.reel;
-}
-
-function buildFormatPrompt(format, audience) {
-  const prompts = {
-    reel_educativo: `Genera un guión para reel de Instagram/TikTok (30-60 seg) de STYLY con este formato:
-
-HOOK (3 seg):
-[frase que detenga el scroll, pregunta o dato impactante]
-
-DESARROLLO (20 seg):
-[indicaciones visuales entre corchetes]
-[texto de narración con tips/errores/datos]
-
-CTA (5 seg):
-[indicación visual]
-[texto CTA: agenda tu demo gratis en styly.mx]
-
-📝 COPY INSTAGRAM (500 chars con emojis + hashtags):
-[copy]
-
-🎵 COPY TIKTOK (corto + muchos hashtags):
-[copy]
-
-📘 COPY FACEBOOK (más contexto):
-[copy]
-
-💼 COPY LINKEDIN (profesional):
-[copy]
-
-#️⃣ HASHTAGS:
-[hashtags]`,
-
-    carrusel_valor: `Genera un carrusel informativo de Instagram (4-5 slides) de STYLY:
-
-📱 SLIDE 1 — Hook:
-[título impactante antes/después o dato]
-
-📱 SLIDE 2:
-[título + contenido de valor]
-
-📱 SLIDE 3:
-[título + contenido de valor]
-
-📱 SLIDE 4:
-[título + contenido de valor]
-
-📱 SLIDE 5 — CTA:
-[CTA visual: styly.mx]
-
-📝 COPY INSTAGRAM (500 chars):
-[copy con CTA]
-
-📘 COPY FACEBOOK:
-[copy más largo]
-
-💼 COPY LINKEDIN:
-[tono profesional]
-
-#️⃣ HASHTAGS:
-[hashtags]`,
-
-    caso_exito: `Genera un caso de éxito ficticio pero realista de un cliente STYLY:
-
-🏪 NEGOCIO:
-[tipo, nombre ficticio, ubicación]
-
-😰 PROBLEMA:
-[dolor específico del nicho: libreta, WhatsApp, citas perdidas]
-
-💡 DESCUBRIMIENTO:
-[cómo conoció Styly]
-
-🚀 TRANSFORMACIÓN:
-[features que usa y cómo cambiaron su operación]
-
-📊 RESULTADOS:
-[números: % más citas, ahorro de tiempo, ingresos extra]
-
-💬 QUOTE:
-["Testimonio ficticio del dueño"]
-
-📝 COPY INSTAGRAM (500 chars):
-[copy]
-
-📘 COPY FACEBOOK:
-[copy]
-
-💼 COPY LINKEDIN:
-[copy]
-
-#️⃣ HASHTAGS:
-[hashtags]`,
-
-    post_feature: `Genera un post destacando una función específica de STYLY:
-
-🎨 TEXTO PRINCIPAL (para diseño):
-[texto impactante sobre el feature]
-
-📄 EXPLICACIÓN:
-[qué hace, cómo funciona, beneficio real]
-
-💡 CASO DE USO POR NICHO:
-[ejemplo concreto para la industria seleccionada]
-
-📝 COPY INSTAGRAM (500 chars):
-[copy con CTA demo]
-
-📘 COPY FACEBOOK:
-[copy]
-
-💼 COPY LINKEDIN:
-[copy profesional]
-
-#️⃣ HASHTAGS:
-[hashtags]`,
-
-    inspiracional: `Genera un post inspiracional para dueños de negocios de belleza:
-
-🎨 TEXTO PRINCIPAL (para diseño):
-[dato impactante o reflexión motivacional sobre digitalización]
-
-📝 COPY INSTAGRAM (500 chars):
-[reflexión + CTA styly.mx]
-
-📘 COPY FACEBOOK:
-[copy más extenso]
-
-💼 COPY LINKEDIN:
-[tono profesional/datos]
-
-#️⃣ HASHTAGS:
-[hashtags]`,
-
-    reclutamiento: `Genera contenido de reclutamiento para el programa Afiliadas Elite de STYLY:
-
-🎨 TEXTO PRINCIPAL:
-[mensaje empoderador con datos reales de comisiones]
-
-📊 DATOS CLAVE:
-- 50% del primer mes por cada local ($299.50)
-- 15% residual mensual ($89.85/mes permanente)
-- Sin inversión, sin horario
-- Capacitación gratis (Styly Academy)
-- Bonos: Plata $2,500 hasta Oráculo $300,000
-
-📝 COPY INSTAGRAM (500 chars):
-[copy motivacional + CTA styly.mx/afiliados]
-
-🎵 COPY TIKTOK:
-[copy corto + hashtags]
-
-📘 COPY FACEBOOK:
-[copy]
-
-#️⃣ HASHTAGS:
-[hashtags]`,
-
-    exito_afiliadas: `Genera una historia de éxito ficticia pero basada en números reales de una Afiliada Elite de STYLY:
-
-👩 PERFIL:
-[nombre ficticio, contexto personal]
-
-🚀 INICIO:
-[cómo empezó, obstáculos iniciales]
-
-📊 NÚMEROS:
-[locales afiliados, ingreso mensual real calculado, rango en Millas Styly]
-
-💬 QUOTE:
-["Testimonio ficticio"]
-
-📝 COPY INSTAGRAM (500 chars):
-[copy + CTA styly.mx/afiliados]
-
-🎵 COPY TIKTOK:
-[copy corto]
-
-📘 COPY FACEBOOK:
-[copy]
-
-#️⃣ HASHTAGS:
-[hashtags]`,
-
-    capacitacion: `Genera contenido de capacitación para Afiliadas Elite de STYLY:
-
-📝 CONTENIDO PRINCIPAL:
-[tip de ventas, técnica, estrategia basada en Styly Academy]
-
-💡 EJEMPLO PRÁCTICO:
-[situación real y cómo aplicar]
-
-📝 COPY INSTAGRAM (500 chars):
-[copy + CTA compartir con equipo]
-
-🎵 COPY TIKTOK:
-[copy corto]
-
-📘 COPY FACEBOOK:
-[copy]
-
-#️⃣ HASHTAGS:
-[hashtags]`
-  };
-  return prompts[format] || prompts.reel_educativo;
 }
 
 // ========== GENERATE SCRIPT ==========
