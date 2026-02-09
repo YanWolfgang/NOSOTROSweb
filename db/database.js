@@ -244,6 +244,60 @@ async function initDB() {
       }
     }
 
+    // ========== QUINIELA: TABLAS ==========
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS quinielas (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(100) NOT NULL,
+        descripcion TEXT,
+        creador_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        deporte VARCHAR(50) DEFAULT 'football',
+        estado VARCHAR(20) DEFAULT 'abierta',
+        fecha_limite TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS quiniela_partidos (
+        id SERIAL PRIMARY KEY,
+        quiniela_id INTEGER REFERENCES quinielas(id) ON DELETE CASCADE,
+        fixture_id INTEGER,
+        deporte VARCHAR(50) DEFAULT 'football',
+        equipo_local VARCHAR(100),
+        equipo_visitante VARCHAR(100),
+        logo_local VARCHAR(255),
+        logo_visitante VARCHAR(255),
+        liga VARCHAR(100),
+        fecha_partido TIMESTAMP,
+        goles_local INTEGER,
+        goles_visitante INTEGER,
+        estado VARCHAR(20) DEFAULT 'pendiente'
+      );
+      CREATE TABLE IF NOT EXISTS quiniela_participantes (
+        id SERIAL PRIMARY KEY,
+        quiniela_id INTEGER REFERENCES quinielas(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        puntos_total INTEGER DEFAULT 0,
+        joined_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(quiniela_id, user_id)
+      );
+      CREATE TABLE IF NOT EXISTS quiniela_predicciones (
+        id SERIAL PRIMARY KEY,
+        quiniela_id INTEGER REFERENCES quinielas(id) ON DELETE CASCADE,
+        partido_id INTEGER REFERENCES quiniela_partidos(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        prediccion VARCHAR(10) NOT NULL,
+        correcta BOOLEAN,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(partido_id, user_id)
+      );
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_quiniela_creador ON quinielas(creador_id);
+      CREATE INDEX IF NOT EXISTS idx_quiniela_partidos_q ON quiniela_partidos(quiniela_id);
+      CREATE INDEX IF NOT EXISTS idx_quiniela_participantes_q ON quiniela_participantes(quiniela_id);
+      CREATE INDEX IF NOT EXISTS idx_quiniela_predicciones_q ON quiniela_predicciones(quiniela_id);
+      CREATE INDEX IF NOT EXISTS idx_quiniela_predicciones_user ON quiniela_predicciones(user_id);
+    `);
+
     console.log('Base de datos inicializada');
   } finally {
     client.release();
