@@ -30,7 +30,7 @@ const CATEGORY_QUERIES = {
   salud: '(salud OR medicina OR doctor OR hospital OR vacuna OR enfermedad OR virus OR coronavirus OR psicología OR nutrición)',
   ciencia: '(ciencia OR investigación OR descubrimiento OR física OR química OR biología OR espacio OR astronomía OR NASA) -videojuegos',
   guerra: '(guerra OR conflicto OR militar OR ejército OR defensa OR armado OR ataque OR geopolítica) (Ucrania OR Rusia OR Gaza OR Israel OR Palestina)',
-  mexico: '(México OR mexicano OR mexicana OR CDMX OR noticias México) -política -economía -deportes -entretenimiento -salud -ciencia -guerra'
+  mexico: '(México OR mexicano OR mexicana OR CDMX OR jalisco OR monterrey OR guadalajara OR veracruz OR yucatán OR quintana roo) -internacional -global -world -estados unidos -canada -america'
 };
 
 // ========== URL BUILDER ==========
@@ -89,7 +89,7 @@ const CATEGORY_KEYWORDS = {
   salud: ['salud', 'medicina', 'doctor', 'médico', 'hospital', 'paciente', 'enfermedad', 'tratamiento', 'virus', 'vacuna', 'psicología', 'nutrición', 'ejercicio', 'bienestar', 'síntoma', 'diagnóstico', 'cura', 'fármaco', 'epidemia'],
   ciencia: ['ciencia', 'investigación', 'descubrimiento', 'física', 'química', 'biología', 'espacio', 'astronomía', 'nasa', 'planeta', 'estrella', 'científico', 'laboratorio', 'experimento', 'estudio', 'hallazgo', 'investigador', 'teoría'],
   guerra: ['guerra', 'conflicto', 'militar', 'ejército', 'defensa', 'armado', 'ataque', 'batalla', 'geopolítica', 'soldado', 'ucrania', 'rusia', 'gaza', 'israel', 'palestina', 'tropas', 'misil', 'operación'],
-  mexico: ['méxico', 'mexicano', 'mexicana', 'cdmx', 'ciudad de méxico', 'jalisco', 'monterrey', 'guadalajara', 'veracruz', 'nacional']
+  mexico: ['méxico', 'mexicano', 'mexicana', 'cdmx', 'ciudad de méxico', 'jalisco', 'monterrey', 'guadalajara', 'veracruz', 'yucatán', 'quintana roo', 'nacional', 'interno', 'doméstico', 'local', 'estado', 'municipio', 'pemex', 'imss', 'segob', 'secretaría', 'gobernador']
 };
 
 // Define exclusion keywords for each category (to filter out false positives)
@@ -102,7 +102,7 @@ const CATEGORY_EXCLUSIONS = {
   salud: ['película', 'serie', 'cine', 'actor', 'política', 'economía', 'videojuego'],
   ciencia: ['película', 'serie', 'cine', 'videojuego', 'entretenimiento', 'música'],
   guerra: ['película', 'serie', 'videojuego', 'ficción'],
-  mexico: []
+  mexico: ['ucrania', 'rusia', 'gaza', 'israel', 'palestina', 'ee.uu', 'estados unidos', 'norteamérica', 'europa', 'china', 'india', 'japón', 'corea', 'africano', 'árabe', 'europeo']
 };
 
 function isRelevantArticle(title, category) {
