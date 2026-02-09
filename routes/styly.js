@@ -33,8 +33,14 @@ const SYS_SCRIPTS = 'Eres experto en ventas de software SaaS para negocios de be
 // ========== GENERATE CONTENT ==========
 router.post('/generate', async (req, res) => {
   try {
-    const { format, audience, topic, context, industry, previousContent, editInstructions } = req.body;
-    if (!format && !previousContent) return res.status(400).json({ error: 'Se requiere formato o contenido previo' });
+    const { category, format, audience, topic, context, industry, feature, previousContent, editInstructions } = req.body;
+
+    // Compatibilidad: si viene 'format' pero no 'category', usar formato antiguo
+    const isLegacy = format && !category;
+    const finalCategory = category || format; // Para compatibilidad
+    const finalFormat = !isLegacy ? format : null; // Nuevo sistema
+
+    if (!finalCategory && !previousContent) return res.status(400).json({ error: 'Se requiere categoría/formato o contenido previo' });
 
     let prompt, sys;
     if (previousContent && editInstructions) {
@@ -45,20 +51,277 @@ router.post('/generate', async (req, res) => {
       const indStr = industry ? `\nIndustria/nicho: ${industry}` : '';
       const topicStr = topic ? `\nTema: ${topic}` : '';
       const ctxStr = context ? `\nContexto: ${context}` : '';
-      prompt = buildFormatPrompt(format, audience) + indStr + topicStr + ctxStr;
+      const featStr = feature ? `\nFeature: ${feature}` : '';
+
+      // Usar nuevo sistema si viene category + format
+      if (category && format) {
+        prompt = buildCategoryFormatPrompt(category, format, audience) + indStr + topicStr + ctxStr + featStr;
+      } else {
+        // Compatibilidad con sistema antiguo
+        prompt = buildFormatPrompt(finalCategory, audience) + indStr + topicStr + ctxStr;
+      }
     }
 
     const content = await generate(prompt, sys);
     const { rows } = await pool.query(
       'INSERT INTO content_history (user_id, business, format_type, input_data, output_text) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-      [req.user.id, 'styly', format || 'edit', JSON.stringify({ audience, topic, industry, context }), content]
+      [req.user.id, 'styly', finalCategory || 'edit', JSON.stringify({ category, format, audience, topic, industry, context, feature }), content]
     );
-    res.json({ content, format, id: rows[0].id });
+    res.json({ content, format: finalCategory, id: rows[0].id });
   } catch (e) {
     console.error('Error styly/generate:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
+
+// ========== NEW SYSTEM: CATEGORY + FORMAT ==========
+function buildCategoryFormatPrompt(category, format, audience) {
+  const formatInstructions = getFormatInstructions(format);
+  const baseCategoryPrompt = getCategoryPrompt(category, audience);
+
+  // CRITICAL: Format MUST come first and be mandatory
+  return `MANDATORY FORMAT STRUCTURE - FOLLOW EXACTLY:
+${formatInstructions}
+
+---
+
+CONTENT TOPIC & GUIDELINES:
+${baseCategoryPrompt}
+
+IMPORTANT: Your response MUST follow EXACTLY the format structure above. Include every emoji header and section listed. Do not deviate from the structure.`;
+}
+
+function getCategoryPrompt(category, audience) {
+  const categoryPrompts = {
+    caso_exito: `Genera un caso de éxito ficticio pero realista de un cliente STYLY transformado:
+
+🏪 NEGOCIO:
+[tipo, nombre ficticio, ubicación, contexto personal del dueño]
+
+😰 PROBLEMA:
+[dolor específico: uso de libreta, citas perdidas, clientes confundidos, desorden en cobros]
+
+💡 DESCUBRIMIENTO:
+[cómo conoció STYLY, qué los motivó a probar]
+
+🚀 TRANSFORMACIÓN:
+[features específicas que usa (agenda, website de reservas, CRM, cobro automático) y cómo cambió su día a día]
+
+📊 RESULTADOS:
+[números concretos: % más citas, ahorro de tiempo, ingresos extra, satisfacción]
+
+💬 QUOTE:
+["Testimonio emocional del dueño sobre el cambio"]
+
+TONO: Inspirador, relatable, transformador. Habla a dueños de negocios pequeños que se sienten abrumados.`,
+
+    post_feature: `Genera un post destacando una función específica de STYLY de forma educativa y empoderadora:
+
+🎨 TEXTO PRINCIPAL (para diseño):
+[frase impactante que resalte el beneficio del feature]
+
+📄 EXPLICACIÓN:
+[qué es el feature exactamente, para qué sirve, cómo funciona en la práctica]
+
+💡 CASO DE USO ESPECÍFICO:
+[ejemplo concreto y realista de cómo alguien lo usaría en su día a día]
+
+📊 BENEFICIO CUANTIFICABLE:
+[número: tiempo ahorrado, dinero ahorrado, citas extra, etc.]
+
+TONO: Educativo, sin tecnicismos. Como si le explicaras a un amigo.`,
+
+    post_inspiracional: `Genera un post inspiracional para dueños de negocios de belleza, bienestar o servicios:
+
+🎨 TEXTO PRINCIPAL:
+[dato impactante, reflexión motivacional sobre digitalización, contraste antes/después del negocio digital vs análogo]
+
+📊 DATOS DE APOYO:
+[cifra real que apoye el mensaje: % de negocios digitalizados, tiempo ahorrado promedio, crecimiento promedio, etc.]
+
+🚀 LLAMADA A LA ACCIÓN SUAVE:
+[invitación inspiradora a dar el paso, sin presión agresiva]
+
+TONO: Motivador, esperanzador. Habla a personas cansadas de hacer todo "a mano" pero que aún no ven la solución.`,
+
+    comercial_styly: `Genera un ANUNCIO COMERCIAL DIRECTO para vender STYLY ($599/mes):
+
+🎯 HEADLINE:
+[frase de venta corta, impactante, con propuesta de valor clara]
+
+📝 COPY PRINCIPAL:
+[venta directa explicando: qué es STYLY, para quién es, qué problemas resuelve]
+
+✨ FEATURES PRINCIPALES (enumera 3-4 más importantes):
+- Agenda digital ilimitada
+- Website donde clientes agendan solos 24/7
+- Cobro automático de membresías
+- CRM con historial de clientes
+
+💰 PRECIO Y VALOR:
+[mención clara de $599/mes, ROI, cálculo de break-even típico]
+
+🎁 VENTAJA COMPETITIVA:
+[por qué STYLY vs otras soluciones: más barato, más completo, mejor soporte México, etc.]
+
+🔴 LLAMADA A ACCIÓN FUERTE:
+[CTA urgente y clara: Agenda demo gratis en styly.mx]
+
+TONO: Profesional, convincente, con urgencia. Esto es para VENDER, no solo informar.`,
+
+    reclutamiento: `Genera contenido de RECLUTAMIENTO para el programa Afiliadas Elite de STYLY (dirigido a mujeres emprendedoras):
+
+💪 HEADLINE EMPODERADOR:
+[frase que hable de libertad, independencia financiera, poder ganar sin límite]
+
+📊 DATOS REALES DE COMISIONES:
+- 50% del primer mes por cada local que vendas ($299.50 MXN)
+- 15% RESIDUAL mensual ($89.85/mes permanente por cada cliente)
+- 10% extra por cada módulo add-on que activen
+- Sin inversión inicial, sin horario, trabaja desde tu celular
+
+🏆 DATOS DEL PROGRAMA:
+- Capacitación gratis (Styly Academy)
+- Millas Mensuales: 1er lugar $5,000, 2do $2,500, 3er $1,000
+- Plan de Carrera: Plata $2,500 → Oro $10,000 → ... → Oráculo $300,000
+- Copa anual con crucero para top 5
+
+❓ PREGUNTA DIRECTA:
+[pregunta que toque un deseo: "¿Quieres generar ingresos recurrentes sin borrar tu libertad?" o similar]
+
+🔴 LLAMADA A ACCIÓN:
+[CTA: Únete a styly.mx/afiliados]
+
+TONO: Empoderador, ético, realista. NO es multinivel. Es un modelo de comisiones transparente.`,
+
+    exito_afiliadas: `Genera una historia de ÉXITO ficticia pero basada en números reales de una Afiliada Elite STYLY (dirigido a otras mujeres):
+
+👩 PERFIL DE LA AFILIADA:
+[nombre ficticio, edad/contexto, situación inicial (mamá, desempleada, buscando ingresos extra, etc.)]
+
+🚀 EL INICIO:
+[cómo descubrió el programa, qué la motivó, primeros pasos, miedos iniciales]
+
+📈 EL CRECIMIENTO:
+[número de clientes afiliados, crecimiento mes a mes, estrategias que funcionaron]
+
+💰 LOS NÚMEROS REALES:
+[ingreso mensual actual (ejemplo: 15 clientes × 15% × $599 = cálculo real), rank en Millas Styly, bonos ganados]
+
+💬 TESTIMONIO EMOCIONAL:
+["Cita de la afiliada sobre lo que cambió en su vida: libertad, dinero, independencia, etc."]
+
+TONO: Inspirador, relatable, honesto. Habla a mujeres que ven a otras ganando y piensan "yo también puedo".`,
+
+    capacitacion: `Genera CONTENIDO DE CAPACITACIÓN para Afiliadas Elite de STYLY (tips, técnicas, estrategias de venta):
+
+📝 TEMA DEL TIP:
+[estrategia de ventas, técnica de prospecting, cómo manejar objeciones, etc.]
+
+💡 EXPLICACIÓN DEL CONCEPTO:
+[desarrolla la idea de forma clara y práctica]
+
+🎯 PASO A PASO:
+[pasos concretos para implementar (1. hacer X, 2. decir Y, 3. cerrar con Z)]
+
+🌟 EJEMPLO PRÁCTICO:
+[conversación real o situación común donde aplica este tip]
+
+⚠️ ERRORES COMUNES:
+[qué NO hacer, trampas a evitar]
+
+TONO: Educativo, mentor, empoderador. Como si una Afiliada Senior te estuviera enseñando.`
+  };
+
+  return categoryPrompts[category] || categoryPrompts.caso_exito;
+}
+
+function getFormatInstructions(format) {
+  const formatInstructions = {
+    reel: `FORMATO OBLIGATORIO: Guión para Reel Cinematográfico
+🔴 ESTO DEBE PARECER DIFERENTE A CARRUSEL O ESTÁTICO. ESTRUCTURA ÚNICA.
+
+📺 TÍTULO PARA YOUTUBE:
+[Máx 70 caracteres, keywords SEO]
+
+🎬 GANCHO (0-3 seg):
+NARRACIÓN: [Frase impactante]
+VISUAL: [Descripción creativa de pantalla]
+EFECTOS: [Transición]
+
+🎬 ESCENA 1 (3-10 seg):
+NARRACIÓN: [Contenido]
+VISUAL: [Qué aparece en pantalla]
+EFECTOS: [Movimiento]
+
+🎬 ESCENA 2 (10-15 seg):
+NARRACIÓN: [Contenido]
+VISUAL: [Qué aparece en pantalla]
+EFECTOS: [Movimiento]
+
+🎬 ESCENA 3 (15-22 seg):
+NARRACIÓN: [Contenido]
+VISUAL: [Qué aparece en pantalla]
+EFECTOS: [Movimiento]
+
+🎬 CIERRE (22-30 seg):
+NARRACIÓN: [Dato final + CTA]
+VISUAL: [Logo/CTA final]
+EFECTOS: [Final impactante]
+
+📝 COPY PARA DESCRIPCIÓN:
+[150-200 palabras: hook + beneficio + cómo + CTA]
+
+#️⃣ HASHTAGS:
+[10-15 hashtags]`,
+
+    estatico: `FORMATO OBLIGATORIO: Publicación Estática (UN SOLO SLIDE)
+
+📸 SLIDE ÚNICO:
+TEXTO: [Headline 5-7 palabras + subtítulo]
+
+📸 DESCRIPCIÓN VISUAL:
+[Composición, colores, elementos, estilo]
+
+📝 COPY PRINCIPAL:
+[Línea abre + problema + solución + resultado + CTA]
+[Total: 150-250 palabras]
+
+#️⃣ HASHTAGS:
+[10-15 hashtags]`,
+
+    carrusel: `FORMATO OBLIGATORIO: Carrusel de 4 Slides
+
+🎴 SLIDE 1 - HOOK:
+HEADLINE: [5-7 palabras impactantes]
+CONTENIDO: [Línea amplificadora]
+VISUAL: [Descripción creativa]
+
+🎴 SLIDE 2 - PROBLEMA:
+TÍTULO: [Nombra el problema]
+CONTENIDO: [Descripción del problema]
+VISUAL: [Cómo se visualiza]
+
+🎴 SLIDE 3 - SOLUCIÓN:
+TÍTULO: [La solución]
+CONTENIDO: [Cómo se resuelve]
+VISUAL: [Transformación visual]
+
+🎴 SLIDE 4 - CTA:
+HEADLINE: [Promesa final]
+CONTENIDO: [Instrucción de acción]
+VISUAL: [Imagen inspiradora]
+
+📝 COPY PARA DESCRIPCIÓN:
+[Hook + problema + solución + CTA + proof]
+[Total: 150-200 palabras]
+
+#️⃣ HASHTAGS:
+[10-15 hashtags]`
+  };
+
+  return formatInstructions[format] || formatInstructions.reel;
+}
 
 function buildFormatPrompt(format, audience) {
   const prompts = {
