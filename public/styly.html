@@ -483,7 +483,7 @@ function rTopicInput(){
 function rGenResult(){
   const cat=ALL_CATEGORIES.find(c=>c.id===G.category);
   const secs=parseSections(G.result);
-  return`<div class="flow-header"><button class="btn-back" onclick="resetGen()">← Nuevo contenido</button><div class="flow-title"><span>${cat.icon}</span> ${cat.name} <span class="idea-bdg ${G.aud}" style="font-size:.7rem;margin-left:.5rem">${G.aud==='clients'?'CLIENTES':'AFILIADAS'}</span></div></div>
+  return`<div class="flow-header"><button class="btn-back" onclick="resetGen()">← Nuevo contenido</button><div class="flow-title"><span>${cat?.icon||'📝'}</span> ${cat?.name||G.category||'Contenido'} <span class="idea-bdg ${G.aud}" style="font-size:.7rem;margin-left:.5rem">${G.aud==='clients'?'CLIENTES':'AFILIADAS'}</span></div></div>
     <div class="sy-result">${secs.map((s,i)=>`<div class="sy-sec"><button class="cp-s" onclick="cpSec(${i})"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button><div class="sy-sec-title">${esc(s.title)}</div><div class="sy-sec-body" id="sec${i}">${md(s.body)}</div></div>`).join('')}</div>
     <div class="sy-tools">
       <button class="sy-tool" onclick="aiAction('Revisa el contenido. Corrige errores, mejora claridad, asegurate de que CTA y beneficios esten presentes.')"><i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Revisar con IA</button>
@@ -524,9 +524,8 @@ async function doGenerate(){
   try{
     const r=await fetch('/api/styly/generate',{method:'POST',headers:hdrs,body:JSON.stringify({category:G.category,format:G.format,audience:G.aud,topic:topicFull||undefined,industry:G.industry||undefined,feature:G.feature||undefined})});
     const d=await r.json();if(d.error)throw new Error(d.error);
-    G.result=d.content;G.resultId=d.id;G.phase='result';
-  }catch(e){G.phase='topic';toast('Error: '+e.message)}
-  renderTab();
+    G.result=d.content;G.resultId=d.id;G.phase='result';renderTab();
+  }catch(e){console.error('Error en doGenerate:',e);toast('Error: '+e.message + ' - Reintentando en 2s...');setTimeout(()=>doGenerate(),2000)}
 }
 async function doRegenEdit(){
   const txt=document.getElementById('editIn')?.value?.trim();if(!txt)return;
@@ -575,7 +574,7 @@ async function renderIdeas(m){
 }
 function renderIdeaCard(idea){
   const s=idea.status,aud=idea.season_relevance||'clients';
-  const fObj=ALL_FMTS.find(f=>f.id===idea.format);
+  const fObj=ALL_CATEGORIES.find(f=>f.id===idea.format);
   const isSelected=selectedIdeas.includes(idea.id);
 
   // Mapeo de IDs de categoría a nombres legibles
@@ -611,7 +610,18 @@ function renderIdeaCard(idea){
 async function genIdeas(){
   const m=document.getElementById('modContent');
   m.innerHTML='<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div><div class="loader-text">Generando 4 ideas semanales...</div></div>';
-  try{await fetch('/api/styly/ideas/generate',{method:'POST',headers:hdrs,body:'{}'});toast('4 ideas generadas');renderIdeas(m)}catch(e){toast('Error: '+e.message);renderIdeas(m)}
+  try{
+    const r=await fetch('/api/styly/ideas/generate',{method:'POST',headers:hdrs,body:'{}'});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    if(!d.ideas||d.ideas.length===0)throw new Error('No se generaron ideas');
+    toast('✓ 4 ideas generadas');
+    renderIdeas(m);
+  }catch(e){
+    console.error('Error genIdeas:',e);
+    toast('Error: '+e.message);
+    renderIdeas(m);
+  }
 }
 function showFormatSelectModal(ideaId,category,aud,text){
   const modal=document.getElementById('modalRoot');
@@ -643,9 +653,10 @@ function showFormatSelectModal(ideaId,category,aud,text){
 }
 function useIdeaWithFormat(ideaId,category,aud,text,format){
   closeModal();
-  G.category=category;G.format=format;G.aud=aud==='affiliates'?'affiliates':'clients';G.topic=text;G.phase='topic';G.result='';G.resultId=null;
-  fetch('/api/styly/ideas/'+ideaId,{method:'PUT',headers:hdrs,body:JSON.stringify({status:'used'})});
+  G.category=category;G.format=format;G.aud=aud==='affiliates'?'affiliates':'clients';G.topic=text;G.phase='loading';G.result='';G.resultId=null;
+  fetch('/api/styly/ideas/'+ideaId,{method:'PUT',headers:hdrs,body:JSON.stringify({status:'used'})}).catch(e=>console.error('Error marking idea as used:',e));
   setTab('generar');
+  setTimeout(()=>doGenerate(),150);
 }
 function useIdea(id,format,aud,text){
   G.fmt=format;G.aud=aud==='affiliates'?'affiliates':'clients';G.topic=text;G.phase='topic';G.result='';G.resultId=null;
