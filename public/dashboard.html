@@ -7,6 +7,92 @@
 <link rel="icon" type="image/png" href="/favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/styles.css">
+<style>
+/* ========== DASHBOARD-SPECIFIC: KPI & CHARTS ========== */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.65rem;margin-bottom:1.25rem}
+.kpi-card{background:var(--card);border:1px solid var(--glass-border);border-radius:14px;padding:1rem;text-align:center;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);transition:all .3s ease}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.15)}
+.kpi-label{font-size:.68rem;color:var(--mt);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.kpi-value{font-size:1.8rem;font-weight:800;margin:.2rem 0}
+.kpi-bar{background:rgba(255,255,255,.08);height:5px;border-radius:3px;margin-top:.5rem;overflow:hidden}
+.kpi-bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
+
+/* Donut Chart */
+.donut-wrap{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.3rem}
+.donut{position:relative;width:72px;height:72px}
+.donut svg{width:100%;height:100%;transform:rotate(-90deg)}
+.donut circle{fill:none;stroke-width:6;stroke-linecap:round}
+.donut .donut-bg{stroke:rgba(255,255,255,.08)}
+.donut .donut-fill{transition:stroke-dashoffset .8s ease}
+.donut-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:800}
+
+/* Two-col sections */
+.dash-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem}
+.dash-grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:1rem;margin-bottom:1rem}
+.dash-panel{background:var(--card);border:1px solid var(--glass-border);border-radius:14px;padding:1rem;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.dash-panel-title{font-weight:700;color:var(--fg);font-size:.85rem;margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem}
+
+/* Progress rows */
+.progress-row{margin-bottom:.7rem}
+.progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem}
+.progress-name{font-size:.78rem;font-weight:600;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:55%}
+.progress-meta{font-size:.7rem;font-weight:600;display:flex;align-items:center;gap:.3rem}
+.progress-track{background:rgba(255,255,255,.06);height:8px;border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;border-radius:4px;transition:width .6s ease}
+.progress-stacked{display:flex;gap:1px;height:8px;border-radius:4px;overflow:hidden;background:rgba(255,255,255,.06)}
+.progress-stacked>div{height:100%;transition:width .6s ease}
+
+/* User load badges */
+.user-badges{display:flex;gap:.35rem;font-size:.68rem;flex-wrap:wrap}
+.user-badge{padding:1px 5px;border-radius:4px;font-weight:600}
+.user-badge.red{background:rgba(239,68,68,.12);color:#EF4444}
+.user-badge.yellow{background:rgba(245,158,11,.12);color:#F59E0B}
+.user-badge.green{background:rgba(16,185,129,.12);color:#10B981}
+
+/* Urgent task card */
+.urgent-item{display:flex;align-items:flex-start;gap:.6rem;padding:.6rem;border-radius:10px;border-left:3px solid #EF4444;background:rgba(239,68,68,.04);margin-bottom:.5rem}
+.urgent-item .urgent-body{flex:1;min-width:0}
+.urgent-item .urgent-id{font-size:.7rem;font-weight:700;color:#EC4899}
+.urgent-item .urgent-desc{font-size:.8rem;color:var(--fg);margin-top:.15rem;line-height:1.35}
+.urgent-item .urgent-meta{font-size:.68rem;color:var(--mt);margin-top:.25rem}
+.urgent-item select{padding:.35rem .5rem;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass);color:var(--fg);font-size:.72rem;cursor:pointer;flex-shrink:0;min-height:36px;-webkit-appearance:none}
+
+/* Priority chart (horizontal bars) */
+.priority-row{margin-bottom:.85rem}
+.priority-header{display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:.35rem;align-items:center}
+.priority-label{font-weight:600;display:flex;align-items:center;gap:.3rem}
+.priority-count{color:var(--mt);font-weight:500}
+
+/* Activity feed */
+.activity-item{display:flex;align-items:center;gap:.5rem;padding:.5rem 0;border-bottom:1px solid var(--glass-border)}
+.activity-item:last-child{border-bottom:none}
+.activity-badge{padding:3px 8px;border-radius:6px;font-size:.65rem;font-weight:700;white-space:nowrap;flex-shrink:0}
+.activity-id{font-size:.75rem;font-weight:600;color:#EC4899;flex-shrink:0}
+.activity-desc{font-size:.78rem;color:var(--fg);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.activity-date{font-size:.68rem;color:var(--mt);flex-shrink:0}
+
+/* ========== MOBILE RESPONSIVE ========== */
+@media(max-width:768px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:.5rem}
+  .kpi-value{font-size:1.5rem}
+  .kpi-card{padding:.75rem}
+  .donut{width:56px;height:56px}
+  .donut-center{font-size:.9rem}
+  .dash-grid-2,.dash-grid-2-1{grid-template-columns:1fr}
+  .dash-panel{padding:.85rem}
+  .progress-name{max-width:45%;font-size:.75rem}
+  .urgent-item{flex-wrap:wrap;gap:.4rem}
+  .urgent-item select{width:100%;min-height:40px;font-size:.78rem}
+  .activity-item{flex-wrap:wrap;gap:.3rem}
+  .activity-desc{order:3;width:100%;white-space:normal;-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+}
+@media(max-width:480px){
+  .kpi-grid{grid-template-columns:1fr 1fr;gap:.4rem}
+  .kpi-value{font-size:1.3rem}
+  .kpi-label{font-size:.62rem}
+  .dash-panel-title{font-size:.8rem}
+}
+</style>
 </head>
 <body>
 <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
@@ -499,131 +585,135 @@ function renderStylyTasks(el,d){
   const urgent=d.urgent||[];
   const recent=d.recentlyUpdated||[];
 
+  // Donut chart SVG values
+  const R=28, C=2*Math.PI*R;
+  const offset=C-(s.completionRate/100)*C;
+
   el.innerHTML=`
     <!-- KPI ROW -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.65rem;margin-bottom:1.25rem">
-      <div style="background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(59,130,246,.04));border:1px solid rgba(59,130,246,.3);border-radius:12px;padding:1rem;text-align:center">
-        <div style="font-size:.7rem;color:var(--mt);font-weight:600">TOTAL</div>
-        <div style="font-size:2rem;font-weight:800;color:#3B82F6">${s.total}</div>
+    <div class="kpi-grid">
+      <div class="kpi-card" style="border-top:3px solid #3B82F6">
+        <div class="kpi-label">Total</div>
+        <div class="kpi-value" style="color:#3B82F6">${s.total}</div>
       </div>
-      <div style="background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(239,68,68,.04));border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:1rem;text-align:center">
-        <div style="font-size:.7rem;color:var(--mt);font-weight:600">PENDIENTES</div>
-        <div style="font-size:2rem;font-weight:800;color:#EF4444">${s.pendiente}</div>
+      <div class="kpi-card" style="border-top:3px solid #EF4444">
+        <div class="kpi-label">Pendientes</div>
+        <div class="kpi-value" style="color:#EF4444">${s.pendiente}</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" style="background:#EF4444;width:${s.total>0?s.pendiente/s.total*100:0}%"></div></div>
       </div>
-      <div style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.04));border:1px solid rgba(245,158,11,.3);border-radius:12px;padding:1rem;text-align:center">
-        <div style="font-size:.7rem;color:var(--mt);font-weight:600">EN PROGRESO</div>
-        <div style="font-size:2rem;font-weight:800;color:#F59E0B">${s.enProgreso}</div>
+      <div class="kpi-card" style="border-top:3px solid #F59E0B">
+        <div class="kpi-label">En Progreso</div>
+        <div class="kpi-value" style="color:#F59E0B">${s.enProgreso}</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" style="background:#F59E0B;width:${s.total>0?s.enProgreso/s.total*100:0}%"></div></div>
       </div>
-      <div style="background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.04));border:1px solid rgba(16,185,129,.3);border-radius:12px;padding:1rem;text-align:center">
-        <div style="font-size:.7rem;color:var(--mt);font-weight:600">COMPLETADAS</div>
-        <div style="font-size:2rem;font-weight:800;color:#10B981">${s.completada}</div>
+      <div class="kpi-card" style="border-top:3px solid #10B981">
+        <div class="kpi-label">Completadas</div>
+        <div class="kpi-value" style="color:#10B981">${s.completada}</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" style="background:#10B981;width:${s.total>0?s.completada/s.total*100:0}%"></div></div>
       </div>
-      <div style="background:linear-gradient(135deg,rgba(236,72,153,.12),rgba(236,72,153,.04));border:1px solid rgba(236,72,153,.3);border-radius:12px;padding:1rem;text-align:center">
-        <div style="font-size:.7rem;color:var(--mt);font-weight:600">COMPLETADO</div>
-        <div style="font-size:2rem;font-weight:800;color:#EC4899">${s.completionRate}%</div>
-        <div style="background:rgba(255,255,255,.1);height:4px;border-radius:2px;margin-top:.4rem;overflow:hidden">
-          <div style="background:linear-gradient(90deg,#EC4899,#f472b6);height:100%;width:${s.completionRate}%;transition:width .5s"></div>
+      <div class="kpi-card" style="border-top:3px solid #EC4899">
+        <div class="kpi-label">Completado</div>
+        <div class="donut-wrap">
+          <div class="donut">
+            <svg viewBox="0 0 64 64"><circle class="donut-bg" cx="32" cy="32" r="${R}"/><circle class="donut-fill" cx="32" cy="32" r="${R}" stroke="#EC4899" stroke-dasharray="${C}" stroke-dashoffset="${offset}"/></svg>
+            <div class="donut-center" style="color:#EC4899">${s.completionRate}%</div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- TWO COLUMNS: Projects + Users -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem">
-      <!-- PROJECTS -->
-      <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:12px;padding:1rem;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)">
-        <div style="font-weight:700;color:var(--fg);font-size:.85rem;margin-bottom:.75rem">🎯 Progreso por Proyecto</div>
+    <div class="dash-grid-2">
+      <div class="dash-panel">
+        <div class="dash-panel-title"><i class="feather" data-icon="target" style="display:inline-block;width:1em;height:1em;color:#EC4899" aria-hidden="true"></i> Progreso por Proyecto</div>
         ${projEntries.map(([name,p])=>{
           const pct=p.completion;
           const color=p.color||'#6B7280';
-          return `<div style="margin-bottom:.65rem">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.2rem">
-              <span style="font-size:.78rem;font-weight:600;color:var(--fg)">${esc(name)}</span>
-              <span style="font-size:.7rem;font-weight:700;color:${color}">${pct}% <span style="color:var(--mt);font-weight:400">(${p.completada}/${p.total})</span></span>
+          return `<div class="progress-row">
+            <div class="progress-header">
+              <span class="progress-name">${esc(name)}</span>
+              <span class="progress-meta" style="color:${color}">${pct}% <span style="color:var(--mt);font-weight:400">(${p.completada}/${p.total})</span></span>
             </div>
-            <div style="background:rgba(255,255,255,.06);height:6px;border-radius:3px;overflow:hidden">
-              <div style="background:${color};height:100%;width:${pct}%;transition:width .5s"></div>
-            </div>
+            <div class="progress-track"><div class="progress-fill" style="background:${color};width:${pct}%"></div></div>
           </div>`;
         }).join('')}
       </div>
 
-      <!-- USERS -->
-      <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:12px;padding:1rem;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)">
-        <div style="font-weight:700;color:var(--fg);font-size:.85rem;margin-bottom:.75rem">👥 Carga por Usuario</div>
-        ${userEntries.map(([name,u])=>{
-          const pct=u.total>0?Math.round(u.completada/u.total*100):0;
-          return `<div style="margin-bottom:.65rem">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.2rem">
-              <span style="font-size:.78rem;font-weight:600;color:var(--fg)">${esc(name)}</span>
-              <div style="display:flex;gap:.4rem;font-size:.68rem">
-                <span style="color:#EF4444">🔴${u.pendiente}</span>
-                <span style="color:#F59E0B">🟡${u.enProgreso||0}</span>
-                <span style="color:#10B981">✅${u.completada}</span>
+      <div class="dash-panel">
+        <div class="dash-panel-title"><i class="feather" data-icon="users" style="display:inline-block;width:1em;height:1em;color:#8B5CF6" aria-hidden="true"></i> Carga por Usuario</div>
+        ${userEntries.map(([name,u])=>`
+          <div class="progress-row">
+            <div class="progress-header">
+              <span class="progress-name">${esc(name)}</span>
+              <div class="user-badges">
+                <span class="user-badge red">${u.pendiente}</span>
+                <span class="user-badge yellow">${u.enProgreso||0}</span>
+                <span class="user-badge green">${u.completada}</span>
               </div>
             </div>
-            <div style="display:flex;gap:2px;height:6px;border-radius:3px;overflow:hidden">
+            <div class="progress-stacked">
               <div style="background:#10B981;width:${u.total>0?u.completada/u.total*100:0}%"></div>
               <div style="background:#F59E0B;width:${u.total>0?(u.enProgreso||0)/u.total*100:0}%"></div>
               <div style="background:#EF4444;width:${u.total>0?u.pendiente/u.total*100:0}%"></div>
             </div>
-          </div>`;
-        }).join('')}
+          </div>`).join('')}
       </div>
     </div>
 
     <!-- URGENT TASKS + PRIORITY BREAKDOWN -->
-    <div style="display:grid;grid-template-columns:2fr 1fr;gap:1rem;margin-bottom:1rem">
-      <!-- URGENT -->
-      <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:12px;padding:1rem;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)">
-        <div style="font-weight:700;color:var(--fg);font-size:.85rem;margin-bottom:.75rem">⚠️ Tareas Urgentes (Alta Prioridad)</div>
-        ${urgent.length===0?'<div style="color:var(--mt);font-size:.82rem;text-align:center;padding:1rem">✅ No hay tareas urgentes pendientes</div>':
+    <div class="dash-grid-2-1">
+      <div class="dash-panel">
+        <div class="dash-panel-title"><i class="feather" data-icon="alert-triangle" style="display:inline-block;width:1em;height:1em;color:#EF4444" aria-hidden="true"></i> Tareas Urgentes (Alta Prioridad)</div>
+        ${urgent.length===0?'<div style="color:var(--mt);font-size:.82rem;text-align:center;padding:1rem"><i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:#10B981" aria-hidden="true"></i> No hay tareas urgentes pendientes</div>':
         urgent.slice(0,6).map(t=>`
-          <div style="display:flex;align-items:start;gap:.6rem;padding:.5rem;border-radius:8px;border-left:3px solid #EF4444;background:rgba(239,68,68,.04);margin-bottom:.4rem">
-            <div style="flex:1;min-width:0">
-              <div style="font-size:.7rem;font-weight:700;color:#EC4899">${esc(t.task_id)} · ${esc(t.module)}</div>
-              <div style="font-size:.8rem;color:var(--fg);margin-top:.15rem;line-height:1.3">${esc(t.description)}</div>
-              <div style="font-size:.68rem;color:var(--mt);margin-top:.2rem">👤 ${esc(t.assigned_to||'Sin asignar')} ${t.project?'· 📁 '+esc(t.project):''}</div>
+          <div class="urgent-item">
+            <div class="urgent-body">
+              <div class="urgent-id">${esc(t.task_id)} · ${esc(t.module)}</div>
+              <div class="urgent-desc">${esc(t.description)}</div>
+              <div class="urgent-meta"><i class="feather" data-icon="user" style="display:inline-block;width:.8em;height:.8em;color:currentColor" aria-hidden="true"></i> ${esc(t.assigned_to||'Sin asignar')} ${t.project?'· <i class="feather" data-icon="folder" style="display:inline-block;width:.8em;height:.8em;color:currentColor" aria-hidden="true"></i> '+esc(t.project):''}</div>
             </div>
-            <select onchange="updateStylyTask(${t.id},this.value)" style="padding:.25rem .4rem;border-radius:6px;border:1px solid var(--glass-border);background:var(--glass);color:var(--fg);font-size:.68rem;cursor:pointer;flex-shrink:0">
+            <select onchange="updateStylyTask(${t.id},this.value)">
               <option value="Pendiente" ${(t.status||'').toLowerCase()==='pendiente'?'selected':''}>Pendiente</option>
               <option value="En Progreso" ${(t.status||'').toLowerCase()==='en progreso'?'selected':''}>En Progreso</option>
               <option value="Completada" ${(t.status||'').toLowerCase()==='completada'?'selected':''}>Completada</option>
             </select>
           </div>
         `).join('')+
-        (urgent.length>6?`<div style="font-size:.75rem;color:var(--mt);text-align:center;margin-top:.5rem">+${urgent.length-6} tareas urgentes más</div>`:'')}
+        (urgent.length>6?`<div style="font-size:.75rem;color:var(--mt);text-align:center;margin-top:.5rem">+${urgent.length-6} tareas urgentes mas</div>`:'')}
       </div>
 
-      <!-- PRIORITY BREAKDOWN -->
-      <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:12px;padding:1rem;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)">
-        <div style="font-weight:700;color:var(--fg);font-size:.85rem;margin-bottom:.75rem">⚡ Por Prioridad</div>
-        <div style="margin-bottom:.75rem">
-          <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:.3rem"><span style="color:#DC2626;font-weight:600">🔴 Alta</span><span style="color:var(--mt)">${bp.alta.done}/${bp.alta.total}</span></div>
-          <div style="background:rgba(255,255,255,.06);height:8px;border-radius:4px;overflow:hidden"><div style="background:#DC2626;height:100%;width:${bp.alta.total>0?bp.alta.done/bp.alta.total*100:0}%"></div></div>
+      <div class="dash-panel">
+        <div class="dash-panel-title"><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:#F59E0B" aria-hidden="true"></i> Por Prioridad</div>
+        <div class="priority-row">
+          <div class="priority-header"><span class="priority-label" style="color:#DC2626"><i class="feather" data-icon="circle" style="display:inline-block;width:.7em;height:.7em;color:#DC2626" aria-hidden="true"></i> Alta</span><span class="priority-count">${bp.alta.done}/${bp.alta.total}</span></div>
+          <div class="progress-track"><div class="progress-fill" style="background:linear-gradient(90deg,#DC2626,#EF4444);width:${bp.alta.total>0?bp.alta.done/bp.alta.total*100:0}%"></div></div>
         </div>
-        <div style="margin-bottom:.75rem">
-          <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:.3rem"><span style="color:#D97706;font-weight:600">🟡 Media</span><span style="color:var(--mt)">${bp.media.done}/${bp.media.total}</span></div>
-          <div style="background:rgba(255,255,255,.06);height:8px;border-radius:4px;overflow:hidden"><div style="background:#D97706;height:100%;width:${bp.media.total>0?bp.media.done/bp.media.total*100:0}%"></div></div>
+        <div class="priority-row">
+          <div class="priority-header"><span class="priority-label" style="color:#D97706"><i class="feather" data-icon="circle" style="display:inline-block;width:.7em;height:.7em;color:#D97706" aria-hidden="true"></i> Media</span><span class="priority-count">${bp.media.done}/${bp.media.total}</span></div>
+          <div class="progress-track"><div class="progress-fill" style="background:linear-gradient(90deg,#D97706,#F59E0B);width:${bp.media.total>0?bp.media.done/bp.media.total*100:0}%"></div></div>
         </div>
-        <div>
-          <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:.3rem"><span style="color:#6B7280;font-weight:600">🟢 Baja</span><span style="color:var(--mt)">${bp.baja.done}/${bp.baja.total}</span></div>
-          <div style="background:rgba(255,255,255,.06);height:8px;border-radius:4px;overflow:hidden"><div style="background:#6B7280;height:100%;width:${bp.baja.total>0?bp.baja.done/bp.baja.total*100:0}%"></div></div>
+        <div class="priority-row">
+          <div class="priority-header"><span class="priority-label" style="color:#10B981"><i class="feather" data-icon="circle" style="display:inline-block;width:.7em;height:.7em;color:#10B981" aria-hidden="true"></i> Baja</span><span class="priority-count">${bp.baja.done}/${bp.baja.total}</span></div>
+          <div class="progress-track"><div class="progress-fill" style="background:linear-gradient(90deg,#059669,#10B981);width:${bp.baja.total>0?bp.baja.done/bp.baja.total*100:0}%"></div></div>
         </div>
       </div>
     </div>
 
     <!-- RECENT ACTIVITY -->
     ${recent.length?`
-    <div style="background:var(--card);border:1px solid var(--glass-border);border-radius:12px;padding:1rem;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)">
-      <div style="font-weight:700;color:var(--fg);font-size:.85rem;margin-bottom:.75rem">🕐 Actividad Reciente</div>
-      ${recent.map(t=>`
-        <div style="display:flex;align-items:center;gap:.6rem;padding:.4rem 0;border-bottom:1px solid var(--glass-border)">
-          <span style="padding:2px 6px;border-radius:4px;font-size:.65rem;font-weight:700;background:${(t.status||'').toLowerCase()==='completada'?'rgba(16,185,129,.15)':((t.status||'').toLowerCase()==='en progreso'?'rgba(245,158,11,.15)':'rgba(239,68,68,.15)')};color:${(t.status||'').toLowerCase()==='completada'?'#10B981':((t.status||'').toLowerCase()==='en progreso'?'#F59E0B':'#EF4444')}">${esc(t.status)}</span>
-          <span style="font-size:.78rem;font-weight:600;color:#EC4899">${esc(t.task_id)}</span>
-          <span style="font-size:.78rem;color:var(--fg);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.description)}</span>
-          <span style="font-size:.68rem;color:var(--mt);flex-shrink:0">${t.updated_at?new Date(t.updated_at).toLocaleDateString('es-MX',{day:'2-digit',month:'short'}):''}</span>
-        </div>
-      `).join('')}
+    <div class="dash-panel">
+      <div class="dash-panel-title"><i class="feather" data-icon="clock" style="display:inline-block;width:1em;height:1em;color:var(--mt)" aria-hidden="true"></i> Actividad Reciente</div>
+      ${recent.map(t=>{
+        const stLow=(t.status||'').toLowerCase();
+        const stColor=stLow==='completada'?'#10B981':(stLow==='en progreso'?'#F59E0B':'#EF4444');
+        const stBg=stLow==='completada'?'rgba(16,185,129,.15)':(stLow==='en progreso'?'rgba(245,158,11,.15)':'rgba(239,68,68,.15)');
+        return`<div class="activity-item">
+          <span class="activity-badge" style="background:${stBg};color:${stColor}">${esc(t.status)}</span>
+          <span class="activity-id">${esc(t.task_id)}</span>
+          <span class="activity-desc">${esc(t.description)}</span>
+          <span class="activity-date">${t.updated_at?new Date(t.updated_at).toLocaleDateString('es-MX',{day:'2-digit',month:'short'}):''}</span>
+        </div>`;
+      }).join('')}
     </div>`:''}
   `;
 }
