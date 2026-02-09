@@ -278,10 +278,6 @@
           <i class="far fa-lightbulb"></i>
           <span class="tab-text">Ideas</span>
         </button>
-        <button class="module-tab" onclick="setTab('herramientas')" role="tab" aria-selected="false" aria-label="Herramientas">
-          <i class="far fa-wrench"></i>
-          <span class="tab-text">Herramientas</span>
-        </button>
         <button class="module-tab" onclick="setTab('calendario')" role="tab" aria-selected="false" aria-label="Calendario">
           <i class="far fa-calendar"></i>
           <span class="tab-text">Calendario</span>
@@ -370,19 +366,9 @@ const ALL_FMTS=[...CLIENT_CATEGORIES,...AFFILIATE_CATEGORIES];
 const FMT_EMOJI={};ALL_CATEGORIES.forEach(f=>{FMT_EMOJI[f.id]=f.icon});
 const INDUSTRIES=['Estetica/Salon','Barberia','Spa/Bienestar','Nail salon','Tatuador/Piercing','Psicologo/Terapeuta','Dentista/Consultorio','Nutriologo','Entrenador personal/Gym','Yoga/Pilates','General/Otro'];
 const FEATURES=['Agenda digital (adios libreta)','Website de reservas (tu-negocio.styly.mx)','CRM (historial de clientes)','Cobro de suscripciones (membresias 0% comision)','WhatsApp masivo (promos 1 click)','Cerebro IA (predicciones, precios)','Multi-sucursal (todos tus locales)','Metricas (empleados, nominas, reportes)'];
-const ACADEMY=[
-  {num:1,name:'El Efecto Styly (La Vision)',dur:'3 min',desc:'Que es Styly, propuesta de valor unica, el "wow" de automatizar cobros. PDF infografia.',exam:'Propuesta de valor'},
-  {num:2,name:'Tu Maquina de Rentas',dur:'4 min',desc:'Plan de comisiones completo, extensiones, como ser consultora de negocios. Tabla ganancias.',exam:'Calculos de comisiones'},
-  {num:3,name:'Demo Panel de Afiliada',dur:'5 min',desc:'Como usar tu panel de aliada, registrar negocios, ver prospectos. Guia rapida.',exam:'Simulacion de pasos'},
-  {num:4,name:'Demo Panel de Styly',dur:'5 min',desc:'Como funciona Styly como negocio, todas las funciones. Guia rapida.',exam:'Funcionalidades del panel'},
-  {num:5,name:'El Universo Styly (Ventas)',dur:'5 min',desc:'Speech maestro por nicho, objeciones, herramientas de prospeccion. Diccionario nichos.',exam:'Casos de estudio'}
-];
-
 // ========== STATE ==========
 let tab='generar';
 let G={category:null,format:null,aud:null,industry:'',feature:'',topic:'',phase:'category',result:'',resultId:null};
-let toolView=null,toolResult='',toolLoading=false;
-let calcInputs={locales:5,modules:2,partners:3},calcResult=null;
 let calWeekStart=getMonday(new Date());
 let histFilter={format:'',audience:'',status:''};
 let ideasMultiSelectMode=false;
@@ -430,7 +416,6 @@ function renderTab(){
   const m=document.getElementById('modContent');m.className='fade-in';void m.offsetWidth;
   if(tab==='generar')renderGenerar(m);
   else if(tab==='ideas')renderIdeas(m);
-  else if(tab==='herramientas')renderHerramientas(m);
   else if(tab==='calendario')renderCalendario(m);
   else if(tab==='historial')renderHistorial(m);
   else if(tab==='tareas')renderTareas(m);
@@ -722,140 +707,6 @@ async function deleteMultipleIdeas(){
     toast('Error: '+e.message);
     renderIdeas(document.getElementById('modContent'));
   }
-}
-
-// ================================================================
-// TAB 3: HERRAMIENTAS
-// ================================================================
-function renderHerramientas(m){
-  if(!toolView) m.innerHTML=rToolPick();
-  else if(toolView==='script') m.innerHTML=rScriptTool();
-  else if(toolView==='calc') m.innerHTML=rCalcTool();
-  else if(toolView==='academy') m.innerHTML=rAcademyTool();
-}
-function rToolPick(){
-  return`<div class="tool-cards">
-    <div class="tool-card" onclick="toolView='script';renderTab()"><div class="t-ico"><i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></div><div class="t-nm">Script de Venta</div><div class="t-ds">Pitch, objeciones, WhatsApp, emails por industria</div></div>
-    <div class="tool-card" onclick="toolView='calc';renderTab()"><div class="t-ico"><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></div><div class="t-nm">Calculadora de Comisiones</div><div class="t-ds">Simula ganancias como Afiliada Elite</div></div>
-    <div class="tool-card" onclick="toolView='academy';renderTab()"><div class="t-ico">📚</div><div class="t-nm">Biblioteca Academy</div><div class="t-ds">5 modulos de capacitacion Styly Academy</div></div>
-  </div>`;
-}
-
-// --- Script tool ---
-let scriptCfg={type:'pitch',industry:'General/Otro',stage:'first_contact'};
-function rScriptTool(){
-  return`<div class="flow-header"><button class="btn-back" onclick="toolView=null;toolResult='';renderTab()">← Herramientas</button><div class="flow-title"><i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Script de Venta</div></div>
-    <div class="sy-topic">
-      <select onchange="scriptCfg.type=this.value;renderTab()">
-        <option value="pitch" ${scriptCfg.type==='pitch'?'selected':''}>Pitch 30 segundos</option>
-        <option value="objections" ${scriptCfg.type==='objections'?'selected':''}>Respuesta a objeciones</option>
-        <option value="whatsapp" ${scriptCfg.type==='whatsapp'?'selected':''}>Mensaje WhatsApp</option>
-        <option value="email" ${scriptCfg.type==='email'?'selected':''}>Email</option>
-      </select>
-      <select onchange="scriptCfg.industry=this.value">${INDUSTRIES.map(i=>`<option value="${i}" ${scriptCfg.industry===i?'selected':''}>${i}</option>`).join('')}</select>
-      ${scriptCfg.type==='email'?`<select onchange="scriptCfg.stage=this.value">
-        <option value="first_contact" ${scriptCfg.stage==='first_contact'?'selected':''}>Primer contacto</option>
-        <option value="post_demo" ${scriptCfg.stage==='post_demo'?'selected':''}>Post-demo</option>
-        <option value="follow_up" ${scriptCfg.stage==='follow_up'?'selected':''}>Follow up</option>
-        <option value="close" ${scriptCfg.stage==='close'?'selected':''}>Cierre</option>
-      </select>`:''}
-    </div>
-    <div class="actions"><button class="btn" onclick="genScript()">Generar →</button></div>
-    ${toolLoading?'<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div></div>':''}
-    ${toolResult?`<div class="sy-result"><button class="cp-s" onclick="cpClip(toolResult);toast('Copiado')" style="position:absolute;top:.75rem;right:.75rem"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Copiar todo</button><div class="sy-sec-body">${md(toolResult)}</div></div>
-    <div class="sy-edit"><input id="scriptEdit" placeholder="Ej: Hazlo mas casual, enfocalo a dentistas..."><button onclick="regenScript()"><i class="feather" data-icon="refresh-cw" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Con cambios</button></div>`:''}`;
-}
-async function genScript(){
-  toolLoading=true;toolResult='';renderTab();
-  try{
-    const r=await fetch('/api/styly/generate-script',{method:'POST',headers:hdrs,body:JSON.stringify(scriptCfg)});
-    const d=await r.json();if(d.error)throw new Error(d.error);
-    toolResult=d.content;
-  }catch(e){toast('Error: '+e.message)}
-  toolLoading=false;renderTab();
-}
-async function regenScript(){
-  const txt=document.getElementById('scriptEdit')?.value?.trim();if(!txt)return;
-  toolLoading=true;renderTab();
-  try{
-    const r=await fetch('/api/styly/generate',{method:'POST',headers:hdrs,body:JSON.stringify({format:'script_'+scriptCfg.type,audience:'clients',previousContent:toolResult,editInstructions:txt})});
-    const d=await r.json();if(d.error)throw new Error(d.error);
-    toolResult=d.content;toast('Regenerado');
-  }catch(e){toast('Error: '+e.message)}
-  toolLoading=false;renderTab();
-}
-
-// --- Calculator ---
-function rCalcTool(){
-  const c=calcInputs;
-  doCalc();
-  const r=calcResult;
-  return`<div class="flow-header"><button class="btn-back" onclick="toolView=null;renderTab()">← Herramientas</button><div class="flow-title"><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Calculadora de Comisiones</div></div>
-    <div class="slider-row"><label>Locales directos afiliados <span>${c.locales}</span></label><input type="range" min="1" max="50" value="${c.locales}" oninput="calcInputs.locales=+this.value;renderTab()"></div>
-    <div class="slider-row"><label>Modulos extra promedio por local <span>${c.modules}</span></label><input type="range" min="0" max="8" value="${c.modules}" oninput="calcInputs.modules=+this.value;renderTab()"></div>
-    <div class="slider-row"><label>Partners invitadas <span>${c.partners}</span></label><input type="range" min="0" max="20" value="${c.partners}" oninput="calcInputs.partners=+this.value;renderTab()"></div>
-    ${r?`<div class="calc-grid">
-      <div class="calc-card"><div class="c-ico">💰</div><div class="c-lbl">MES 1 (Bono activacion)</div><div class="c-val">${fmt$(r.month1)}</div><div class="c-sub">${c.locales} locales × $599 × 50%</div></div>
-      <div class="calc-card"><div class="c-ico"><i class="feather" data-icon="trending-up" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></div><div class="c-lbl">INGRESO MENSUAL (Mes 2+)</div><div class="c-val">${fmt$(r.monthlyRecurring)}</div><div class="c-sub">Residual: ${fmt$(r.residualSaas)} · Upsell: ${fmt$(r.bonusUpsell)} · Red: ${fmt$(r.networkIncome)}</div></div>
-      <div class="calc-card"><div class="c-ico"><i class="feather" data-icon="calendar" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></div><div class="c-lbl">INGRESO ANUAL PROYECTADO</div><div class="c-val">${fmt$(r.annualProjected)}</div><div class="c-sub">Mes 1 + (mensual × 12)</div></div>
-      <div class="calc-card"><div class="c-ico"><i class="feather" data-icon="star" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></div><div class="c-lbl">MILLAS MENSUALES</div><div class="c-val">${r.monthlyMiles} pts</div><div class="c-sub">${c.locales}×15 + ${c.locales*c.modules}×5 + ${c.partners}×10</div></div>
-      <div class="calc-card gold"><div class="c-ico">🏆</div><div class="c-lbl">RANGO (acumulado anual)</div><div class="c-val">${r.rank}</div><div class="c-sub">${r.annualMiles} millas/ano${r.rankBonus?` · Bono: ${fmt$(r.rankBonus)}`:''}</div></div>
-      <div class="calc-card"><div class="c-ico">🚢</div><div class="c-lbl">COPA ANUAL</div><div class="c-val">${r.copaAnual?'Calificas':'No calificas'}</div><div class="c-sub">${r.annualMiles}/500 pts minimo para crucero</div></div>
-    </div>
-    <div class="actions" style="margin-top:.5rem">
-      <button class="btn" onclick="cpCalc()"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Copiar resumen</button>
-      <button class="btn" style="margin-left:.5rem;background:#25D366" onclick="shareWA()">📲 Compartir por WhatsApp</button>
-    </div>`:''}`;
-}
-function doCalc(){
-  const c=calcInputs,core=599,addon=149;
-  const month1=c.locales*core*0.5;
-  const residualSaas=c.locales*core*0.15;
-  const bonusUpsell=c.locales*c.modules*addon*0.10;
-  const networkIncome=c.partners*3*core*0.03;
-  const monthlyRecurring=residualSaas+bonusUpsell+networkIncome;
-  const annualProjected=month1+(monthlyRecurring*12);
-  const monthlyMiles=(c.locales*15)+(c.locales*c.modules*5)+(c.partners*10);
-  const annualMiles=monthlyMiles*12;
-  let rank='Sin rango',rankBonus=0;
-  if(annualMiles>=12000){rank='Oraculo';rankBonus=300000}
-  else if(annualMiles>=6000){rank='Leyenda';rankBonus=100000}
-  else if(annualMiles>=2500){rank='Shark';rankBonus=35000}
-  else if(annualMiles>=1000){rank='Oro';rankBonus=10000}
-  else if(annualMiles>=200){rank='Plata';rankBonus=2500}
-  calcResult={month1,residualSaas,bonusUpsell,networkIncome,monthlyRecurring,annualProjected,monthlyMiles,annualMiles,rank,rankBonus,copaAnual:annualMiles>=500};
-}
-function cpCalc(){
-  const r=calcResult,c=calcInputs;
-  cpClip(`STYLY — Simulacion de Ganancias Afiliada Elite\n\nLocales directos: ${c.locales}\nModulos extra/local: ${c.modules}\nPartners: ${c.partners}\n\nMes 1 (Bono): ${fmt$(r.month1)}\nIngreso mensual recurrente: ${fmt$(r.monthlyRecurring)}\n  Residual SaaS: ${fmt$(r.residualSaas)}\n  Bonos Upsell: ${fmt$(r.bonusUpsell)}\n  Comision Red: ${fmt$(r.networkIncome)}\nIngreso anual: ${fmt$(r.annualProjected)}\nMillas mensuales: ${r.monthlyMiles} pts\nRango: ${r.rank}${r.rankBonus?' (Bono: '+fmt$(r.rankBonus)+')':''}\nCopa Anual: ${r.copaAnual?'Calificas':'No calificas'}\n\nUnete → styly.mx/afiliados`);
-  toast('Copiado');
-}
-function shareWA(){
-  const r=calcResult,c=calcInputs;
-  const txt=encodeURIComponent(`*STYLY — Afiliadas Elite*\n\nCon solo ${c.locales} locales directos:\n💰 Mes 1: ${fmt$(r.month1)}\n<i class="feather" data-icon="trending-up" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Mensual recurrente: ${fmt$(r.monthlyRecurring)}\n<i class="feather" data-icon="calendar" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Anual: ${fmt$(r.annualProjected)}\n🏆 Rango: ${r.rank}\n\nSin inversion, sin horario. Unete → styly.mx/afiliados`);
-  window.open('https://wa.me/?text='+txt,'_blank');
-}
-
-// --- Academy ---
-function rAcademyTool(){
-  return`<div class="flow-header"><button class="btn-back" onclick="toolView=null;toolResult='';renderTab()">← Herramientas</button><div class="flow-title">📚 Styly Academy</div></div>
-    <div class="acad-list">${ACADEMY.map(a=>`<div class="acad-item">
-      <div><span class="acad-num">${a.num}</span><span class="acad-title">${a.name}</span><span class="acad-dur">${a.dur}</span></div>
-      <div class="acad-desc">${a.desc}</div>
-      <div class="acad-desc" style="font-size:.72rem">Examen: ${a.exam}</div>
-      <button class="acad-btn" onclick="genGuide(${a.num})" style="margin-top:.4rem"><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Generar guia de estudio</button>
-      <div id="acad${a.num}"></div>
-    </div>`).join('')}</div>`;
-}
-async function genGuide(num){
-  const a=ACADEMY[num-1];const el=document.getElementById('acad'+num);
-  el.innerHTML='<div class="loader" style="padding:.5rem"><div class="loader-dots"><span></span><span></span><span></span></div></div>';
-  try{
-    const prompt=`Genera una guia de estudio para el Modulo ${a.num} de Styly Academy: "${a.name}" (${a.dur}).\nContenido: ${a.desc}\nTemas de examen: ${a.exam}\n\nIncluye:\n1. Resumen ejecutivo (3-4 puntos clave)\n2. Tips para recordar\n3. 5 posibles preguntas de examen con respuestas`;
-    const r=await fetch('/api/styly/generate',{method:'POST',headers:hdrs,body:JSON.stringify({format:'academy_guide',audience:'affiliates',topic:prompt})});
-    const d=await r.json();if(d.error)throw new Error(d.error);
-    el.innerHTML=`<div class="sy-result" style="margin-top:.5rem"><button class="cp-s" onclick="cpClip(this.parentElement.querySelector('.sy-sec-body').textContent);toast('Copiado')" style="position:absolute;top:.5rem;right:.5rem"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button><div class="sy-sec-body">${md(d.content)}</div></div>`;
-  }catch(e){el.innerHTML=`<p style="color:#EF4444;font-size:.8rem">Error: ${esc(e.message)}</p>`}
 }
 
 // ================================================================
