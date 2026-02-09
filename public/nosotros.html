@@ -326,8 +326,10 @@ function rTextIn(){
 }
 
 function rManualNewsIn(){
-  return`<textarea id="mn" class="ta" placeholder="Pega aqui la noticia que quieras convertir en contenido..." oninput="S.manual_news=this.value"></textarea>
+  const html=`<textarea id="mn" class="ta" placeholder="Pega aqui la noticia que quieras convertir en contenido..." oninput="S.manual_news=this.value;render()">${esc(S.manual_news)}</textarea>
     <div class="actions"><button class="btn" ${S.manual_news.trim()?'':'disabled'} onclick="goManualFormatSel()">Siguiente paso</button></div>`;
+  setTimeout(()=>{const ta=document.getElementById('mn');if(ta)ta.focus()},0);
+  return html;
 }
 
 function rManualFormatSel(){
@@ -337,7 +339,7 @@ function rManualFormatSel(){
   return`<p class="sel-hint">Elige el formato para tu noticia</p>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem">
       ${allowedFormats.map((fmt,i)=>`
-        <div class="fmt-card ${S.manual_format===fmt.id?'selected':''}' onclick="selManualFormat('${fmt.id}')" style="--c:${fmt.color};cursor:pointer;border:2px solid ${S.manual_format===fmt.id?fmt.color:'transparent'};background:${S.manual_format===fmt.id?'rgba(255,255,255,0.05)':''}">
+        <div class="fmt-card" ${S.manual_format===fmt.id?'style="border:2px solid '+fmt.color+';background:rgba(255,255,255,0.05)"':''} onclick="selManualFormat('${fmt.id}')" style="--c:${fmt.color};cursor:pointer;border:2px solid ${S.manual_format===fmt.id?fmt.color:'transparent'};transition:all 0.2s">
           <div class="fmt-icon">${fmt.icon}</div>
           <div class="fmt-name">${fmt.name}</div>
           <div class="fmt-desc" style="font-size:.75rem">${fmt.desc}</div>
