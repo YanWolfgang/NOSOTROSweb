@@ -615,7 +615,7 @@ async function genIdeas(){
 }
 function showFormatSelectModal(ideaId,category,aud,text){
   const modal=document.getElementById('modalRoot');
-  modal.innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"></div>
+  modal.innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
     <div class="modal glass-card" style="max-width:500px">
       <div class="modal-header">
         <h3 style="margin:0;color:var(--fg)">Selecciona formato para generar</h3>
@@ -637,7 +637,8 @@ function showFormatSelectModal(ideaId,category,aud,text){
           `).join('')}
         </div>
       </div>
-    </div>`;
+    </div>
+  </div>`;
   modal.style.display='flex';
 }
 function useIdeaWithFormat(ideaId,category,aud,text,format){
