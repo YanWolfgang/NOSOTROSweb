@@ -626,6 +626,10 @@ button{font-family:inherit;cursor:pointer}
   .board-filter-row{flex-wrap:wrap}
   .board-filter-input{min-width:0;flex:1 1 100%;margin-bottom:.5rem}
   .board-filter-select{min-width:0;flex-basis:calc(50% - .3rem)}
+  /* Fallback: force inline grid overrides for STYLY module */
+  #modContent div[style*="grid-template-columns:1fr 1fr"],
+  #modContent div[style*="grid-template-columns: 1fr 1fr"]{grid-template-columns:1fr !important}
+  #modContent div[style*="grid-template-columns:repeat(3,1fr)"]{grid-template-columns:1fr !important}
 }
 @media(max-width:480px){
   .stats-row{grid-template-columns:1fr}
@@ -636,7 +640,6 @@ button{font-family:inherit;cursor:pointer}
   .dash-section{margin-bottom:1.25rem}
 }
 @media(max-width:360px){
-  .module-tabs{grid-template-columns:repeat(3,1fr)}
   .module-tab{padding:.5rem .15rem;font-size:.7rem;min-height:44px}
   .module-tab i{font-size:1rem}
   .module-tab .tab-text{font-size:.65rem}
