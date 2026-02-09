@@ -8,9 +8,114 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/styles.css">
 <style>
-/* ========== DASHBOARD-SPECIFIC: KPI & CHARTS ========== */
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.65rem;margin-bottom:1.25rem}
-.kpi-card{background:var(--card);border:1px solid var(--glass-border);border-radius:14px;padding:1rem;text-align:center;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);transition:all .3s ease}
+/* ========== MOBILE-FIRST DASHBOARD APP ========== */
+
+/* --- Stats row: horizontal scroll on mobile --- */
+@media(max-width:768px){
+  .stats-row{display:flex!important;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;gap:.5rem;padding-bottom:.5rem;scrollbar-width:none;grid-template-columns:unset!important}
+  .stats-row::-webkit-scrollbar{display:none}
+  .stats-row .stat-box{min-width:160px;flex-shrink:0;scroll-snap-align:start;padding:.85rem}
+  .stats-row .stat-box .s-value{font-size:1.4rem}
+  .stats-row .stat-box .s-label{font-size:.7rem}
+  .stats-row .stat-box .s-sub{font-size:.7rem}
+
+  /* Dash cols stack */
+  .dash-cols{grid-template-columns:1fr!important;gap:1rem}
+  .dash-section{margin-bottom:1.25rem}
+  .dash-section-title{font-size:.9rem}
+
+  /* Emp card mobile */
+  .emp-card{padding:.7rem}
+  .emp-row{flex-wrap:wrap;gap:.5rem;padding:.7rem 0}
+  .emp-info{flex-basis:calc(100% - 50px);min-width:0}
+  .emp-stats{width:100%;justify-content:space-around;padding-top:.4rem;border-top:1px solid var(--glass-border);margin-top:.2rem}
+  .emp-num{min-width:unset;flex:1}
+  .emp-num .n{font-size:.9rem}
+  .emp-biz-chips{margin-top:.2rem}
+  .emp-alert{font-size:.75rem;padding:.45rem .7rem}
+
+  /* Calendar mobile */
+  .cal-mini{padding:.7rem}
+  .cal-day{padding:.45rem 0}
+  .cal-day-item{padding:.35rem .5rem;font-size:.74rem;min-height:36px;align-items:center}
+
+  /* Biz intel: horizontal scroll */
+  .biz-intel-grid{display:flex!important;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;gap:.6rem;padding-bottom:.5rem;scrollbar-width:none;grid-template-columns:unset!important}
+  .biz-intel-grid::-webkit-scrollbar{display:none}
+  .biz-intel-card{min-width:240px;flex-shrink:0;scroll-snap-align:start}
+
+  /* Styly section header buttons */
+  .dash-section-title[style*="flex"]{flex-direction:column;align-items:flex-start!important;gap:.6rem!important}
+  .dash-section-title[style*="flex"]>div{width:100%;display:flex;gap:.4rem}
+  .dash-section-title[style*="flex"]>div>*{flex:1;text-align:center;justify-content:center;min-height:40px;display:inline-flex;align-items:center;font-size:.78rem!important;padding:.5rem .6rem!important}
+
+  /* Trend cards */
+  .trend-card{padding:.7rem .85rem}
+  .trend-text{font-size:.8rem}
+  .trend-action{padding:.4rem .7rem;font-size:.74rem;min-height:36px;display:inline-flex;align-items:center}
+
+  /* Report button */
+  .report-btn{min-height:52px;font-size:.9rem;border-radius:14px}
+
+  /* AI section mobile */
+  .ai-bar{gap:.4rem}
+  .ai-bar input{min-height:48px;font-size:.9rem;border-radius:14px;padding:.7rem 1rem}
+  .ai-bar button{min-height:48px;border-radius:14px;padding:.7rem 1.1rem;font-size:.85rem}
+  .ai-chips{gap:.35rem;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:.3rem}
+  .ai-chips::-webkit-scrollbar{display:none}
+  .ai-chip{flex-shrink:0;min-height:38px;display:inline-flex;align-items:center;padding:.4rem .85rem;font-size:.8rem}
+  .ai-answer{padding:.85rem 1rem;font-size:.86rem}
+  .chat-toggle{font-size:.84rem;min-height:44px;display:inline-flex;align-items:center}
+
+  /* Chat mobile */
+  .chat-messages{height:300px}
+  .chat-msg{max-width:88%;font-size:.86rem}
+  .chat-input input{min-height:46px;font-size:.86rem}
+  .chat-input button{min-height:46px;padding:.5rem 1rem}
+  .chat-header{flex-wrap:wrap;gap:.4rem}
+  .chat-header select{min-height:36px;flex:1}
+  .chat-header button{min-height:36px}
+
+  /* Report modal */
+  .report-modal{padding:1rem;border-radius:18px;max-height:92vh}
+  .report-actions{flex-direction:column;gap:.4rem}
+  .report-actions button{width:100%;min-height:46px;text-align:center;border-radius:12px;font-size:.84rem}
+
+  /* Page header */
+  .page-header{margin-bottom:1rem}
+  .page-header h1{font-size:1.2rem}
+  .page-header p{font-size:.82rem}
+
+  /* Content area padding */
+  .content{padding:.85rem!important;padding-top:3.6rem!important}
+}
+
+/* Extra small screens */
+@media(max-width:380px){
+  .stats-row .stat-box{min-width:145px}
+  .biz-intel-card{min-width:220px}
+  .content{padding:.65rem!important;padding-top:3.4rem!important}
+  .ai-bar{flex-direction:column}
+  .ai-bar button{width:100%}
+}
+
+/* Styly section header */
+.styly-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem}
+.styly-header-actions{display:flex;gap:.5rem}
+.styly-btn-ai,.styly-btn-go{padding:.45rem .85rem;border-radius:10px;font-size:.78rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:.3rem;min-height:38px;transition:all .2s ease}
+.styly-btn-ai{border:1px solid var(--glass-border);background:var(--glass);color:var(--fg);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.styly-btn-ai:hover{border-color:var(--accent);background:rgba(139,92,246,.08)}
+.styly-btn-go{background:#EC4899;color:#fff;border:none;text-decoration:none}
+.styly-btn-go:hover{background:#db2777}
+@media(max-width:768px){
+  .styly-header{flex-direction:column;align-items:flex-start;gap:.6rem}
+  .styly-header-actions{width:100%;gap:.4rem}
+  .styly-btn-ai,.styly-btn-go{flex:1;justify-content:center;min-height:44px;border-radius:12px;font-size:.82rem}
+}
+
+/* ========== KPI & CHARTS (all screens) ========== */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.6rem;margin-bottom:1.25rem}
+.kpi-card{background:var(--card);border:1px solid var(--glass-border);border-radius:16px;padding:1rem;text-align:center;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);transition:all .3s ease}
 .kpi-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.15)}
 .kpi-label{font-size:.68rem;color:var(--mt);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
 .kpi-value{font-size:1.8rem;font-weight:800;margin:.2rem 0}
@@ -29,7 +134,7 @@
 /* Two-col sections */
 .dash-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem}
 .dash-grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:1rem;margin-bottom:1rem}
-.dash-panel{background:var(--card);border:1px solid var(--glass-border);border-radius:14px;padding:1rem;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.dash-panel{background:var(--card);border:1px solid var(--glass-border);border-radius:16px;padding:1rem;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
 .dash-panel-title{font-weight:700;color:var(--fg);font-size:.85rem;margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem}
 
 /* Progress rows */
@@ -44,53 +149,62 @@
 
 /* User load badges */
 .user-badges{display:flex;gap:.35rem;font-size:.68rem;flex-wrap:wrap}
-.user-badge{padding:1px 5px;border-radius:4px;font-weight:600}
+.user-badge{padding:2px 6px;border-radius:5px;font-weight:600}
 .user-badge.red{background:rgba(239,68,68,.12);color:#EF4444}
 .user-badge.yellow{background:rgba(245,158,11,.12);color:#F59E0B}
 .user-badge.green{background:rgba(16,185,129,.12);color:#10B981}
 
 /* Urgent task card */
-.urgent-item{display:flex;align-items:flex-start;gap:.6rem;padding:.6rem;border-radius:10px;border-left:3px solid #EF4444;background:rgba(239,68,68,.04);margin-bottom:.5rem}
+.urgent-item{display:flex;align-items:flex-start;gap:.6rem;padding:.7rem;border-radius:12px;border-left:3px solid #EF4444;background:rgba(239,68,68,.04);margin-bottom:.5rem}
 .urgent-item .urgent-body{flex:1;min-width:0}
-.urgent-item .urgent-id{font-size:.7rem;font-weight:700;color:#EC4899}
-.urgent-item .urgent-desc{font-size:.8rem;color:var(--fg);margin-top:.15rem;line-height:1.35}
-.urgent-item .urgent-meta{font-size:.68rem;color:var(--mt);margin-top:.25rem}
-.urgent-item select{padding:.35rem .5rem;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass);color:var(--fg);font-size:.72rem;cursor:pointer;flex-shrink:0;min-height:36px;-webkit-appearance:none}
+.urgent-item .urgent-id{font-size:.72rem;font-weight:700;color:#EC4899}
+.urgent-item .urgent-desc{font-size:.82rem;color:var(--fg);margin-top:.15rem;line-height:1.4}
+.urgent-item .urgent-meta{font-size:.7rem;color:var(--mt);margin-top:.3rem;display:flex;align-items:center;gap:.25rem;flex-wrap:wrap}
+.urgent-item select{padding:.4rem .6rem;border-radius:10px;border:1px solid var(--glass-border);background:var(--glass);color:var(--fg);font-size:.76rem;cursor:pointer;flex-shrink:0;min-height:38px}
 
-/* Priority chart (horizontal bars) */
-.priority-row{margin-bottom:.85rem}
-.priority-header{display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:.35rem;align-items:center}
+/* Priority chart */
+.priority-row{margin-bottom:.9rem}
+.priority-header{display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:.4rem;align-items:center}
 .priority-label{font-weight:600;display:flex;align-items:center;gap:.3rem}
 .priority-count{color:var(--mt);font-weight:500}
 
 /* Activity feed */
-.activity-item{display:flex;align-items:center;gap:.5rem;padding:.5rem 0;border-bottom:1px solid var(--glass-border)}
+.activity-item{display:flex;align-items:center;gap:.5rem;padding:.55rem 0;border-bottom:1px solid var(--glass-border)}
 .activity-item:last-child{border-bottom:none}
-.activity-badge{padding:3px 8px;border-radius:6px;font-size:.65rem;font-weight:700;white-space:nowrap;flex-shrink:0}
-.activity-id{font-size:.75rem;font-weight:600;color:#EC4899;flex-shrink:0}
-.activity-desc{font-size:.78rem;color:var(--fg);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.activity-date{font-size:.68rem;color:var(--mt);flex-shrink:0}
+.activity-badge{padding:4px 10px;border-radius:8px;font-size:.68rem;font-weight:700;white-space:nowrap;flex-shrink:0}
+.activity-id{font-size:.78rem;font-weight:600;color:#EC4899;flex-shrink:0}
+.activity-desc{font-size:.8rem;color:var(--fg);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.activity-date{font-size:.7rem;color:var(--mt);flex-shrink:0}
 
-/* ========== MOBILE RESPONSIVE ========== */
+/* ========== KPI & GRID MOBILE ========== */
 @media(max-width:768px){
-  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:.5rem}
+  .kpi-grid{display:flex!important;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;gap:.5rem;padding-bottom:.4rem;scrollbar-width:none;grid-template-columns:unset!important}
+  .kpi-grid::-webkit-scrollbar{display:none}
+  .kpi-card{min-width:130px;flex-shrink:0;scroll-snap-align:start;padding:.85rem .7rem;border-radius:14px}
   .kpi-value{font-size:1.5rem}
-  .kpi-card{padding:.75rem}
+  .kpi-label{font-size:.65rem}
   .donut{width:56px;height:56px}
   .donut-center{font-size:.9rem}
+
   .dash-grid-2,.dash-grid-2-1{grid-template-columns:1fr}
-  .dash-panel{padding:.85rem}
-  .progress-name{max-width:45%;font-size:.75rem}
-  .urgent-item{flex-wrap:wrap;gap:.4rem}
-  .urgent-item select{width:100%;min-height:40px;font-size:.78rem}
-  .activity-item{flex-wrap:wrap;gap:.3rem}
-  .activity-desc{order:3;width:100%;white-space:normal;-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+  .dash-panel{padding:.85rem;border-radius:14px}
+  .dash-panel-title{font-size:.85rem}
+  .progress-name{max-width:50%;font-size:.76rem}
+  .progress-track,.progress-stacked{height:10px;border-radius:5px}
+
+  .urgent-item{flex-direction:column;gap:.5rem}
+  .urgent-item select{width:100%;min-height:44px;font-size:.82rem;border-radius:12px}
+
+  .activity-item{flex-direction:column;align-items:flex-start;gap:.3rem;padding:.6rem 0}
+  .activity-item>:first-child{order:0}
+  .activity-desc{white-space:normal;line-height:1.4}
+  .activity-date{align-self:flex-end;margin-top:-.4rem}
 }
-@media(max-width:480px){
-  .kpi-grid{grid-template-columns:1fr 1fr;gap:.4rem}
+@media(max-width:380px){
+  .kpi-card{min-width:120px;padding:.7rem .6rem}
   .kpi-value{font-size:1.3rem}
-  .kpi-label{font-size:.62rem}
-  .dash-panel-title{font-size:.8rem}
+  .donut{width:48px;height:48px}
+  .donut-center{font-size:.8rem}
 }
 </style>
 </head>
@@ -210,11 +324,11 @@ function renderDashboard(){
 
     <!-- STYLY TASKS INTEGRATION -->
     <div class="dash-section">
-      <div class="dash-section-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
-        <span><i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Tareas STYLY — Panel de Desarrollo</span>
-        <div style="display:flex;gap:.5rem">
-          <button onclick="askAI('Dame un análisis completo del estado de las tareas de desarrollo de Styly: bottlenecks, prioridades y recomendaciones')" style="padding:.4rem .8rem;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass);color:var(--fg);font-size:.75rem;cursor:pointer;font-weight:600"><i class="feather" data-icon="cpu" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Analizar con IA</button>
-          <a href="/styly.html" onclick="localStorage.setItem('styly_tab','tareas')" style="padding:.4rem .8rem;border-radius:8px;background:#EC4899;color:#fff;font-size:.75rem;text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:.3rem"><i class="feather" data-icon="monitor" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Ir a STYLY</a>
+      <div class="dash-section-title styly-header">
+        <span><i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Tareas STYLY</span>
+        <div class="styly-header-actions">
+          <button onclick="askAI('Dame un análisis completo del estado de las tareas de desarrollo de Styly: bottlenecks, prioridades y recomendaciones')" class="styly-btn-ai"><i class="feather" data-icon="cpu" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Analizar</button>
+          <a href="/styly.html" onclick="localStorage.setItem('styly_tab','tareas')" class="styly-btn-go"><i class="feather" data-icon="monitor" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> STYLY</a>
         </div>
       </div>
       <div id="stylyTasksArea"></div>
