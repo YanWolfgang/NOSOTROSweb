@@ -70,7 +70,7 @@ const FORMATS=[
    desc:'Slides con hook, contexto y CTA para Instagram',
    badges:['Web Search','Angulos'],steps:['Noticias','Angulos','Contenido'],
    scope:'mx',ns:1,ac:5,ma:2},
-  {id:'noticias_hoy',name:'Noticias de Hoy',icon:'🌍',color:'#1DA1F2',
+  {id:'noticias_hoy',name:'Noticias de Hoy',icon:'<i class="feather" data-icon="globe" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#1DA1F2',
    desc:'Resumen diario de noticias internacionales y Mexico',
    badges:['Web Search'],steps:['Noticias','Contenido'],
    scope:'both',ns:4,ac:0,ma:0},
@@ -86,6 +86,10 @@ const FORMATS=[
    desc:'Guion completo 12-15 min con timestamps y clips',
    badges:['Web Search','Angulos','Estructuras'],steps:['Noticias','Angulos','Estructura','Contenido'],
    scope:'mx',ns:1,ac:6,ma:3},
+  {id:'noticia_manual',name:'Noticia Manual',icon:'<i class="feather" data-icon="edit" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#06B6D4',
+   desc:'Pega la noticia, elige formato y genera contenido',
+   badges:['Angulos','Formatos'],steps:['TextInput','FormatSel','Angulos','Contenido'],
+   scope:null,ns:0,ac:5,ma:2},
   {id:'copy',name:'Copy & Titulo',icon:'<i class="feather" data-icon="edit-3" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#F59E0B',
    desc:'Copy para redes y titulo YouTube desde cualquier texto',
    badges:[],steps:['Texto','Contenido'],
@@ -102,7 +106,8 @@ const CATS=[
 // ========== STATE ==========
 let S={view:'home',fid:null,step:0,phase:'input',ltxt:'',
   sq:'',cat:null,news:[],sn:new Set(),angles:[],sa:new Set(),
-  structs:[],ss:null,result:'',itxt:'',err:null,selectedIds:new Set()};
+  structs:[],ss:null,result:'',itxt:'',err:null,selectedIds:new Set(),
+  manual_news:'',manual_format:null};
 let modTab='generar';
 let newsPagination={page:1,pageSize:8,total:0,totalPages:0};
 
@@ -254,6 +259,8 @@ function rContent(f){
     if(S.news.length>0)return rNewsSel(f);
     return`<div class="actions"><button class="btn" onclick="retryFetch()">Reintentar carga de noticias</button></div>`;
   }
+  if(st==='TextInput')return rManualNewsIn();
+  if(st==='FormatSel')return rManualFormatSel();
   if(st==='Angulos')return rAngSel(f);
   if(st==='Estructura')return rStrSel();
   if(st==='Texto')return rTextIn();
@@ -290,14 +297,15 @@ function rNewsSel(f){
 
 function rAngSel(f){
   const ok=S.sa.size>=1&&S.sa.size<=f.ma;
-  const lbl=f.id==='youtube'?'Generar estructuras':'Generar contenido';
+  const lbl=f.id==='youtube'?'Generar estructuras':f.id==='noticia_manual'?'Generar contenido':'Generar contenido';
+  const nextFn=f.id==='noticia_manual'?'goManualFinalContent()':f.id==='youtube'?'goStructs()':'goFinalContent()';
   return`<p class="sel-hint">Selecciona 1-${f.ma} angulo${f.ma>1?'s':''} (${S.sa.size}/${f.ma})</p>
     <div class="sel-list">${S.angles.map((a,i)=>`
       <div class="sel-card ${S.sa.has(i)?'on':''}" onclick="tgA(${i})">
         <div class="sel-check">${S.sa.has(i)?'<i class="feather" data-icon="check" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>':''}</div>
         <div class="sel-body"><div class="sel-title">${esc(a.name)}</div><div class="sel-desc">${esc(a.description)}</div></div>
       </div>`).join('')}</div>
-    <div class="actions"><button class="btn" ${ok?'':'disabled'} onclick="goNext()">${lbl}</button></div>`;
+    <div class="actions"><button class="btn" ${ok?'':'disabled'} onclick="${nextFn}">${lbl}</button></div>`;
 }
 
 function rStrSel(){
@@ -315,6 +323,27 @@ function rStrSel(){
 function rTextIn(){
   return`<textarea id="ti" class="ta" placeholder="Pega aqui el texto para generar copy y titulo..." oninput="S.itxt=this.value"></textarea>
     <div class="actions"><button class="btn" onclick="goCopy()">Generar copy y titulo</button></div>`;
+}
+
+function rManualNewsIn(){
+  return`<textarea id="mn" class="ta" placeholder="Pega aqui la noticia que quieras convertir en contenido..." oninput="S.manual_news=this.value"></textarea>
+    <div class="actions"><button class="btn" ${S.manual_news.trim()?'':'disabled'} onclick="goManualFormatSel()">Siguiente paso</button></div>`;
+}
+
+function rManualFormatSel(){
+  const allowed=['carrusel','sketch','nr','youtube'];
+  const allowedFormats=FORMATS.filter(f=>allowed.includes(f.id));
+  const ok=S.manual_format!==null;
+  return`<p class="sel-hint">Elige el formato para tu noticia</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem">
+      ${allowedFormats.map((fmt,i)=>`
+        <div class="fmt-card ${S.manual_format===fmt.id?'selected':''}' onclick="selManualFormat('${fmt.id}')" style="--c:${fmt.color};cursor:pointer;border:2px solid ${S.manual_format===fmt.id?fmt.color:'transparent'};background:${S.manual_format===fmt.id?'rgba(255,255,255,0.05)':''}">
+          <div class="fmt-icon">${fmt.icon}</div>
+          <div class="fmt-name">${fmt.name}</div>
+          <div class="fmt-desc" style="font-size:.75rem">${fmt.desc}</div>
+        </div>`).join('')}
+    </div>
+    <div class="actions"><button class="btn" ${ok?'':'disabled'} onclick="goManualAngles()">Generar angulos</button></div>`;
 }
 
 function rResult(){
@@ -336,15 +365,17 @@ function formatNewsDate(dateStr){
 }
 
 // ========== HANDLERS ==========
-function goHome(){S={view:'home',fid:null,step:0,phase:'input',ltxt:'',sq:'',cat:null,news:[],sn:new Set(),angles:[],sa:new Set(),structs:[],ss:null,result:'',itxt:'',err:null,selectedIds:new Set()};newsPagination={page:1,pageSize:8,total:0,totalPages:0};render()}
+function goHome(){S={view:'home',fid:null,step:0,phase:'input',ltxt:'',sq:'',cat:null,news:[],sn:new Set(),angles:[],sa:new Set(),structs:[],ss:null,result:'',itxt:'',err:null,selectedIds:new Set(),manual_news:'',manual_format:null};newsPagination={page:1,pageSize:8,total:0,totalPages:0};render()}
 function clErr(){S.err=null;render()}
 function setCat(c){if(S.cat===c)return;S.cat=c;S.selectedIds=new Set();S.err=null;newsPagination.page=1;fetchN(F().scope,S.sq||undefined)}
 function goFmt(id){
   S.view='flow';S.fid=id;S.step=0;S.news=[];S.sn=new Set();S.angles=[];S.sa=new Set();
   S.structs=[];S.ss=null;S.result='';S.err=null;S.sq='';S.cat=null;S.itxt='';S.selectedIds=new Set();
+  S.manual_news='';S.manual_format=null;
   newsPagination={page:1,pageSize:8,total:0,totalPages:0};
   const f=F();
   if(f.id==='copy'){S.phase='input';render();return}
+  if(f.id==='noticia_manual'){S.phase='input';render();return}
   S.phase='loading';S.ltxt='Cargando noticias del dia...';render();fetchN(f.scope);
 }
 function retryFetch(){S.err=null;const f=F();newsPagination.page=1;S.phase='loading';S.ltxt='Cargando noticias...';render();fetchN(f.scope,S.sq||undefined)}
@@ -429,6 +460,46 @@ async function goCopy(){
   const prompt=`Texto:\n${t}\n\nGenera:\n- Copy redes sociales (280 caracteres maximo, con emojis)\n- Titulo YouTube SEO`;
   try{const txt=await apiGen(prompt,SYS,f.id);S.result=txt;S.phase='result'}
   catch(e){S.err=e.message;S.step=0;S.phase='input'}render();
+}
+
+function goManualFormatSel(){
+  const t=S.manual_news.trim();
+  if(!t){S.err='Por favor pega una noticia';render();return}
+  S.step=F().steps.indexOf('FormatSel');
+  S.phase='input';
+  render();
+}
+
+function selManualFormat(fmt){
+  S.manual_format=fmt;
+  render();
+}
+
+async function goManualAngles(){
+  const f=F(),news=S.manual_news.trim();
+  if(!S.manual_format){S.err='Selecciona un formato';render();return}
+  const fmt=FORMATS.find(x=>x.id===S.manual_format);
+  if(!fmt){S.err='Formato inválido';render();return}
+  S.step=f.steps.indexOf('Angulos');S.phase='loading';S.ltxt='Generando angulos narrativos...';render();
+  const prompt=`Noticia:\n${news}\n\nGenera ${fmt.ac} angulos narrativos distintos. Responde SOLO con JSON valido:\n{"angles":[{"id":1,"name":"nombre corto","description":"descripcion en 1 linea"}]}`;
+  try{const txt=await apiGen(prompt);const p=pJ(txt);if(!p?.angles)throw new Error('No se pudieron parsear angulos');S.angles=p.angles;S.phase='select'}
+  catch(e){S.err=e.message;S.step=f.steps.indexOf('FormatSel');S.phase='select'}render();
+}
+
+async function goManualFinalContent(){
+  const f=F(),news=S.manual_news.trim(),fmt=FORMATS.find(x=>x.id===S.manual_format),ang=selA();
+  S.step=f.steps.length-1;S.phase='loading';S.ltxt='Generando contenido final...';render();
+  const nt=news;
+  const at=ang.map(a=>a.name).join(', ');
+  let prompt='';
+  switch(S.manual_format){
+    case'carrusel':prompt=`Noticia: ${nt}\nAngulos elegidos: ${at}\n\nGenera un carrusel de Instagram con estos elementos exactos:\n- Slide 1: Hook (gancho impactante)\n- Slide 2: Contexto breve\n- Slide 3: Contexto amplio (maximo 200 caracteres)\n- Slide 4: CTA (llamada a la accion)\n- Copy Instagram: 500 caracteres con emojis y hashtags\n- Copy Twitter/X: maximo 280 caracteres`;break;
+    case'sketch':prompt=`Noticia: ${nt}\nAngulos elegidos: ${at}\n\nGenera un sketch con estos elementos:\n- Parte 1: Humor y satira\n- Parte 2: Contexto serio\n- Indicaciones visuales para produccion\n- Copy redes sociales: 280 caracteres\n- Titulo YouTube`;break;
+    case'nr':prompt=`Noticia: ${nt}\nAngulos elegidos: ${at}\n\nGenera una Nota de Investigacion con estos elementos:\n- Hook (gancho que atrape)\n- Contexto general\n- Contexto a fondo\n- Diferentes posturas sobre el tema\n- Cierre\n- Copy redes sociales: 280 caracteres\n- Titulo YouTube`;break;
+    case'youtube':prompt=`Noticia: ${nt}\nAngulos elegidos: ${at}\n\nGenera un guion YouTube completo 12-15 minutos con esta estructura:\n\n# TITULO YOUTUBE (SEO optimizado)\n\n## [00:00] Introduccion\n(Gancho impactante y contexto inicial)\n\n## [MM:SS] Desarrollo\n(Explicacion detallada, datos, analisis)\n\n## [MM:SS] Conclusion\n(Resumen y reflexion final)\n\n---\n## CLIPS CORTOS\n4 clips con: titulo, duracion, extracto y copy para redes (280 caracteres maximo)`;break;
+  }
+  try{const txt=await apiGen(prompt,SYS,S.manual_format);S.result=txt;S.phase='result'}
+  catch(e){S.err=e.message;S.step=f.steps.indexOf('Angulos');S.phase='select'}render();
 }
 
 function buildFinal(f,news,ang,str){
