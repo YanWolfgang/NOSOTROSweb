@@ -1,9 +1,25 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const { verifyToken, requireBusiness } = require('../middleware/auth');
 const { generate } = require('../services/ai');
 const { pool } = require('../db/database');
 const router = express.Router();
+
+// Multer config for task file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, '..', 'uploads', 'styly');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname.replace(/\s+/g, '_')}`);
+  }
+});
+const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
 router.use(verifyToken, requireBusiness('styly'));
 
@@ -510,7 +526,7 @@ router.post('/approve', async (req, res) => {
 router.get('/projects', async (req, res) => {
   try {
     const { rows } = await pool.query(
-      'SELECT id, nombre AS name, descripcion AS description, color, estado, propietario_id, equipo_id, fecha_inicio, fecha_fin, permisos, order_index, created_at FROM styly_projects ORDER BY order_index ASC'
+      'SELECT id, nombre AS name, descripcion AS description, icono, color, estado, propietario_id, equipo_id, fecha_inicio, fecha_fin, permisos, order_index, created_at FROM styly_projects ORDER BY order_index ASC'
     );
     res.json({ projects: rows });
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -518,26 +534,37 @@ router.get('/projects', async (req, res) => {
 
 router.post('/projects', async (req, res) => {
   try {
-    const { name, description, color } = req.body;
+    const { name, description, icono, color } = req.body;
     if (!name) return res.status(400).json({ error: 'Nombre requerido' });
     const { rows } = await pool.query(
-      'INSERT INTO styly_projects (nombre, descripcion, color, order_index) VALUES ($1, $2, $3, (SELECT COALESCE(MAX(order_index), 0) + 1 FROM styly_projects)) RETURNING id, nombre AS name, descripcion AS description, color, estado, order_index, created_at',
-      [name, description || null, color || '#3B82F6']
+      `INSERT INTO styly_projects (nombre, descripcion, icono, color, order_index) VALUES ($1, $2, $3, $4, (SELECT COALESCE(MAX(order_index), 0) + 1 FROM styly_projects)) RETURNING id, nombre AS name, descripcion AS description, icono, color, estado, order_index, created_at`,
+      [name, description || null, icono || 'folder', color || '#3B82F6']
     );
+    res.json({ project: rows[0] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.put('/projects/:id', async (req, res) => {
+  try {
+    const { name, description, icono, color } = req.body;
+    const updates = []; const params = []; let i = 1;
+    if (name !== undefined) { updates.push(`nombre = $${i++}`); params.push(name); }
+    if (description !== undefined) { updates.push(`descripcion = $${i++}`); params.push(description); }
+    if (icono !== undefined) { updates.push(`icono = $${i++}`); params.push(icono); }
+    if (color !== undefined) { updates.push(`color = $${i++}`); params.push(color); }
+    if (updates.length === 0) return res.status(400).json({ error: 'Nada que actualizar' });
+    params.push(req.params.id);
+    const { rows } = await pool.query(
+      `UPDATE styly_projects SET ${updates.join(', ')} WHERE id = $${i} RETURNING id, nombre AS name, descripcion AS description, icono, color, estado, order_index, created_at`,
+      params
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Proyecto no encontrado' });
     res.json({ project: rows[0] });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 router.delete('/projects/:id', async (req, res) => {
   try {
-    const { rows: projectRows } = await pool.query(
-      'SELECT COUNT(*) as task_count FROM styly_tasks WHERE proyecto_id = $1',
-      [req.params.id]
-    );
-    const taskCount = parseInt(projectRows[0].task_count);
-    if (taskCount > 0) {
-      return res.status(400).json({ error: `No se puede eliminar. El proyecto tiene ${taskCount} tarea(s). Elimina las tareas primero.` });
-    }
     const { rowCount } = await pool.query(
       'DELETE FROM styly_projects WHERE id = $1',
       [req.params.id]
@@ -720,13 +747,13 @@ router.post('/users', async (req, res) => {
 
 router.post('/tasks', async (req, res) => {
   try {
-    const { task_id, titulo, descripcion, proyecto_id, seccion, prioridad, asignados, fecha_inicio, fecha_vencimiento } = req.body;
+    const { task_id, titulo, descripcion, notas, proyecto_id, seccion, prioridad, asignados, fecha_inicio, fecha_vencimiento } = req.body;
     if (!task_id || !titulo) return res.status(400).json({ error: 'Faltan campos requeridos' });
 
     // Create task
     const { rows } = await pool.query(
-      'INSERT INTO styly_tasks (task_id, titulo, descripcion, proyecto_id, seccion, prioridad, estado, creado_por, fecha_inicio, fecha_vencimiento) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
-      [task_id, titulo, descripcion || null, proyecto_id || null, seccion || null, prioridad || 'Media', 'Pendiente', req.user.id, fecha_inicio || null, fecha_vencimiento || null]
+      'INSERT INTO styly_tasks (task_id, titulo, descripcion, notas, proyecto_id, seccion, prioridad, estado, creado_por, fecha_inicio, fecha_vencimiento) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
+      [task_id, titulo, descripcion || null, notas || null, proyecto_id || null, seccion || null, prioridad || 'Media', 'Pendiente', req.user.id, fecha_inicio || null, fecha_vencimiento || null]
     );
 
     const newTask = rows[0];
@@ -747,13 +774,14 @@ router.post('/tasks', async (req, res) => {
 
 router.put('/tasks/:id', async (req, res) => {
   try {
-    const { titulo, descripcion, estado, prioridad, proyecto_id, seccion, progreso, fecha_inicio, fecha_vencimiento, position, etiquetas } = req.body;
+    const { titulo, descripcion, notas, estado, prioridad, proyecto_id, seccion, progreso, fecha_inicio, fecha_vencimiento, position, etiquetas } = req.body;
     const updates = [];
     const params = [];
     let paramCount = 1;
 
     if (titulo !== undefined) { updates.push(`titulo = $${paramCount++}`); params.push(titulo); }
     if (descripcion !== undefined) { updates.push(`descripcion = $${paramCount++}`); params.push(descripcion); }
+    if (notas !== undefined) { updates.push(`notas = $${paramCount++}`); params.push(notas); }
     if (estado !== undefined) { updates.push(`estado = $${paramCount++}`); params.push(estado); }
     if (prioridad !== undefined) { updates.push(`prioridad = $${paramCount++}`); params.push(prioridad); }
     if (proyecto_id !== undefined) { updates.push(`proyecto_id = $${paramCount++}`); params.push(proyecto_id); }
@@ -779,11 +807,95 @@ router.put('/tasks/:id', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// Bulk delete all tasks and projects (must be before /tasks/:id)
+router.delete('/tasks/bulk-delete', async (req, res) => {
+  try {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('DELETE FROM styly_task_asignados');
+      await client.query('DELETE FROM styly_task_observadores');
+      await client.query('DELETE FROM styly_subtasks');
+      await client.query('DELETE FROM styly_comentarios');
+      const tasksDel = await client.query('DELETE FROM styly_tasks');
+      const projDel = await client.query('DELETE FROM styly_projects');
+      await client.query('COMMIT');
+      res.json({ ok: true, tasks_deleted: tasksDel.rowCount, projects_deleted: projDel.rowCount });
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 router.delete('/tasks/:id', async (req, res) => {
   try {
     const { rowCount } = await pool.query('DELETE FROM styly_tasks WHERE id = $1', [req.params.id]);
     if (!rowCount) return res.status(404).json({ error: 'Tarea no encontrada' });
     res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Bulk create tasks
+router.post('/tasks/bulk-create', async (req, res) => {
+  try {
+    const { tasks } = req.body;
+    if (!tasks || !Array.isArray(tasks)) {
+      return res.status(400).json({ error: 'Se requiere array de tareas en formato: { task_id, titulo, descripcion?, proyecto_id, seccion?, prioridad?, fecha_vencimiento?, asignados? }' });
+    }
+
+    const client = await pool.connect();
+    let createdCount = 0;
+    try {
+      await client.query('BEGIN');
+
+      for (const task of tasks) {
+        const { task_id, titulo, descripcion, notas, proyecto_id, seccion, prioridad, fecha_vencimiento, fecha_inicio, asignados } = task;
+
+        if (!task_id || !titulo || !proyecto_id) {
+          throw new Error(`Tarea incompleta: se requieren task_id, titulo, proyecto_id. Recibido: ${JSON.stringify(task)}`);
+        }
+
+        // Insert task
+        const taskRes = await client.query(
+          `INSERT INTO styly_tasks (task_id, titulo, descripcion, notas, proyecto_id, seccion, prioridad, fecha_inicio, fecha_vencimiento, estado, progreso)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'Pendiente', 0)
+           ON CONFLICT (task_id) DO NOTHING
+           RETURNING id`,
+          [task_id, titulo, descripcion || null, notas || null, proyecto_id, seccion || null, prioridad || 'Media', fecha_inicio || null, fecha_vencimiento || null]
+        );
+
+        if (taskRes.rows.length > 0) {
+          const newTaskId = taskRes.rows[0].id;
+          createdCount++;
+
+          // Assign users if provided
+          if (asignados && Array.isArray(asignados)) {
+            for (const userName of asignados) {
+              // Find user by name
+              const userRes = await client.query('SELECT id FROM users WHERE name = $1', [userName]);
+              if (userRes.rows.length > 0) {
+                const userId = userRes.rows[0].id;
+                await client.query(
+                  'INSERT INTO styly_task_asignados (task_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+                  [newTaskId, userId]
+                );
+              }
+            }
+          }
+        }
+      }
+
+      await client.query('COMMIT');
+      res.json({ ok: true, created: createdCount, total_attempted: tasks.length });
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -1135,6 +1247,42 @@ router.delete('/comentarios/:id', async (req, res) => {
       [req.params.id, req.user.id]
     );
     if (!rowCount) return res.status(404).json({ error: 'Comentario no encontrado o sin permisos' });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ========== STYLY TASK FILE ATTACHMENTS ==========
+router.get('/tasks/:taskId/archivos', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT a.*, u.name as subido_por_nombre FROM styly_task_archivos a LEFT JOIN users u ON a.subido_por = u.id WHERE a.task_id = $1 ORDER BY a.created_at DESC',
+      [req.params.taskId]
+    );
+    res.json({ archivos: rows });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/tasks/:taskId/archivos', upload.array('archivos', 5), async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'No se enviaron archivos' });
+    const results = [];
+    for (const file of req.files) {
+      const { rows } = await pool.query(
+        'INSERT INTO styly_task_archivos (task_id, nombre, tipo, tamano, ruta, subido_por) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+        [req.params.taskId, file.originalname, file.mimetype, file.size, `/uploads/styly/${file.filename}`, req.user.id]
+      );
+      results.push(rows[0]);
+    }
+    res.json({ archivos: results });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.delete('/archivos/:id', async (req, res) => {
+  try {
+    const { rows } = await pool.query('DELETE FROM styly_task_archivos WHERE id = $1 RETURNING ruta', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Archivo no encontrado' });
+    const filePath = path.join(__dirname, '..', rows[0].ruta);
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });

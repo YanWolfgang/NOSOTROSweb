@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
 :root{--sy:#EC4899;--sy-bg:rgba(236,72,153,.06);--sy-border:rgba(236,72,153,.2);--sy-dark:#BE185D}
 /* STYLY unified header bar */
@@ -17,11 +18,7 @@
 .brand-text{display:flex;flex-direction:column;gap:0}
 .brand-text h1{margin:0;font-size:1.1rem;color:var(--sy);font-weight:700}
 .brand-text p{margin:0;font-size:.7rem;color:var(--mt);font-weight:500}
-.module-tabs{flex:1;display:flex}
-/* Tab navigation bar */
-.tab-group-unified{display:flex;align-items:center;gap:0;flex:1;flex-wrap:nowrap}
-.tabs-section-group{display:flex;gap:.3rem;align-items:center}
-.tabs-divider{width:1px;height:24px;background:var(--glass-border);margin:0 .6rem}
+.module-tabs{flex:1;display:grid;grid-template-columns:repeat(6,1fr);gap:.3rem}
 .module-tab{display:inline-flex;align-items:center;gap:.35rem;padding:10px 20px;border-radius:12px;border:1px solid rgba(139,92,246,0.3);background:rgba(139,92,246,0.15);color:var(--fg);font-size:.8rem;font-weight:500;cursor:pointer;transition:all 0.3s ease;white-space:nowrap;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .module-tab i{font-size:.95rem;min-width:18px}
 .module-tab:hover{background:rgba(139,92,246,0.3);border-color:rgba(139,92,246,0.5);color:var(--sy);box-shadow:0 4px 16px rgba(139,92,246,0.2)}
@@ -35,19 +32,19 @@
 @media(max-width:992px){
   .styly-header-bar{flex-wrap:wrap}
   .styly-brand{border-right:none;border-bottom:1px solid var(--glass-border);padding-right:0;padding-bottom:.75rem;width:100%;margin-bottom:.5rem}
-  .module-tabs{width:100%}
+  .module-tabs{width:100%;grid-template-columns:repeat(6,1fr)}
   .module-tab{padding:.4rem .6rem;font-size:.72rem}
 }
 @media(max-width:768px){
-  .styly-header-bar{gap:.5rem;padding:.5rem}
+  .styly-header-bar{gap:.5rem;padding:.75rem;border-radius:0;margin-left:-.7rem;margin-right:-.7rem;width:calc(100% + 1.4rem);border-left:none;border-right:none}
+  .styly-brand{border-right:none;border-bottom:1px solid var(--glass-border);padding-right:0;padding-bottom:.5rem;width:100%;margin-bottom:.5rem;justify-content:center}
   .brand-icon{width:36px;height:36px;font-size:1rem}
   .brand-text h1{font-size:.95rem}
   .brand-text p{font-size:.65rem}
-  .tabs-section-group{gap:.2rem}
-  .module-tab{padding:.35rem .5rem;font-size:.65rem}
-  .module-tab i{font-size:.85rem}
-  .tab-text{display:none}
-  .tabs-divider{margin:0 .3rem;height:18px}
+  .module-tabs{width:100%;grid-template-columns:repeat(3,1fr);gap:.3rem}
+  .module-tab{justify-content:center;flex-direction:column;gap:.15rem;padding:.5rem .25rem;font-size:.65rem;border-radius:8px}
+  .module-tab i{font-size:1.1rem}
+  .tab-text{display:block;font-size:.65rem;line-height:1}
 }
 .section-label{font-size:.78rem;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.5px;margin:1.25rem 0 .5rem;padding-bottom:.35rem;border-bottom:1px solid var(--glass-border)}
 /* Format cards */
@@ -201,39 +198,32 @@
           <p>Gestión para negocios de belleza</p>
         </div>
       </div>
-      <div class="module-tabs" id="modTabs">
-        <div class="tab-group-unified">
-          <div class="tabs-section-group">
-            <button class="module-tab active" onclick="setTab('generar')">
-              <i class="far fa-pen-to-square"></i>
-              <span class="tab-text">Generar</span>
-            </button>
-            <button class="module-tab" onclick="setTab('ideas')">
-              <i class="far fa-lightbulb"></i>
-              <span class="tab-text">Ideas</span>
-            </button>
-            <button class="module-tab" onclick="setTab('herramientas')">
-              <i class="far fa-wrench"></i>
-              <span class="tab-text">Herramientas</span>
-            </button>
-            <button class="module-tab" onclick="setTab('calendario')">
-              <i class="far fa-calendar"></i>
-              <span class="tab-text">Calendario</span>
-            </button>
-            <button class="module-tab" onclick="setTab('historial')">
-              <i class="far fa-clock"></i>
-              <span class="tab-text">Historial</span>
-            </button>
-          </div>
-          <div class="tabs-divider"></div>
-          <div class="tabs-section-group">
-            <button class="module-tab" onclick="setTab('tareas')">
-              <i class="far fa-check-square"></i>
-              <span class="tab-text">Tareas</span>
-            </button>
-          </div>
-        </div>
-      </div>
+      <nav class="module-tabs" id="modTabs" role="tablist" aria-label="Secciones de STYLY">
+        <button class="module-tab active" onclick="setTab('generar')" role="tab" aria-selected="true" aria-label="Generar contenido">
+          <i class="far fa-pen-to-square"></i>
+          <span class="tab-text">Generar</span>
+        </button>
+        <button class="module-tab" onclick="setTab('ideas')" role="tab" aria-selected="false" aria-label="Ideas pendientes">
+          <i class="far fa-lightbulb"></i>
+          <span class="tab-text">Ideas</span>
+        </button>
+        <button class="module-tab" onclick="setTab('herramientas')" role="tab" aria-selected="false" aria-label="Herramientas">
+          <i class="far fa-wrench"></i>
+          <span class="tab-text">Herramientas</span>
+        </button>
+        <button class="module-tab" onclick="setTab('calendario')" role="tab" aria-selected="false" aria-label="Calendario">
+          <i class="far fa-calendar"></i>
+          <span class="tab-text">Calendario</span>
+        </button>
+        <button class="module-tab" onclick="setTab('historial')" role="tab" aria-selected="false" aria-label="Historial">
+          <i class="far fa-clock"></i>
+          <span class="tab-text">Historial</span>
+        </button>
+        <button class="module-tab" onclick="setTab('tareas')" role="tab" aria-selected="false" aria-label="Tareas">
+          <i class="far fa-check-square"></i>
+          <span class="tab-text">Tareas</span>
+        </button>
+      </nav>
     </div>
     <div id="modContent"></div>
   </main>
@@ -341,12 +331,11 @@ function fmt$(n){return'$'+Number(n).toLocaleString('es-MX',{minimumFractionDigi
 // ========== TABS ==========
 function setTab(t){
   tab=t;
-  const tabMap={'<i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> tareas':'tareas','generar':'generar','ideas':'ideas','herramientas':'herramientas','calendario':'calendario','historial':'historial'};
   document.querySelectorAll('.module-tab').forEach(b=>{
-    const text=b.textContent.trim().toLowerCase();
-    const mapped=tabMap[text]||text;
-    if(mapped===t||text===t)b.classList.add('active');
-    else b.classList.remove('active');
+    const text=b.querySelector('.tab-text')?.textContent.trim().toLowerCase()||'';
+    const isActive=text===t;
+    b.classList.toggle('active',isActive);
+    b.setAttribute('aria-selected',isActive?'true':'false');
   });
   renderTab();
 }
@@ -716,14 +705,29 @@ function fbCp(text){const ta=document.createElement('textarea');ta.value=text;ta
 let tasks=[],projects=[],users=[],tasksLoaded=false;
 let taskView=localStorage.getItem('styly_task_view')||'list';let tasksSubView='tareas';let taskFilters={status:'',assigned:'',priority:'',project:'',search:'',dateRange:{start:null,end:null}};let selectedTask=null;
 
-const PROJECT_CONFIG={
-  'Landing Page':{emoji:'<i class="feather" data-icon="globe" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#84CC16',order:1},
-  'Módulo Panel':{emoji:'<i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#3B82F6',order:2},
-  'Afiliados Landing':{emoji:'<i class="feather" data-icon="users" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#EC4899',order:3},
-  'Panel Afiliados':{emoji:'<i class="feather" data-icon="star" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#F59E0B',order:4},
-  'Subdominios':{emoji:'🏪',color:'#10B981',order:5},
-  'Admin Panel':{emoji:'<i class="feather" data-icon="settings" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#8B5CF6',order:6}
-};
+// Icon bank for project icon selector
+const ICON_BANK=[
+  {id:'folder',name:'Carpeta'},{id:'briefcase',name:'Negocio'},{id:'layout',name:'Layout'},{id:'grid',name:'Grid'},
+  {id:'code',name:'Codigo'},{id:'terminal',name:'Terminal'},{id:'globe',name:'Web'},{id:'monitor',name:'Monitor'},
+  {id:'settings',name:'Config'},{id:'sliders',name:'Sliders'},{id:'tool',name:'Herramienta'},{id:'zap',name:'Rayo'},
+  {id:'users',name:'Usuarios'},{id:'user-check',name:'Usuario OK'},{id:'award',name:'Premio'},{id:'star',name:'Estrella'},
+  {id:'bar-chart-2',name:'Grafica'},{id:'trending-up',name:'Tendencia'},{id:'pie-chart',name:'Pastel'},{id:'activity',name:'Actividad'},
+  {id:'dollar-sign',name:'Dinero'},{id:'credit-card',name:'Tarjeta'},{id:'shopping-cart',name:'Tienda'},{id:'package',name:'Paquete'},
+  {id:'target',name:'Objetivo'},{id:'send',name:'Enviar'},{id:'share-2',name:'Compartir'},{id:'heart',name:'Corazon'},
+  {id:'layers',name:'Capas'},{id:'box',name:'Caja'}
+];
+const COLOR_PRESETS=[
+  {hex:'#8B5CF6',name:'Purpura'},{hex:'#3B82F6',name:'Azul'},{hex:'#06B6D4',name:'Cian'},{hex:'#10B981',name:'Verde'},
+  {hex:'#84CC16',name:'Lima'},{hex:'#FBBF24',name:'Amarillo'},{hex:'#F97316',name:'Naranja'},{hex:'#EF4444',name:'Rojo'},
+  {hex:'#EC4899',name:'Rosa'},{hex:'#6B7280',name:'Gris'}
+];
+function getProjectIconBox(p,size=40){
+  const icon=p?.icono||'folder';const cl=p?.color||'#6B7280';const iSz=Math.round(size*0.8);
+  return `<div style="width:${size}px;height:${size}px;min-width:${size}px;border-radius:${Math.round(size*0.3)}px;background:${cl};display:inline-flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;box-shadow:0 4px 12px ${cl}40;line-height:0"><i class="feather" data-icon="${icon}" data-size="${iSz}px" data-color="#fff" style="display:block;width:${iSz}px;height:${iSz}px" aria-hidden="true"></i></div>`;
+}
+function getProjectConfig(p){
+  return {iconBox:getProjectIconBox(p),color:p?.color||'#6B7280'};
+}
 
 async function loadTasks(){
   if(tasksLoaded)return;
@@ -733,15 +737,6 @@ async function loadTasks(){
     let d=await r.json();
     if(d.error)throw new Error(d.error);
     projects=d.projects||[];
-    if(projects.length===0){
-      for(const [name,cfg] of Object.entries(PROJECT_CONFIG)){
-        const r2=await fetch('/api/styly/projects',{method:'POST',headers:hdrs,body:JSON.stringify({name,color:cfg.color,description:name})});
-        if(!r2.ok)throw new Error(`Error creando proyecto: ${r2.status}`);
-        const d2=await r2.json();
-        if(d2.error)throw new Error(d2.error);
-        projects.push(d2.project);
-      }
-    }
     r=await fetch('/api/styly/tasks',{headers:hdrs});
     if(!r.ok)throw new Error(`Error HTTP: ${r.status}`);
     d=await r.json();
@@ -768,15 +763,15 @@ function formatDateShort(d){if(!d)return'';const dt=new Date(d);const today=new 
 async function quickUpdateStatus(id,s){try{const r=await fetch(`/api/styly/tasks/${id}`,{method:'PUT',headers:hdrs,body:JSON.stringify({estado:s})});const d=await r.json();if(d.error)throw new Error(d.error);const idx=tasks.findIndex(t=>t.id===id);if(idx!==-1)tasks[idx]=d.task;renderTareas(document.getElementById('modContent'))}catch(e){toast('Error: '+e.message)}}
 async function deleteTask(id){if(!confirm('¿Eliminar esta tarea?'))return;try{const r=await fetch(`/api/styly/tasks/${id}`,{method:'DELETE',headers:hdrs});const d=await r.json();if(d.error)throw new Error(d.error);tasks=tasks.filter(t=>t.id!==id);toast('Tarea eliminada');renderTareas(document.getElementById('modContent'))}catch(e){toast('Error: '+e.message)}}
 
-function renderTaskCard(t){const sc={'Pendiente':{bg:'rgba(239,68,68,.1)',b:'#EF4444',c:'#DC2626'},'En Progreso':{bg:'rgba(245,158,11,.1)',b:'#F59E0B',c:'#D97706'},'Completada':{bg:'rgba(16,185,129,.1)',b:'#10B981',c:'#059669'}};const pc={'Alta':{bg:'rgba(239,68,68,.12)',c:'#DC2626'},'Media':{bg:'rgba(245,158,11,.12)',c:'#D97706'},'Baja':{bg:'rgba(107,114,128,.1)',c:'#6B7280'}};const s=sc[t.estado]||sc['Pendiente'];const p=pc[t.prioridad]||pc['Media'];const ds=t.fecha_vencimiento?formatDateShort(t.fecha_vencimiento):'';const iso=t.fecha_vencimiento&&new Date(t.fecha_vencimiento)<new Date()&&t.estado!=='Completada';const assignedNames=t.asignados&&t.asignados.length>0?t.asignados.map(a=>a.name).join(', '):'';return`<div class="task-card" onclick="openTaskModal(${t.id})" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;cursor:pointer;transition:all .3s;position:relative" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,.1)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'"><div style="position:absolute;top:.75rem;right:.75rem;padding:3px 8px;border-radius:6px;background:var(--sy-bg);font-size:.65rem;font-weight:700;color:var(--sy)">${t.task_id||'#'+t.id}</div><div style="font-size:1rem;font-weight:600;color:var(--fg);line-height:1.4;margin-bottom:1rem;padding-right:3rem">${esc(t.titulo)}</div>${t.seccion?`<div style="display:inline-block;padding:4px 10px;border-radius:6px;background:rgba(139,92,246,.1);color:#8B5CF6;font-size:.7rem;font-weight:600;margin-bottom:.75rem"><i class="fas fa-tag" style="font-size:.65rem;margin-right:.25rem"></i>${t.seccion}</div>`:''}<div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem"><span style="padding:5px 10px;border-radius:6px;font-size:.75rem;font-weight:600;background:${s.bg};color:${s.c};border:1px solid ${s.b}">${t.estado==='Pendiente'?'🔴':t.estado==='En Progreso'?'🟡':'✅'} ${t.estado}</span><span style="padding:5px 10px;border-radius:6px;font-size:.75rem;font-weight:600;background:${p.bg};color:${p.c}">${t.prioridad}</span>${assignedNames?`<span style="padding:5px 10px;border-radius:6px;font-size:.75rem;font-weight:600;background:var(--sy-bg);color:var(--sy)"><i class="fas fa-user" style="font-size:.7rem;margin-right:.3rem"></i>${assignedNames}</span>`:`<span style="padding:5px 10px;border-radius:6px;font-size:.75rem;font-weight:600;background:var(--border);color:var(--mt)"><i class="fas fa-user-slash" style="font-size:.7rem;margin-right:.3rem"></i>Sin asignar</span>`}${ds?`<span style="padding:5px 10px;border-radius:6px;font-size:.75rem;font-weight:600;background:${iso?'rgba(239,68,68,.15)':'rgba(59,130,246,.1)'};color:${iso?'#DC2626':'#2563EB'}"><i class="far fa-calendar" style="font-size:.7rem;margin-right:.3rem"></i>${ds}</span>`:''}</div><div style="display:flex;gap:.5rem" onclick="event.stopPropagation()"><select onchange="quickUpdateStatus(${t.id},this.value)" style="flex:1;padding:.4rem;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);font-size:.75rem;cursor:pointer"><option value="Pendiente">🔴 Pendiente</option><option value="En Progreso">🟡 En Progreso</option><option value="Completada">✅ Completada</option></select><button onclick="deleteTask(${t.id});event.stopPropagation()" style="padding:.4rem .7rem;border:1px solid #EF4444;background:transparent;color:#EF4444;border-radius:6px;cursor:pointer;font-size:.75rem;transition:all .2s" onmouseover="this.style.background='#EF4444';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#EF4444'"><i class="fas fa-trash"></i></button></div></div>`}
+function renderTaskCard(t){const sc={'Pendiente':{bg:'rgba(239,68,68,.1)',b:'#EF4444',c:'#DC2626'},'En Progreso':{bg:'rgba(245,158,11,.1)',b:'#F59E0B',c:'#D97706'},'Completada':{bg:'rgba(16,185,129,.1)',b:'#10B981',c:'#059669'}};const pc={'Alta':{bg:'rgba(239,68,68,.12)',c:'#DC2626'},'Media':{bg:'rgba(245,158,11,.12)',c:'#D97706'},'Baja':{bg:'rgba(107,114,128,.1)',c:'#6B7280'}};const s=sc[t.estado]||sc['Pendiente'];const p=pc[t.prioridad]||pc['Media'];const ds=t.fecha_vencimiento?formatDateShort(t.fecha_vencimiento):'';const iso=t.fecha_vencimiento&&new Date(t.fecha_vencimiento)<new Date()&&t.estado!=='Completada';const assignedNames=t.asignados&&t.asignados.length>0?t.asignados.map(a=>a.name).join(', '):'';return`<div class="task-card" onclick="openTaskModal(${t.id})" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;cursor:pointer;transition:all .3s;position:relative" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,.1)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'"><div style="position:absolute;top:.75rem;right:.75rem;padding:3px 8px;border-radius:6px;background:var(--sy-bg);font-size:.65rem;font-weight:700;color:var(--sy)">${t.task_id||'#'+t.id}</div><div style="font-size:1rem;font-weight:600;color:var(--fg);line-height:1.4;margin-bottom:.5rem;padding-right:3rem">${esc(t.titulo)}</div>${t.notas?`<div style="font-size:.8rem;color:var(--mt);font-style:italic;line-height:1.4;margin-bottom:.75rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden"><i class="fas fa-sticky-note" style="font-size:.65rem;margin-right:.3rem;color:var(--sy)"></i>${esc(t.notas)}</div>`:''}${t.seccion?`<div style="display:inline-block;padding:4px 10px;border-radius:6px;background:rgba(139,92,246,.1);color:#8B5CF6;font-size:.7rem;font-weight:600;margin-bottom:.75rem"><i class="fas fa-tag" style="font-size:.65rem;margin-right:.25rem"></i>${t.seccion}</div>`:''}<div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem"><span style="padding:5px 10px;border-radius:6px;font-size:.75rem;font-weight:600;background:${s.bg};color:${s.c};border:1px solid ${s.b}">${t.estado==='Pendiente'?'🔴':t.estado==='En Progreso'?'🟡':'✅'} ${t.estado}</span><span style="padding:5px 10px;border-radius:6px;font-size:.75rem;font-weight:600;background:${p.bg};color:${p.c}">${t.prioridad}</span>${assignedNames?`<span style="padding:5px 10px;border-radius:6px;font-size:.75rem;font-weight:600;background:var(--sy-bg);color:var(--sy)"><i class="fas fa-user" style="font-size:.7rem;margin-right:.3rem"></i>${assignedNames}</span>`:`<span style="padding:5px 10px;border-radius:6px;font-size:.75rem;font-weight:600;background:var(--border);color:var(--mt)"><i class="fas fa-user-slash" style="font-size:.7rem;margin-right:.3rem"></i>Sin asignar</span>`}${ds?`<span style="padding:5px 10px;border-radius:6px;font-size:.75rem;font-weight:600;background:${iso?'rgba(239,68,68,.15)':'rgba(59,130,246,.1)'};color:${iso?'#DC2626':'#2563EB'}"><i class="far fa-calendar" style="font-size:.7rem;margin-right:.3rem"></i>${ds}</span>`:''}</div><div style="display:flex;gap:.5rem" onclick="event.stopPropagation()"><select onchange="quickUpdateStatus(${t.id},this.value)" style="flex:1;padding:.4rem;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);font-size:.75rem;cursor:pointer"><option value="Pendiente">🔴 Pendiente</option><option value="En Progreso">🟡 En Progreso</option><option value="Completada">✅ Completada</option></select><button onclick="deleteTask(${t.id});event.stopPropagation()" style="padding:.4rem .7rem;border:1px solid #EF4444;background:transparent;color:#EF4444;border-radius:6px;cursor:pointer;font-size:.75rem;transition:all .2s" onmouseover="this.style.background='#EF4444';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#EF4444'"><i class="fas fa-trash"></i></button></div></div>`}
 
-async function renderListView(){if(!Array.isArray(tasks)||!Array.isArray(projects)||!Array.isArray(users)){return`<div style="text-align:center;padding:4rem;color:var(--mt)"><div style="font-size:3rem;margin-bottom:1rem">⚠️</div><div style="font-size:1.1rem;font-weight:600;margin-bottom:.5rem">Error al cargar datos</div><div style="font-size:.85rem">No se pudieron cargar las tareas. <button onclick="tasksLoaded=false;renderTareas(document.getElementById('modContent'))" class="btn" style="margin-top:1rem">Reintentar</button></div></div>`}let filtered=applyFilters(tasks);const filterBar=`<div style="display:flex;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center;padding:1rem;background:var(--card);border:1px solid var(--border);border-radius:12px"><input type="text" id="searchTasks" placeholder="🔍 Buscar tareas..." value="${taskFilters.search}" oninput="taskFilters.search=this.value;renderTareas(document.getElementById('modContent'))" style="flex:1;min-width:200px;padding:.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--fg)"><select onchange="taskFilters.project=this.value;renderTareas(document.getElementById('modContent'))" style="padding:.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--fg)"><option value="">Todos los Proyectos</option>${projects.map(p=>`<option value="${p.id||''}" ${taskFilters.project==p.id?'selected':''}>${p.name||'Sin nombre'}</option>`).join('')}</select><select onchange="taskFilters.status=this.value;renderTareas(document.getElementById('modContent'))" style="padding:.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--fg)"><option value="">Todos los Estados</option><option value="Pendiente" ${taskFilters.status==='Pendiente'?'selected':''}>🔴 Pendiente</option><option value="En Progreso" ${taskFilters.status==='En Progreso'?'selected':''}>🟡 En Progreso</option><option value="Completada" ${taskFilters.status==='Completada'?'selected':''}>✅ Completada</option></select><select onchange="taskFilters.assigned=this.value;renderTareas(document.getElementById('modContent'))" style="padding:.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--fg)"><option value="">Todos los Usuarios</option>${users.map(u=>`<option value="${u.name||''}" ${taskFilters.assigned===u.name?'selected':''}>${u.name||'Sin nombre'}</option>`).join('')}</select><select onchange="taskFilters.priority=this.value;renderTareas(document.getElementById('modContent'))" style="padding:.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--fg)"><option value="">Todas las Prioridades</option><option value="Alta" ${taskFilters.priority==='Alta'?'selected':''}>🔴 Alta</option><option value="Media" ${taskFilters.priority==='Media'?'selected':''}>🟡 Media</option><option value="Baja" ${taskFilters.priority==='Baja'?'selected':''}>🟢 Baja</option></select><button onclick="clearFilters()" class="m-ok" style="background:var(--card);color:var(--fg);border:1px solid var(--border)"><i class="fas fa-times"></i> Limpiar</button></div>`;if(filtered.length===0&&projects.length>0){return filterBar+`<div style="text-align:center;padding:4rem;color:var(--mt)"><div style="font-size:3rem;margin-bottom:1rem"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></div><div style="font-size:1.1rem;font-weight:600;margin-bottom:.5rem">No hay tareas</div><div style="font-size:.85rem">Crea tu primera tarea para comenzar</div><button onclick="openNewTaskModal()" class="btn" style="margin-top:1.5rem"><i class="fas fa-plus"></i> Nueva Tarea</button></div>`}let pHTML='';for(const proj of projects){if(!proj||!proj.id)continue;const projTasks=filtered.filter(t=>t&&t.proyecto_id===proj.id);if(projTasks.length===0)continue;const cfg=PROJECT_CONFIG[proj.name]||{emoji:'📌',color:'#6B7280'};const projId='list-proj-'+proj.id;pHTML+=`<div style="margin-bottom:2rem"><button onclick="toggleProject('${projId}')" style="width:100%;text-align:left;padding:1rem 1.25rem;background:linear-gradient(135deg,${cfg.color}15,${cfg.color}05);border:2px solid ${cfg.color}40;border-radius:14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .2s"><div style="display:flex;align-items:center;gap:.75rem"><span style="font-size:1.75rem">${cfg.emoji}</span><div><div style="font-size:1.1rem;font-weight:700;color:var(--fg)">${proj.name||'Sin nombre'}</div><div style="font-size:.75rem;color:var(--mt);font-weight:400;margin-top:.15rem">${projTasks.length} tareas · ${projTasks.filter(t=>t&&t.estado==='Completada').length} completadas</div></div></div><span id="toggle-${projId}" style="font-size:1.2rem;transition:transform .2s">▼</span></button><div id="${projId}" style="display:block;margin-top:1rem"><div style="margin-bottom:1rem;padding:1rem;background:var(--card);border:1px dashed var(--border);border-radius:10px;cursor:pointer;text-align:center;color:var(--mt);transition:all .2s" onclick="openNewTaskModal(${proj.id})" onmouseover="this.style.borderColor='var(--sy)';this.style.color='var(--sy)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--mt)'"><i class="fas fa-plus-circle"></i> Agregar tarea a ${proj.name}</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem">${projTasks.map(t=>renderTaskCard(t)).join('')}</div></div></div>`}return filterBar+pHTML}
+async function renderListView(){if(!Array.isArray(tasks)||!Array.isArray(projects)||!Array.isArray(users)){return`<div style="text-align:center;padding:4rem;color:var(--mt)"><div style="font-size:3rem;margin-bottom:1rem">⚠️</div><div style="font-size:1.1rem;font-weight:600;margin-bottom:.5rem">Error al cargar datos</div><div style="font-size:.85rem">No se pudieron cargar las tareas. <button onclick="tasksLoaded=false;renderTareas(document.getElementById('modContent'))" class="btn" style="margin-top:1rem">Reintentar</button></div></div>`}let filtered=applyFilters(tasks);const activeFilters=(taskFilters.project?1:0)+(taskFilters.status?1:0)+(taskFilters.assigned?1:0)+(taskFilters.priority?1:0);const filterBar=`<div style="margin-bottom:1.5rem;padding:1rem;background:var(--card);border:1px solid var(--border);border-radius:12px"><div style="display:flex;gap:.75rem;align-items:center"><input type="text" id="searchTasks" placeholder="Buscar tareas..." value="${taskFilters.search}" oninput="taskFilters.search=this.value;renderTareas(document.getElementById('modContent'))" style="flex:1;min-width:0;padding:.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--fg)"><button onclick="const p=document.getElementById('filterPanel');p.style.display=p.style.display==='none'?'flex':'none'" style="padding:.5rem .75rem;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--fg);cursor:pointer;white-space:nowrap;font-size:.85rem;position:relative"><i class="fas fa-sliders-h"></i> Filtros${activeFilters>0?` <span style="background:var(--sy);color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;margin-left:.25rem">${activeFilters}</span>`:''}</button></div><div id="filterPanel" style="display:none;flex-wrap:wrap;gap:.75rem;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border)"><select onchange="taskFilters.project=this.value;renderTareas(document.getElementById('modContent'))" style="flex:1;min-width:140px;padding:.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--fg)"><option value="">Todos los Proyectos</option>${projects.map(p=>`<option value="${p.id||''}" ${taskFilters.project==p.id?'selected':''}>${p.name||'Sin nombre'}</option>`).join('')}</select><select onchange="taskFilters.status=this.value;renderTareas(document.getElementById('modContent'))" style="flex:1;min-width:140px;padding:.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--fg)"><option value="">Todos los Estados</option><option value="Pendiente" ${taskFilters.status==='Pendiente'?'selected':''}>Pendiente</option><option value="En Progreso" ${taskFilters.status==='En Progreso'?'selected':''}>En Progreso</option><option value="Completada" ${taskFilters.status==='Completada'?'selected':''}>Completada</option></select><select onchange="taskFilters.assigned=this.value;renderTareas(document.getElementById('modContent'))" style="flex:1;min-width:140px;padding:.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--fg)"><option value="">Todos los Usuarios</option>${users.map(u=>`<option value="${u.name||''}" ${taskFilters.assigned===u.name?'selected':''}>${u.name||'Sin nombre'}</option>`).join('')}</select><select onchange="taskFilters.priority=this.value;renderTareas(document.getElementById('modContent'))" style="flex:1;min-width:140px;padding:.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--fg)"><option value="">Todas las Prioridades</option><option value="Alta" ${taskFilters.priority==='Alta'?'selected':''}>Alta</option><option value="Media" ${taskFilters.priority==='Media'?'selected':''}>Media</option><option value="Baja" ${taskFilters.priority==='Baja'?'selected':''}>Baja</option></select><button onclick="clearFilters()" class="m-ok" style="background:var(--card);color:var(--fg);border:1px solid var(--border);white-space:nowrap"><i class="fas fa-times"></i> Limpiar</button></div></div>`;if(filtered.length===0&&projects.length>0){return filterBar+`<div style="text-align:center;padding:4rem;color:var(--mt)"><div style="font-size:3rem;margin-bottom:1rem"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></div><div style="font-size:1.1rem;font-weight:600;margin-bottom:.5rem">No hay tareas</div><div style="font-size:.85rem">Crea tu primera tarea para comenzar</div><button onclick="openNewTaskModal()" class="btn" style="margin-top:1.5rem"><i class="fas fa-plus"></i> Nueva Tarea</button></div>`}let pHTML='';for(const proj of projects){if(!proj||!proj.id)continue;const projTasks=filtered.filter(t=>t&&t.proyecto_id===proj.id);if(projTasks.length===0)continue;const cfg=getProjectConfig(proj);const projId='list-proj-'+proj.id;pHTML+=`<div style="margin-bottom:2rem"><button onclick="toggleProject('${projId}')" style="width:100%;text-align:left;padding:1rem 1.25rem;background:linear-gradient(135deg,${cfg.color}15,${cfg.color}05);border:2px solid ${cfg.color}40;border-radius:14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .2s"><div style="display:flex;align-items:center;gap:.75rem">${getProjectIconBox(proj,44)}<div><div style="font-size:1.1rem;font-weight:700;color:var(--fg)">${proj.name||'Sin nombre'}</div><div style="font-size:.75rem;color:var(--mt);font-weight:400;margin-top:.15rem">${projTasks.length} tareas · ${projTasks.filter(t=>t&&t.estado==='Completada').length} completadas</div></div></div><span id="toggle-${projId}" style="font-size:1.2rem;transition:transform .2s">▶</span></button><div id="${projId}" style="display:none;margin-top:1rem"><div style="margin-bottom:1rem;padding:1rem;background:var(--card);border:1px dashed var(--border);border-radius:10px;cursor:pointer;text-align:center;color:var(--mt);transition:all .2s" onclick="openNewTaskModal(${proj.id})" onmouseover="this.style.borderColor='var(--sy)';this.style.color='var(--sy)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--mt)'"><i class="fas fa-plus-circle"></i> Agregar tarea a ${proj.name}</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem">${projTasks.map(t=>renderTaskCard(t)).join('')}</div></div></div>`}return filterBar+pHTML}
 
 let draggedTask=null;function handleDragStart(e){draggedTask=parseInt(e.currentTarget.dataset.taskId);e.currentTarget.style.opacity='0.4';e.dataTransfer.effectAllowed='move'}function handleDragEnd(e){e.currentTarget.style.opacity='1';draggedTask=null}function handleDragOver(e){if(e.preventDefault)e.preventDefault();e.dataTransfer.dropEffect='move';return false}async function handleDrop(e){if(e.stopPropagation)e.stopPropagation();e.preventDefault();if(!draggedTask)return;const col=e.currentTarget;const ns=col.dataset.status;await quickUpdateStatus(draggedTask,ns);return false}
 
-async function renderBoardView(){let filtered=applyFilters(tasks);const cols={'Pendiente':filtered.filter(t=>t.estado==='Pendiente'),'En Progreso':filtered.filter(t=>t.estado==='En Progreso'),'Completada':filtered.filter(t=>t.estado==='Completada')};const cc={'Pendiente':{bg:'rgba(239,68,68,.05)',b:'#EF4444'},'En Progreso':{bg:'rgba(245,158,11,.05)',b:'#F59E0B'},'Completada':{bg:'rgba(16,185,129,.05)',b:'#10B981'}};return`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;height:calc(100vh - 300px)">${Object.entries(cols).map(([status,tasks])=>{const c=cc[status];return`<div class="kanban-column" data-status="${status}" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" style="background:${c.bg};border:2px solid ${c.b}40;border-radius:14px;padding:1rem;display:flex;flex-direction:column;overflow:hidden"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:2px solid ${c.b}40"><div><div style="font-size:1.05rem;font-weight:700;color:var(--fg)">${status==='Pendiente'?'<i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#EF4444" aria-hidden="true"></i>':status==='En Progreso'?'<i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#FCD34D" aria-hidden="true"></i>':'<i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'} ${status}</div><div style="font-size:.75rem;color:var(--mt);margin-top:.15rem">${tasks.length} tareas</div></div><button onclick="openNewTaskModal(null,'${status}')" style="padding:.4rem .6rem;border-radius:6px;border:1px solid ${c.b};background:transparent;color:${c.b};cursor:pointer;font-size:.75rem;transition:all .2s" onmouseover="this.style.background='${c.b}';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='${c.b}'"><i class="fas fa-plus"></i></button></div><div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:.75rem">${tasks.map(t=>{const proj=projects.find(p=>p.id===t.proyecto_id);const pc=proj?PROJECT_CONFIG[proj.name]:null;const assignedNames=t.asignados&&t.asignados.length>0?t.asignados[0].name:'';return`<div class="board-task-card" draggable="true" data-task-id="${t.id}" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)" onclick="openTaskModal(${t.id})" style="background:var(--card);border:1px solid var(--border);border-left:4px solid ${c.b};border-radius:10px;padding:1rem;cursor:move;transition:all .2s" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,.1)'" onmouseout="this.style.boxShadow='none'"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:.5rem">${pc?`<span style="font-size:1.2rem">${pc.emoji}</span>`:'<span style="font-size:.75rem;color:var(--mt)"><i class="feather" data-icon="pin" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></span>'}<span style="font-size:.65rem;font-weight:700;color:var(--mt)">${t.task_id||'#'+t.id}</span></div><div style="font-size:.9rem;font-weight:600;color:var(--fg);line-height:1.3;margin-bottom:.75rem">${esc(t.titulo)}</div><div style="display:flex;flex-wrap:wrap;gap:.4rem;font-size:.7rem">${t.prioridad?`<span style="padding:3px 8px;border-radius:4px;background:${t.prioridad==='Alta'?'rgba(239,68,68,.15)':t.prioridad==='Media'?'rgba(245,158,11,.15)':'rgba(107,114,128,.1)'};color:${t.prioridad==='Alta'?'#DC2626':t.prioridad==='Media'?'#D97706':'#6B7280'};font-weight:600">${t.prioridad}</span>`:''}${assignedNames?`<span style="padding:3px 8px;border-radius:4px;background:var(--sy-bg);color:var(--sy);font-weight:600"><i class="fas fa-user" style="font-size:.65rem;margin-right:.25rem"></i>${assignedNames}</span>`:''}${t.fecha_vencimiento?`<span style="padding:3px 8px;border-radius:4px;background:rgba(59,130,246,.1);color:#2563EB;font-weight:600"><i class="far fa-calendar" style="font-size:.65rem;margin-right:.25rem"></i>${formatDateShort(t.fecha_vencimiento)}</span>`:''}</div></div>`}).join('')}</div></div>`}).join('')}</div>`}
+async function renderBoardView(){let filtered=applyFilters(tasks);const cols={'Pendiente':filtered.filter(t=>t.estado==='Pendiente'),'En Progreso':filtered.filter(t=>t.estado==='En Progreso'),'Completada':filtered.filter(t=>t.estado==='Completada')};const cc={'Pendiente':{bg:'rgba(239,68,68,.05)',b:'#EF4444'},'En Progreso':{bg:'rgba(245,158,11,.05)',b:'#F59E0B'},'Completada':{bg:'rgba(16,185,129,.05)',b:'#10B981'}};return`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;height:calc(100vh - 300px)">${Object.entries(cols).map(([status,tasks])=>{const c=cc[status];return`<div class="kanban-column" data-status="${status}" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" style="background:${c.bg};border:2px solid ${c.b}40;border-radius:14px;padding:1rem;display:flex;flex-direction:column;overflow:hidden"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:2px solid ${c.b}40"><div><div style="font-size:1.05rem;font-weight:700;color:var(--fg)">${status==='Pendiente'?'<i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#EF4444" aria-hidden="true"></i>':status==='En Progreso'?'<i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#FCD34D" aria-hidden="true"></i>':'<i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'} ${status}</div><div style="font-size:.75rem;color:var(--mt);margin-top:.15rem">${tasks.length} tareas</div></div><button onclick="openNewTaskModal(null,'${status}')" style="padding:.4rem .6rem;border-radius:6px;border:1px solid ${c.b};background:transparent;color:${c.b};cursor:pointer;font-size:.75rem;transition:all .2s" onmouseover="this.style.background='${c.b}';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='${c.b}'"><i class="fas fa-plus"></i></button></div><div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:.75rem">${tasks.map(t=>{const proj=projects.find(p=>p.id===t.proyecto_id);const pc=proj?getProjectConfig(proj):null;const assignedNames=t.asignados&&t.asignados.length>0?t.asignados[0].name:'';return`<div class="board-task-card" draggable="true" data-task-id="${t.id}" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)" onclick="openTaskModal(${t.id})" style="background:var(--card);border:1px solid var(--border);border-left:4px solid ${c.b};border-radius:10px;padding:1rem;cursor:move;transition:all .2s" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,.1)'" onmouseout="this.style.boxShadow='none'"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:.5rem">${pc?getProjectIconBox(proj,28):'<span style="font-size:.75rem;color:var(--mt)"><i class="feather" data-icon="folder" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></span>'}<span style="font-size:.65rem;font-weight:700;color:var(--mt)">${t.task_id||'#'+t.id}</span></div><div style="font-size:.9rem;font-weight:600;color:var(--fg);line-height:1.3;margin-bottom:.75rem">${esc(t.titulo)}</div><div style="display:flex;flex-wrap:wrap;gap:.4rem;font-size:.7rem">${t.prioridad?`<span style="padding:3px 8px;border-radius:4px;background:${t.prioridad==='Alta'?'rgba(239,68,68,.15)':t.prioridad==='Media'?'rgba(245,158,11,.15)':'rgba(107,114,128,.1)'};color:${t.prioridad==='Alta'?'#DC2626':t.prioridad==='Media'?'#D97706':'#6B7280'};font-weight:600">${t.prioridad}</span>`:''}${assignedNames?`<span style="padding:3px 8px;border-radius:4px;background:var(--sy-bg);color:var(--sy);font-weight:600"><i class="fas fa-user" style="font-size:.65rem;margin-right:.25rem"></i>${assignedNames}</span>`:''}${t.fecha_vencimiento?`<span style="padding:3px 8px;border-radius:4px;background:rgba(59,130,246,.1);color:#2563EB;font-weight:600"><i class="far fa-calendar" style="font-size:.65rem;margin-right:.25rem"></i>${formatDateShort(t.fecha_vencimiento)}</span>`:''}</div></div>`}).join('')}</div></div>`}).join('')}</div>`}
 
-async function renderTimelineView(){let filtered=applyFilters(tasks).filter(t=>t.fecha_vencimiento||t.fecha_inicio);if(filtered.length===0)return`<div style="text-align:center;padding:4rem;color:var(--mt)"><div style="font-size:3rem;margin-bottom:1rem"><i class="feather" data-icon="calendar" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></div><div style="font-size:1.1rem;font-weight:600;margin-bottom:.5rem">No hay tareas con fechas</div><div style="font-size:.85rem">Agrega fechas de inicio o vencimiento a tus tareas para visualizarlas en el timeline</div></div>`;const dts=filtered.flatMap(t=>[t.fecha_inicio,t.fecha_vencimiento].filter(Boolean)).map(d=>new Date(d));const mn=new Date(Math.min(...dts));const mx=new Date(Math.max(...dts));mn.setDate(mn.getDate()-7);mx.setDate(mx.getDate()+7);const td=Math.ceil((mx-mn)/(1000*60*60*24));const dw=40;const tw=td*dw;let hHTML='';let cd=new Date(mn);while(cd<=mx){const ms=new Date(cd);const me=new Date(cd.getFullYear(),cd.getMonth()+1,0);const ve=me>mx?mx:me;const dm=Math.ceil((ve-ms)/(1000*60*60*24))+1;hHTML+=`<div style="width:${dm*dw}px;text-align:center;padding:.5rem;border-right:1px solid var(--border);background:var(--card);font-size:.75rem;font-weight:600;color:var(--fg)">${ms.toLocaleDateString('es-MX',{month:'short',year:'numeric'})}</div>`;cd.setMonth(cd.getMonth()+1);cd.setDate(1)}let rHTML='';for(const proj of projects){const pTasks=filtered.filter(t=>t.proyecto_id===proj.id);if(pTasks.length===0)continue;const cfg=PROJECT_CONFIG[proj.name]||{emoji:'📌',color:'#6B7280'};rHTML+=`<div style="display:flex;border-bottom:1px solid var(--border)"><div style="width:200px;flex-shrink:0;padding:1rem;background:var(--card);border-right:1px solid var(--border);display:flex;align-items:center;gap:.5rem"><span style="font-size:1.2rem">${cfg.emoji}</span><div style="font-size:.85rem;font-weight:600;color:var(--fg)">${proj.name}</div></div><div style="position:relative;flex:1;min-height:80px;padding:.5rem 0">${pTasks.map(t=>{const sd=t.fecha_inicio?new Date(t.fecha_inicio):new Date(t.fecha_vencimiento);const ed=t.fecha_vencimiento?new Date(t.fecha_vencimiento):new Date(sd);const dss=Math.ceil((sd-mn)/(1000*60*60*24));const dur=Math.max(1,Math.ceil((ed-sd)/(1000*60*60*24))+1);const l=dss*dw;const w=dur*dw;const iso=ed<new Date()&&t.estado!=='Completada';const bc=iso?'#EF4444':t.estado==='Completada'?'#10B981':cfg.color;return`<div onclick="openTaskModal(${t.id})" style="position:absolute;left:${l}px;top:${Math.random()*40}px;width:${w}px;height:28px;background:${bc}30;border:2px solid ${bc};border-radius:6px;cursor:pointer;display:flex;align-items:center;padding:0 .5rem;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,0,0,.15)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'" title="${esc(t.titulo)}"><div style="font-size:.7rem;font-weight:600;color:${bc};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.task_id||'#'+t.id}: ${esc(t.titulo).substring(0,30)}${t.titulo.length>30?'...':''}</div></div>`}).join('')}</div></div>`}return`<div style="overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 300px);border:1px solid var(--border);border-radius:12px"><div style="display:flex;position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:2px solid var(--border)"><div style="width:200px;flex-shrink:0;padding:.5rem 1rem;background:var(--card);border-right:1px solid var(--border);font-size:.85rem;font-weight:700;color:var(--fg)">Proyectos</div><div style="display:flex">${hHTML}</div></div>${rHTML}</div>`}
+async function renderTimelineView(){let filtered=applyFilters(tasks).filter(t=>t.fecha_vencimiento||t.fecha_inicio);if(filtered.length===0)return`<div style="text-align:center;padding:4rem;color:var(--mt)"><div style="font-size:3rem;margin-bottom:1rem"><i class="feather" data-icon="calendar" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></div><div style="font-size:1.1rem;font-weight:600;margin-bottom:.5rem">No hay tareas con fechas</div><div style="font-size:.85rem">Agrega fechas de inicio o vencimiento a tus tareas para visualizarlas en el timeline</div></div>`;const dts=filtered.flatMap(t=>[t.fecha_inicio,t.fecha_vencimiento].filter(Boolean)).map(d=>new Date(d));const mn=new Date(Math.min(...dts));const mx=new Date(Math.max(...dts));mn.setDate(mn.getDate()-7);mx.setDate(mx.getDate()+7);const td=Math.ceil((mx-mn)/(1000*60*60*24));const dw=40;const tw=td*dw;let hHTML='';let cd=new Date(mn);while(cd<=mx){const ms=new Date(cd);const me=new Date(cd.getFullYear(),cd.getMonth()+1,0);const ve=me>mx?mx:me;const dm=Math.ceil((ve-ms)/(1000*60*60*24))+1;hHTML+=`<div style="width:${dm*dw}px;text-align:center;padding:.5rem;border-right:1px solid var(--border);background:var(--card);font-size:.75rem;font-weight:600;color:var(--fg)">${ms.toLocaleDateString('es-MX',{month:'short',year:'numeric'})}</div>`;cd.setMonth(cd.getMonth()+1);cd.setDate(1)}let rHTML='';for(const proj of projects){const pTasks=filtered.filter(t=>t.proyecto_id===proj.id);if(pTasks.length===0)continue;const cfg=getProjectConfig(proj);rHTML+=`<div style="display:flex;border-bottom:1px solid var(--border)"><div style="width:200px;flex-shrink:0;padding:1rem;background:var(--card);border-right:1px solid var(--border);display:flex;align-items:center;gap:.5rem">${getProjectIconBox(proj,32)}<div style="font-size:.85rem;font-weight:600;color:var(--fg)">${proj.name}</div></div><div style="position:relative;flex:1;min-height:80px;padding:.5rem 0">${pTasks.map(t=>{const sd=t.fecha_inicio?new Date(t.fecha_inicio):new Date(t.fecha_vencimiento);const ed=t.fecha_vencimiento?new Date(t.fecha_vencimiento):new Date(sd);const dss=Math.ceil((sd-mn)/(1000*60*60*24));const dur=Math.max(1,Math.ceil((ed-sd)/(1000*60*60*24))+1);const l=dss*dw;const w=dur*dw;const iso=ed<new Date()&&t.estado!=='Completada';const bc=iso?'#EF4444':t.estado==='Completada'?'#10B981':cfg.color;return`<div onclick="openTaskModal(${t.id})" style="position:absolute;left:${l}px;top:${Math.random()*40}px;width:${w}px;height:28px;background:${bc}30;border:2px solid ${bc};border-radius:6px;cursor:pointer;display:flex;align-items:center;padding:0 .5rem;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,0,0,.15)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'" title="${esc(t.titulo)}"><div style="font-size:.7rem;font-weight:600;color:${bc};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.task_id||'#'+t.id}: ${esc(t.titulo).substring(0,30)}${t.titulo.length>30?'...':''}</div></div>`}).join('')}</div></div>`}return`<div style="overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 300px);border:1px solid var(--border);border-radius:12px"><div style="display:flex;position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:2px solid var(--border)"><div style="width:200px;flex-shrink:0;padding:.5rem 1rem;background:var(--card);border-right:1px solid var(--border);font-size:.85rem;font-weight:700;color:var(--fg)">Proyectos</div><div style="display:flex">${hHTML}</div></div>${rHTML}</div>`}
 
 async function renderTareas(m){
   if(!tasksLoaded){
@@ -789,7 +784,7 @@ async function renderTareas(m){
     return;
   }
   // Vista de tareas - mostrar barra de vistas y tareas
-  const vBar=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem"><div style="display:flex;gap:.5rem;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:.5rem;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)"><button onclick="switchView('list')" class="view-btn ${taskView==='list'?'active':''}" title="Vista de Lista"><i class="fas fa-list"></i> Lista</button><button onclick="switchView('board')" class="view-btn ${taskView==='board'?'active':''}" title="Vista de Tablero"><i class="fas fa-columns"></i> Tablero</button><button onclick="switchView('timeline')" class="view-btn ${taskView==='timeline'?'active':''}" title="Vista de Línea de Tiempo"><i class="fas fa-chart-gantt"></i> Timeline</button></div><div style="display:flex;gap:.5rem"><button onclick="openNewTaskModal()" class="glass-btn" style="white-space:nowrap"><i class="fas fa-plus"></i> Nueva Tarea</button><button onclick="switchTasksSubView('proyectos')" class="glass-btn" style="white-space:nowrap" title="Administrar Proyectos"><i class="fas fa-folder"></i> Proyectos</button></div></div>`;
+  const vBar=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem"><div style="display:flex;gap:.5rem;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:.5rem;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)"><button onclick="switchView('list')" class="view-btn ${taskView==='list'?'active':''}" title="Vista de Lista"><i class="fas fa-list"></i> Lista</button><button onclick="switchView('board')" class="view-btn ${taskView==='board'?'active':''}" title="Vista de Tablero"><i class="fas fa-columns"></i> Tablero</button><button onclick="switchView('timeline')" class="view-btn ${taskView==='timeline'?'active':''}" title="Vista de Línea de Tiempo"><i class="fas fa-chart-gantt"></i> Timeline</button></div><div style="display:flex;gap:.5rem"><button onclick="openNewTaskModal()" class="glass-btn" style="white-space:nowrap"><i class="fas fa-plus"></i> Nueva Tarea</button><button onclick="openBulkImportModal()" class="glass-btn" style="white-space:nowrap"><i class="fas fa-file-import"></i> Importar</button><button onclick="switchTasksSubView('proyectos')" class="glass-btn" style="white-space:nowrap" title="Administrar Proyectos"><i class="fas fa-folder"></i> Proyectos</button></div></div>`;
   m.innerHTML=vBar;
   if(taskView==='list')m.innerHTML+=await renderListView();
   else if(taskView==='board')m.innerHTML+=await renderBoardView();
@@ -833,7 +828,7 @@ async function renderDashboard(m){
   // Estadísticas por proyecto
   const projStats={};
   projects.forEach(p=>{
-    projStats[p.name]={name:p.name,emoji:PROJECT_CONFIG[p.name]?.emoji||'<i class="feather" data-icon="pin" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',total:0,pending:0,completed:0,completion:0};
+    projStats[p.name]={name:p.name,iconBox:getProjectIconBox(p,28),color:p.color||'#6B7280',total:0,pending:0,completed:0,completion:0};
   });
   tasks.forEach(t=>{
     const proj=projects.find(p=>p.id===t.proyecto_id);
@@ -916,7 +911,7 @@ async function renderDashboard(m){
           ${projList.map(p=>`
             <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:.75rem">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
-                <div style="font-weight:600;color:var(--fg)"><span style="font-size:1.2rem;margin-right:.5rem">${p.emoji}</span>${p.name}</div>
+                <div style="font-weight:600;color:var(--fg);display:flex;align-items:center;gap:.5rem">${p.iconBox}${p.name}</div>
                 <div style="font-size:.75rem;font-weight:700;background:var(--sy-bg);color:var(--sy);padding:2px 8px;border-radius:4px">${p.completion}%</div>
               </div>
               <div style="display:flex;gap:.5rem;font-size:.75rem;color:var(--mt);margin-bottom:.5rem">
@@ -958,21 +953,156 @@ async function renderDashboard(m){
 
 function toggleProject(projId){const el=document.getElementById(projId);const icon=document.getElementById('toggle-'+projId);if(el){const hidden=el.style.display==='none';el.style.display=hidden?'block':'none';if(icon)icon.textContent=hidden?'▼':'▶'}}
 
-function openTaskModal(taskId){const task=tasks.find(t=>t.id===taskId);if(!task)return;const assignedUserId=task.asignados&&task.asignados.length>0?task.asignados[0].user_id:'';const modal=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-box" style="max-width:600px"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1.5rem"><div style="font-size:1.15rem;font-weight:700;color:var(--fg)">Editar Tarea<span style="font-size:.75rem;font-weight:600;color:var(--sy);margin-left:.5rem">${task.task_id||'#'+task.id}</span></div><button onclick="closeModal()" style="padding:.5rem;border:none;background:transparent;color:var(--mt);cursor:pointer;font-size:1.2rem">&times;</button></div><div class="modal-field"><label>Título</label><textarea id="editDesc" rows="3" style="resize:vertical">${esc(task.titulo)}</textarea></div><div class="modal-field"><label>Proyecto</label><select id="editProject">${projects.map(p=>`<option value="${p.id}" ${task.proyecto_id==p.id?'selected':''}>${p.name}</option>`).join('')}</select></div><div class="modal-field"><label>Sección (opcional)</label><input type="text" id="editModule" value="${task.seccion||''}" placeholder="Ej: Dashboard, Pagos, etc."></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem"><div class="modal-field"><label>Estado</label><select id="editStatus"><option value="Pendiente">🔴 Pendiente</option><option value="En Progreso">🟡 En Progreso</option><option value="Completada">✅ Completada</option></select></div><div class="modal-field"><label>Prioridad</label><select id="editPriority"><option value="Alta">🔴 Alta</option><option value="Media">🟡 Media</option><option value="Baja">🟢 Baja</option></select></div></div><div class="modal-field"><label>Asignado a</label><select id="editAssigned"><option value="">Sin asignar</option>${users.map(u=>`<option value="${u.id}" ${assignedUserId==u.id?'selected':''}>${u.name}</option>`).join('')}</select></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem"><div class="modal-field"><label>Fecha de Inicio</label><input type="date" id="editStartDate" value="${task.fecha_inicio||''}"></div><div class="modal-field"><label>Fecha de Vencimiento</label><input type="date" id="editDueDate" value="${task.fecha_vencimiento||''}"></div></div><div style="display:flex;justify-content:space-between;gap:1rem;margin-top:1.5rem"><button onclick="deleteTask(${task.id});closeModal()" style="padding:.65rem 1.25rem;border-radius:10px;border:1px solid #EF4444;background:transparent;color:#EF4444;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#EF4444';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#EF4444'"><i class="fas fa-trash"></i> Eliminar</button><div style="display:flex;gap:.75rem"><button onclick="closeModal()" class="m-cancel">Cancelar</button><button onclick="saveTask(${task.id})" class="m-ok"><i class="fas fa-save"></i> Guardar</button></div></div></div></div>`;document.getElementById('modalRoot').innerHTML=modal}
+async function openTaskModal(taskId){
+  const task=tasks.find(t=>t.id===taskId);if(!task)return;
+  const proj=projects.find(p=>p.id===task.proyecto_id);
+  const projName=proj?proj.name:'Sin proyecto';
+  const assignedNames=task.asignados&&task.asignados.length>0?task.asignados.map(a=>a.name).join(', '):'Sin asignar';
+  const sc={'Pendiente':{bg:'rgba(239,68,68,.12)',c:'#DC2626',icon:'far fa-circle'},'En Progreso':{bg:'rgba(245,158,11,.12)',c:'#D97706',icon:'fas fa-spinner'},'Completada':{bg:'rgba(16,185,129,.12)',c:'#059669',icon:'fas fa-check-circle'}};
+  const pc={'Alta':{bg:'rgba(239,68,68,.12)',c:'#DC2626'},'Media':{bg:'rgba(245,158,11,.12)',c:'#D97706'},'Baja':{bg:'rgba(107,114,128,.1)',c:'#6B7280'}};
+  const s=sc[task.estado]||sc['Pendiente'];const p=pc[task.prioridad]||pc['Media'];
+  const isOverdue=task.fecha_vencimiento&&new Date(task.fecha_vencimiento)<new Date()&&task.estado!=='Completada';
 
-async function saveTask(taskId){const titulo=document.getElementById('editDesc')?.value?.trim();const proyecto_id=document.getElementById('editProject')?.value;const seccion=document.getElementById('editModule')?.value?.trim()||null;const estado=document.getElementById('editStatus')?.value;const prioridad=document.getElementById('editPriority')?.value;const assignedUserId=document.getElementById('editAssigned')?.value||null;const fecha_inicio=document.getElementById('editStartDate')?.value||null;const fecha_vencimiento=document.getElementById('editDueDate')?.value||null;if(!titulo)return toast('Título requerido');try{const payload={titulo,proyecto_id,seccion,estado,prioridad,fecha_inicio,fecha_vencimiento};const r=await fetch(`/api/styly/tasks/${taskId}`,{method:'PUT',headers:hdrs,body:JSON.stringify(payload)});const d=await r.json();if(d.error)throw new Error(d.error);const task=tasks.find(t=>t.id===taskId);if(assignedUserId){const currentAssigned=task?.asignados||[];for(const a of currentAssigned){await fetch(`/api/styly/tasks/${taskId}/asignados/${a.user_id}`,{method:'DELETE',headers:hdrs}).catch(e=>console.log(e));}await fetch(`/api/styly/tasks/${taskId}/asignados`,{method:'POST',headers:hdrs,body:JSON.stringify({user_id:parseInt(assignedUserId)})});}else if(task){const currentAssigned=task?.asignados||[];for(const a of currentAssigned){await fetch(`/api/styly/tasks/${taskId}/asignados/${a.user_id}`,{method:'DELETE',headers:hdrs}).catch(e=>console.log(e));}}toast('Tarea actualizada');closeModal();tasksLoaded=false;renderTareas(document.getElementById('modContent'))}catch(e){toast('Error: '+e.message)}}
+  // Fetch files
+  let archivosHTML='<div style="color:var(--mt);font-size:.85rem">Cargando archivos...</div>';
+  const modal=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+<div class="modal-box" style="max-width:650px;max-height:90vh;overflow-y:auto">
+  <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1.25rem">
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <span style="padding:4px 10px;border-radius:6px;background:var(--sy-bg);font-size:.75rem;font-weight:700;color:var(--sy)">${task.task_id||'#'+task.id}</span>
+      <span style="padding:4px 10px;border-radius:6px;background:${s.bg};font-size:.75rem;font-weight:600;color:${s.c}"><i class="${s.icon}" style="margin-right:.25rem"></i>${task.estado}</span>
+      <span style="padding:4px 10px;border-radius:6px;background:${p.bg};font-size:.75rem;font-weight:600;color:${p.c}">${task.prioridad}</span>
+    </div>
+    <button onclick="closeModal()" style="padding:.5rem;border:none;background:transparent;color:var(--mt);cursor:pointer;font-size:1.3rem;line-height:1">&times;</button>
+  </div>
 
-function openNewTaskModal(projectId=null,status='Pendiente',userId=null){const modal=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-box" style="max-width:600px"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1.5rem"><div style="font-size:1.15rem;font-weight:700;color:var(--fg)"><i class="fas fa-plus-circle" style="color:var(--sy);margin-right:.5rem"></i>Nueva Tarea</div><button onclick="closeModal()" style="padding:.5rem;border:none;background:transparent;color:var(--mt);cursor:pointer;font-size:1.2rem">&times;</button></div><div class="modal-field"><label>Título *</label><textarea id="newDesc" rows="3" placeholder="Describe la tarea..." style="resize:vertical"></textarea></div><div class="modal-field"><label style="display:flex;justify-content:space-between;align-items:center">Proyecto * <button onclick="openCreateProjectModal()" title="Crear nuevo proyecto" style="padding:4px 8px;border-radius:4px;border:1px solid var(--sy);background:transparent;color:var(--sy);cursor:pointer;font-size:.75rem"><i class="fas fa-plus"></i> Nuevo</button></label><select id="newProject">${projects.length===0?'<option value="">-- Sin proyectos disponibles --</option>':projects.map(p=>`<option value="${p.id}" ${projectId==p.id?'selected':''}>${p.name}</option>`).join('')}</select></div><div class="modal-field"><label>Sección (opcional)</label><input type="text" id="newModule" placeholder="Ej: Dashboard, Pagos, etc."></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem"><div class="modal-field"><label>Estado</label><select id="newStatus"><option value="Pendiente">🔴 Pendiente</option><option value="En Progreso">🟡 En Progreso</option><option value="Completada">✅ Completada</option></select></div><div class="modal-field"><label>Prioridad</label><select id="newPriority"><option value="Media" selected><i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#FCD34D" aria-hidden="true"></i> Media</option><option value="Alta"><i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#EF4444" aria-hidden="true"></i> Alta</option><option value="Baja"><i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#10B981" aria-hidden="true"></i> Baja</option></select></div></div><div class="modal-field"><label style="display:flex;justify-content:space-between;align-items:center">Asignado a <button onclick="openCreateUserModal()" title="Crear nuevo usuario" style="padding:4px 8px;border-radius:4px;border:1px solid var(--sy);background:transparent;color:var(--sy);cursor:pointer;font-size:.75rem"><i class="fas fa-plus"></i> Nuevo</button></label><select id="newAssigned"><option value="">Sin asignar</option>${users.map(u=>`<option value="${u.id}" ${userId==u.id?'selected':''}>${u.name}</option>`).join('')}</select></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem"><div class="modal-field"><label>Fecha de Inicio</label><input type="date" id="newStartDate"></div><div class="modal-field"><label>Fecha de Vencimiento</label><input type="date" id="newDueDate"></div></div><div class="modal-actions" style="margin-top:1.5rem;display:flex;justify-content:flex-end;gap:.75rem"><button onclick="closeModal()" class="m-cancel">Cancelar</button><button onclick="createTask()" class="m-ok"><i class="fas fa-plus"></i> Crear Tarea</button></div></div></div>`;document.getElementById('modalRoot').innerHTML=modal}
+  <h2 style="font-size:1.3rem;font-weight:700;color:var(--fg);margin:0 0 1rem 0;line-height:1.4">${esc(task.titulo)}</h2>
 
-function openCreateProjectModal(context='task'){window.projectCreationContext=context;const modal=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-box" style="max-width:500px"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1.5rem"><div style="font-size:1.15rem;font-weight:700;color:var(--fg)"><i class="fas fa-folder-plus" style="color:var(--sy);margin-right:.5rem"></i>Nuevo Proyecto</div><button onclick="closeModal()" style="padding:.5rem;border:none;background:transparent;color:var(--mt);cursor:pointer;font-size:1.2rem">&times;</button></div><div class="modal-field"><label>Nombre del Proyecto *</label><input type="text" id="projName" placeholder="Ej: Rediseño Web, Campaña Q1, etc." style="width:100%"></div><div class="modal-field"><label>Descripción (opcional)</label><textarea id="projDesc" rows="2" placeholder="Descripción breve..." style="resize:vertical"></textarea></div><div class="modal-field"><label>Color del Proyecto</label><div style="display:flex;gap:0.75rem;flex-wrap:wrap"><input type="color" id="projColor" value="#3B82F6" style="width:50px;height:40px;border:none;border-radius:8px;cursor:pointer"></div></div><div style="display:flex;justify-content:flex-end;gap:.75rem;margin-top:1.5rem"><button onclick="closeModal()" class="m-cancel">Cancelar</button><button onclick="createProject()" class="m-ok"><i class="fas fa-check"></i> Crear Proyecto</button></div></div></div>`;document.getElementById('modalRoot').innerHTML=modal}
+  <div style="display:flex;flex-wrap:wrap;gap:.75rem;margin-bottom:1.25rem">
+    <div style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:var(--mt)"><i class="fas fa-folder" style="color:var(--sy)"></i> ${esc(projName)}</div>
+    ${task.seccion?`<div style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:var(--mt)"><i class="fas fa-tag" style="color:#8B5CF6"></i> ${esc(task.seccion)}</div>`:''}
+    <div style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:var(--mt)"><i class="fas fa-user" style="color:#3B82F6"></i> ${esc(assignedNames)}</div>
+  </div>
 
-async function createProject(){const name=document.getElementById('projName')?.value?.trim();const description=document.getElementById('projDesc')?.value?.trim()||null;const color=document.getElementById('projColor')?.value||'#3B82F6';if(!name)return toast('Nombre del proyecto requerido');try{const r=await fetch('/api/styly/projects',{method:'POST',headers:hdrs,body:JSON.stringify({name,description,color})});const d=await r.json();if(d.error)throw new Error(d.error);toast('Proyecto creado');projects.push(d.project);const newProjectId=d.project.id;const context=window.projectCreationContext||'task';closeModal();await new Promise(resolve=>setTimeout(resolve,100));if(context==='admin'){renderProyectos(document.getElementById('modContent'))}else{openNewTaskModal(newProjectId)}}catch(e){toast('Error: '+e.message)}}
+  ${task.fecha_inicio||task.fecha_vencimiento?`<div style="display:flex;align-items:center;gap:.5rem;padding:.75rem 1rem;background:${isOverdue?'rgba(239,68,68,.08)':'rgba(59,130,246,.06)'};border:1px solid ${isOverdue?'rgba(239,68,68,.2)':'rgba(59,130,246,.15)'};border-radius:10px;margin-bottom:1.25rem;font-size:.85rem;color:${isOverdue?'#DC2626':'var(--fg)'}">
+    <i class="far fa-calendar-alt" style="color:${isOverdue?'#DC2626':'#3B82F6'}"></i>
+    ${task.fecha_inicio?`<span>${formatDateShort(task.fecha_inicio)}</span>`:''}
+    ${task.fecha_inicio&&task.fecha_vencimiento?'<span style="color:var(--mt)">→</span>':''}
+    ${task.fecha_vencimiento?`<span style="font-weight:600">${formatDateShort(task.fecha_vencimiento)}</span>`:''}
+    ${isOverdue?'<span style="font-weight:700;margin-left:.25rem">(Vencida)</span>':''}
+  </div>`:''}
+
+  ${task.descripcion?`<div style="margin-bottom:1.25rem"><div style="font-size:.75rem;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem"><i class="fas fa-align-left" style="margin-right:.3rem"></i>Descripcion</div><div style="font-size:.9rem;color:var(--fg);line-height:1.6;padding:.75rem 1rem;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px">${esc(task.descripcion)}</div></div>`:''}
+
+  ${task.notas?`<div style="margin-bottom:1.25rem"><div style="font-size:.75rem;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem"><i class="fas fa-sticky-note" style="margin-right:.3rem"></i>Notas</div><div style="font-size:.9rem;color:var(--fg);line-height:1.6;padding:.75rem 1rem;background:rgba(139,92,246,.05);border:1px solid rgba(139,92,246,.15);border-radius:10px;font-style:italic">${esc(task.notas)}</div></div>`:''}
+
+  <div style="margin-bottom:1.25rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+      <div style="font-size:.75rem;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.5px"><i class="fas fa-paperclip" style="margin-right:.3rem"></i>Archivos</div>
+      <label style="padding:5px 12px;border-radius:8px;border:1px dashed var(--sy);background:transparent;color:var(--sy);cursor:pointer;font-size:.8rem;font-weight:600;transition:all .2s" onmouseover="this.style.background='rgba(139,92,246,.1)'" onmouseout="this.style.background='transparent'">
+        <i class="fas fa-upload" style="margin-right:.3rem"></i>Subir
+        <input type="file" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.txt" style="display:none" onchange="uploadTaskFiles(${task.id},this.files)">
+      </label>
+    </div>
+    <div id="taskFilesContainer">${archivosHTML}</div>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;gap:1rem;margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border)">
+    <button onclick="deleteTask(${task.id});closeModal()" style="padding:.6rem 1rem;border-radius:10px;border:1px solid #EF4444;background:transparent;color:#EF4444;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#EF4444';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#EF4444'"><i class="fas fa-trash"></i> Eliminar</button>
+    <div style="display:flex;gap:.75rem">
+      <button onclick="closeModal()" class="m-cancel">Cerrar</button>
+      <button onclick="openEditTaskModal(${task.id})" class="m-ok"><i class="fas fa-edit"></i> Editar</button>
+    </div>
+  </div>
+</div></div>`;
+  document.getElementById('modalRoot').innerHTML=modal;
+  loadTaskFiles(task.id);
+}
+
+function formatFileSize(bytes){if(!bytes)return '0 B';const k=1024;const sizes=['B','KB','MB','GB'];const i=Math.floor(Math.log(bytes)/Math.log(k));return parseFloat((bytes/Math.pow(k,i)).toFixed(1))+' '+sizes[i]}
+
+async function loadTaskFiles(taskId){
+  try{
+    const r=await fetch(`/api/styly/tasks/${taskId}/archivos`,{headers:hdrs});
+    const d=await r.json();
+    const container=document.getElementById('taskFilesContainer');
+    if(!container)return;
+    const files=d.archivos||[];
+    if(files.length===0){container.innerHTML='<div style="padding:1rem;text-align:center;color:var(--mt);font-size:.85rem;border:1px dashed var(--border);border-radius:10px">Sin archivos adjuntos</div>';return}
+    container.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.75rem">${files.map(f=>{
+      const isImage=f.tipo&&f.tipo.startsWith('image/');
+      if(isImage){
+        return`<div style="position:relative;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--card);transition:all .2s" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,.15)'" onmouseout="this.style.boxShadow='none'">
+          <a href="${f.ruta}" target="_blank" style="display:block"><img src="${f.ruta}" alt="${esc(f.nombre)}" style="width:100%;height:100px;object-fit:cover;display:block"></a>
+          <div style="padding:.5rem"><div style="font-size:.7rem;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(f.nombre)}">${esc(f.nombre)}</div><div style="font-size:.65rem;color:var(--mt)">${formatFileSize(f.tamano)}</div></div>
+          <button onclick="event.stopPropagation();deleteTaskFile(${f.id},${taskId})" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(0,0,0,.6);color:#fff;cursor:pointer;font-size:.65rem;display:flex;align-items:center;justify-content:center" title="Eliminar"><i class="fas fa-times"></i></button>
+        </div>`;
+      }else{
+        const ext=f.nombre.split('.').pop().toUpperCase();
+        const iconMap={'PDF':'fa-file-pdf','DOC':'fa-file-word','DOCX':'fa-file-word','XLS':'fa-file-excel','XLSX':'fa-file-excel','ZIP':'fa-file-archive','RAR':'fa-file-archive','TXT':'fa-file-alt'};
+        const icon=iconMap[ext]||'fa-file';
+        return`<div style="position:relative;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--card);padding:1rem;text-align:center;transition:all .2s" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,.15)'" onmouseout="this.style.boxShadow='none'">
+          <a href="${f.ruta}" target="_blank" download style="text-decoration:none"><i class="fas ${icon}" style="font-size:2rem;color:var(--sy);margin-bottom:.5rem;display:block"></i></a>
+          <div style="font-size:.7rem;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(f.nombre)}">${esc(f.nombre)}</div>
+          <div style="font-size:.65rem;color:var(--mt)">${formatFileSize(f.tamano)}</div>
+          <button onclick="event.stopPropagation();deleteTaskFile(${f.id},${taskId})" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(0,0,0,.6);color:#fff;cursor:pointer;font-size:.65rem;display:flex;align-items:center;justify-content:center" title="Eliminar"><i class="fas fa-times"></i></button>
+        </div>`;
+      }
+    }).join('')}</div>`;
+  }catch(e){
+    const container=document.getElementById('taskFilesContainer');
+    if(container)container.innerHTML='<div style="color:#EF4444;font-size:.85rem">Error cargando archivos</div>';
+  }
+}
+
+async function uploadTaskFiles(taskId,fileList){
+  if(!fileList||fileList.length===0)return;
+  const formData=new FormData();
+  for(const file of fileList)formData.append('archivos',file);
+  try{
+    toast('Subiendo archivo(s)...');
+    const r=await fetch(`/api/styly/tasks/${taskId}/archivos`,{method:'POST',headers:{'Authorization':hdrs['Authorization']},body:formData});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    toast(`${d.archivos.length} archivo(s) subidos`);
+    loadTaskFiles(taskId);
+  }catch(e){toast('Error: '+e.message)}
+}
+
+async function deleteTaskFile(fileId,taskId){
+  if(!confirm('¿Eliminar este archivo?'))return;
+  try{
+    const r=await fetch(`/api/styly/archivos/${fileId}`,{method:'DELETE',headers:hdrs});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    toast('Archivo eliminado');
+    loadTaskFiles(taskId);
+  }catch(e){toast('Error: '+e.message)}
+}
+
+function openEditTaskModal(taskId){const task=tasks.find(t=>t.id===taskId);if(!task)return;const assignedUserId=task.asignados&&task.asignados.length>0?task.asignados[0].user_id:'';const modal=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-box" style="max-width:600px"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1.5rem"><div style="font-size:1.15rem;font-weight:700;color:var(--fg)">Editar Tarea<span style="font-size:.75rem;font-weight:600;color:var(--sy);margin-left:.5rem">${task.task_id||'#'+task.id}</span></div><button onclick="closeModal()" style="padding:.5rem;border:none;background:transparent;color:var(--mt);cursor:pointer;font-size:1.2rem">&times;</button></div><div class="modal-field"><label>Titulo</label><textarea id="editDesc" rows="2" style="resize:vertical">${esc(task.titulo)}</textarea></div><div class="modal-field"><label>Notas</label><textarea id="editNotas" rows="3" placeholder="Notas detalladas de la tarea..." style="resize:vertical">${esc(task.notas||'')}</textarea></div><div class="modal-field"><label>Proyecto</label><select id="editProject">${projects.map(p=>`<option value="${p.id}" ${task.proyecto_id==p.id?'selected':''}>${p.name}</option>`).join('')}</select></div><div class="modal-field"><label>Seccion (opcional)</label><input type="text" id="editModule" value="${task.seccion||''}" placeholder="Ej: Dashboard, Pagos, etc."></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem"><div class="modal-field"><label>Estado</label><select id="editStatus"><option value="Pendiente" ${task.estado==='Pendiente'?'selected':''}>Pendiente</option><option value="En Progreso" ${task.estado==='En Progreso'?'selected':''}>En Progreso</option><option value="Completada" ${task.estado==='Completada'?'selected':''}>Completada</option></select></div><div class="modal-field"><label>Prioridad</label><select id="editPriority"><option value="Alta" ${task.prioridad==='Alta'?'selected':''}>Alta</option><option value="Media" ${task.prioridad==='Media'?'selected':''}>Media</option><option value="Baja" ${task.prioridad==='Baja'?'selected':''}>Baja</option></select></div></div><div class="modal-field"><label>Asignado a</label><select id="editAssigned"><option value="">Sin asignar</option>${users.map(u=>`<option value="${u.id}" ${assignedUserId==u.id?'selected':''}>${u.name}</option>`).join('')}</select></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem"><div class="modal-field"><label>Fecha de Inicio</label><input type="date" id="editStartDate" value="${task.fecha_inicio||''}"></div><div class="modal-field"><label>Fecha de Vencimiento</label><input type="date" id="editDueDate" value="${task.fecha_vencimiento||''}"></div></div><div style="display:flex;justify-content:space-between;gap:1rem;margin-top:1.5rem"><button onclick="deleteTask(${task.id});closeModal()" style="padding:.65rem 1.25rem;border-radius:10px;border:1px solid #EF4444;background:transparent;color:#EF4444;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#EF4444';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#EF4444'"><i class="fas fa-trash"></i> Eliminar</button><div style="display:flex;gap:.75rem"><button onclick="closeModal()" class="m-cancel">Cancelar</button><button onclick="saveTask(${task.id})" class="m-ok"><i class="fas fa-save"></i> Guardar</button></div></div></div></div>`;document.getElementById('modalRoot').innerHTML=modal}
+
+async function saveTask(taskId){const titulo=document.getElementById('editDesc')?.value?.trim();const notas=document.getElementById('editNotas')?.value?.trim()||null;const proyecto_id=document.getElementById('editProject')?.value;const seccion=document.getElementById('editModule')?.value?.trim()||null;const estado=document.getElementById('editStatus')?.value;const prioridad=document.getElementById('editPriority')?.value;const assignedUserId=document.getElementById('editAssigned')?.value||null;const fecha_inicio=document.getElementById('editStartDate')?.value||null;const fecha_vencimiento=document.getElementById('editDueDate')?.value||null;if(!titulo)return toast('Título requerido');try{const payload={titulo,notas,proyecto_id,seccion,estado,prioridad,fecha_inicio,fecha_vencimiento};const r=await fetch(`/api/styly/tasks/${taskId}`,{method:'PUT',headers:hdrs,body:JSON.stringify(payload)});const d=await r.json();if(d.error)throw new Error(d.error);const task=tasks.find(t=>t.id===taskId);if(assignedUserId){const currentAssigned=task?.asignados||[];for(const a of currentAssigned){await fetch(`/api/styly/tasks/${taskId}/asignados/${a.user_id}`,{method:'DELETE',headers:hdrs}).catch(e=>console.log(e));}await fetch(`/api/styly/tasks/${taskId}/asignados`,{method:'POST',headers:hdrs,body:JSON.stringify({user_id:parseInt(assignedUserId)})});}else if(task){const currentAssigned=task?.asignados||[];for(const a of currentAssigned){await fetch(`/api/styly/tasks/${taskId}/asignados/${a.user_id}`,{method:'DELETE',headers:hdrs}).catch(e=>console.log(e));}}toast('Tarea actualizada');closeModal();tasksLoaded=false;await renderTareas(document.getElementById('modContent'));openTaskModal(taskId)}catch(e){toast('Error: '+e.message)}}
+
+function openNewTaskModal(projectId=null,status='Pendiente',userId=null){const modal=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-box" style="max-width:600px"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1.5rem"><div style="font-size:1.15rem;font-weight:700;color:var(--fg)"><i class="fas fa-plus-circle" style="color:var(--sy);margin-right:.5rem"></i>Nueva Tarea</div><button onclick="closeModal()" style="padding:.5rem;border:none;background:transparent;color:var(--mt);cursor:pointer;font-size:1.2rem">&times;</button></div><div class="modal-field"><label>Título *</label><textarea id="newDesc" rows="2" placeholder="Nombre de la tarea..." style="resize:vertical"></textarea></div><div class="modal-field"><label>Notas</label><textarea id="newNotas" rows="3" placeholder="Notas detalladas de la tarea (opcional)..." style="resize:vertical"></textarea></div><div class="modal-field"><label style="display:flex;justify-content:space-between;align-items:center">Proyecto * <button onclick="openCreateProjectModal()" title="Crear nuevo proyecto" style="padding:4px 8px;border-radius:4px;border:1px solid var(--sy);background:transparent;color:var(--sy);cursor:pointer;font-size:.75rem"><i class="fas fa-plus"></i> Nuevo</button></label><select id="newProject">${projects.length===0?'<option value="">-- Sin proyectos disponibles --</option>':projects.map(p=>`<option value="${p.id}" ${projectId==p.id?'selected':''}>${p.name}</option>`).join('')}</select></div><div class="modal-field"><label>Sección (opcional)</label><input type="text" id="newModule" placeholder="Ej: Dashboard, Pagos, etc."></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem"><div class="modal-field"><label>Estado</label><select id="newStatus"><option value="Pendiente">🔴 Pendiente</option><option value="En Progreso">🟡 En Progreso</option><option value="Completada">✅ Completada</option></select></div><div class="modal-field"><label>Prioridad</label><select id="newPriority"><option value="Media" selected><i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#FCD34D" aria-hidden="true"></i> Media</option><option value="Alta"><i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#EF4444" aria-hidden="true"></i> Alta</option><option value="Baja"><i class="feather" data-icon="circle" style="display:inline-block;width:1em;height:1em;color:#10B981" aria-hidden="true"></i> Baja</option></select></div></div><div class="modal-field"><label style="display:flex;justify-content:space-between;align-items:center">Asignado a <button onclick="openCreateUserModal()" title="Crear nuevo usuario" style="padding:4px 8px;border-radius:4px;border:1px solid var(--sy);background:transparent;color:var(--sy);cursor:pointer;font-size:.75rem"><i class="fas fa-plus"></i> Nuevo</button></label><select id="newAssigned"><option value="">Sin asignar</option>${users.map(u=>`<option value="${u.id}" ${userId==u.id?'selected':''}>${u.name}</option>`).join('')}</select></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem"><div class="modal-field"><label>Fecha de Inicio</label><input type="date" id="newStartDate"></div><div class="modal-field"><label>Fecha de Vencimiento</label><input type="date" id="newDueDate"></div></div><div class="modal-actions" style="margin-top:1.5rem;display:flex;justify-content:flex-end;gap:.75rem"><button onclick="closeModal()" class="m-cancel">Cancelar</button><button onclick="createTask()" class="m-ok"><i class="fas fa-plus"></i> Crear Tarea</button></div></div></div>`;document.getElementById('modalRoot').innerHTML=modal}
+
+function renderIconGrid(selectedIcon='folder'){return ICON_BANK.map(ic=>`<button type="button" onclick="selectProjectIcon('${ic.id}')" title="${ic.name}" style="width:44px;height:44px;border-radius:10px;border:2px solid ${ic.id===selectedIcon?'var(--sy)':'var(--border)'};background:${ic.id===selectedIcon?'var(--sy-bg)':'var(--card)'};cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;color:${ic.id===selectedIcon?'var(--sy)':'var(--fg)'}" onmouseover="if(this.querySelector('i').dataset.icon!==document.getElementById('projIconValue').value){this.style.borderColor='var(--sy)';this.style.background='rgba(236,72,153,.04)'}" onmouseout="if(this.querySelector('i').dataset.icon!==document.getElementById('projIconValue').value){this.style.borderColor='var(--border)';this.style.background='var(--card)'}"><i class="feather" data-icon="${ic.id}" style="display:inline-block;width:20px;height:20px;color:currentColor" aria-hidden="true"></i></button>`).join('')}
+function renderColorGrid(selectedColor='#3B82F6'){return COLOR_PRESETS.map(c=>`<button type="button" onclick="selectProjectColor('${c.hex}')" title="${c.name}" style="width:36px;height:36px;border-radius:50%;border:3px solid ${c.hex===selectedColor?'#fff':'transparent'};background:${c.hex};cursor:pointer;transition:all .2s;box-shadow:${c.hex===selectedColor?'0 0 0 2px var(--sy)':'none'}" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'"></button>`).join('')}
+function selectProjectIcon(iconId){document.getElementById('projIconValue').value=iconId;document.querySelectorAll('#iconGrid button').forEach(b=>{const ic=b.querySelector('i');if(ic){const isSelected=ic.dataset.icon===iconId;b.style.borderColor=isSelected?'var(--sy)':'var(--border)';b.style.background=isSelected?'var(--sy-bg)':'var(--card)';b.style.color=isSelected?'var(--sy)':'var(--fg)'}});const preview=document.getElementById('iconPreview');if(preview){preview.innerHTML=`<i class="feather" data-icon="${iconId}" style="display:inline-block;width:24px;height:24px;color:currentColor" aria-hidden="true"></i>`;if(window.loadFeatherIcons)loadFeatherIcons()}}
+function selectProjectColor(hex){document.getElementById('projColorValue').value=hex;document.getElementById('projColorPicker').value=hex;document.querySelectorAll('#colorGrid button').forEach(b=>{const isSelected=b.title===COLOR_PRESETS.find(c=>c.hex===hex)?.name;b.style.borderColor=isSelected?'#fff':'transparent';b.style.boxShadow=isSelected?'0 0 0 2px var(--sy)':'none'});const preview=document.getElementById('iconPreviewBox');if(preview)preview.style.background=hex}
+function openCreateProjectModal(context='task'){window.projectCreationContext=context;const modal=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-box" style="max-width:560px;max-height:90vh;overflow-y:auto"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1.5rem"><div style="font-size:1.15rem;font-weight:700;color:var(--fg)"><i class="fas fa-folder-plus" style="color:var(--sy);margin-right:.5rem"></i>Nuevo Proyecto</div><button onclick="closeModal()" style="padding:.5rem;border:none;background:transparent;color:var(--mt);cursor:pointer;font-size:1.2rem">&times;</button></div><div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding:1rem;background:var(--card);border:1px solid var(--border);border-radius:12px"><div id="iconPreviewBox" style="width:56px;height:56px;border-radius:14px;background:#3B82F6;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.5rem;flex-shrink:0"><span id="iconPreview"><i class="feather" data-icon="folder" style="display:inline-block;width:24px;height:24px;color:currentColor" aria-hidden="true"></i></span></div><div style="flex:1"><div style="font-size:.75rem;color:var(--mt);margin-bottom:.25rem">Vista previa</div><div style="font-size:1rem;font-weight:600;color:var(--fg)" id="projNamePreview">Nuevo Proyecto</div></div></div><input type="hidden" id="projIconValue" value="folder"><input type="hidden" id="projColorValue" value="#3B82F6"><div class="modal-field"><label>Nombre del Proyecto *</label><input type="text" id="projName" placeholder="Ej: Rediseno Web, Campana Q1, etc." oninput="const p=document.getElementById('projNamePreview');if(p)p.textContent=this.value||'Nuevo Proyecto'" style="width:100%"></div><div class="modal-field"><label>Descripcion (opcional)</label><textarea id="projDesc" rows="2" placeholder="Descripcion breve..." style="resize:vertical"></textarea></div><div class="modal-field"><label>Icono del Proyecto</label><div id="iconGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:.4rem;max-height:200px;overflow-y:auto;padding:.5rem;background:var(--bg);border:1px solid var(--border);border-radius:10px">${renderIconGrid('folder')}</div></div><div class="modal-field"><label>Color del Proyecto</label><div style="display:flex;align-items:center;gap:1rem"><div id="colorGrid" style="display:flex;gap:.5rem;flex-wrap:wrap;flex:1">${renderColorGrid('#3B82F6')}</div><input type="color" id="projColorPicker" value="#3B82F6" onchange="selectProjectColor(this.value)" style="width:40px;height:36px;border:none;border-radius:8px;cursor:pointer;flex-shrink:0" title="Color personalizado"></div></div><div style="display:flex;justify-content:flex-end;gap:.75rem;margin-top:1.5rem"><button onclick="closeModal()" class="m-cancel">Cancelar</button><button onclick="createProject()" class="m-ok"><i class="fas fa-check"></i> Crear Proyecto</button></div></div></div>`;document.getElementById('modalRoot').innerHTML=modal;if(window.loadFeatherIcons)loadFeatherIcons()}
+
+async function createProject(){const name=document.getElementById('projName')?.value?.trim();const description=document.getElementById('projDesc')?.value?.trim()||null;const color=document.getElementById('projColorValue')?.value||document.getElementById('projColorPicker')?.value||'#3B82F6';const icono=document.getElementById('projIconValue')?.value||'folder';if(!name)return toast('Nombre del proyecto requerido');try{const r=await fetch('/api/styly/projects',{method:'POST',headers:hdrs,body:JSON.stringify({name,description,color,icono})});const d=await r.json();if(d.error)throw new Error(d.error);toast('Proyecto creado');projects.push(d.project);const newProjectId=d.project.id;const context=window.projectCreationContext||'task';closeModal();await new Promise(resolve=>setTimeout(resolve,100));if(context==='admin'){renderProyectos(document.getElementById('modContent'))}else{openNewTaskModal(newProjectId)}}catch(e){toast('Error: '+e.message)}}
+
+function openEditProjectModal(projectId){const p=projects.find(pr=>pr.id===projectId);if(!p)return toast('Proyecto no encontrado');const curIcon=p.icono||'folder';const curColor=p.color||'#3B82F6';const modal=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-box" style="max-width:560px;max-height:90vh;overflow-y:auto"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1.5rem"><div style="font-size:1.15rem;font-weight:700;color:var(--fg)"><i class="fas fa-edit" style="color:var(--sy);margin-right:.5rem"></i>Editar Proyecto</div><button onclick="closeModal()" style="padding:.5rem;border:none;background:transparent;color:var(--mt);cursor:pointer;font-size:1.2rem">&times;</button></div><div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding:1rem;background:var(--card);border:1px solid var(--border);border-radius:12px"><div id="iconPreviewBox" style="width:56px;height:56px;border-radius:14px;background:${curColor};display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.5rem;flex-shrink:0"><span id="iconPreview"><i class="feather" data-icon="${curIcon}" style="display:inline-block;width:24px;height:24px;color:currentColor" aria-hidden="true"></i></span></div><div style="flex:1"><div style="font-size:.75rem;color:var(--mt);margin-bottom:.25rem">Vista previa</div><div style="font-size:1rem;font-weight:600;color:var(--fg)" id="projNamePreview">${esc(p.name)}</div></div></div><input type="hidden" id="projIconValue" value="${curIcon}"><input type="hidden" id="projColorValue" value="${curColor}"><input type="hidden" id="editProjId" value="${p.id}"><div class="modal-field"><label>Nombre del Proyecto *</label><input type="text" id="projName" value="${esc(p.name)}" oninput="const pv=document.getElementById('projNamePreview');if(pv)pv.textContent=this.value||'Proyecto'" style="width:100%"></div><div class="modal-field"><label>Descripcion (opcional)</label><textarea id="projDesc" rows="2" style="resize:vertical">${esc(p.description||'')}</textarea></div><div class="modal-field"><label>Icono del Proyecto</label><div id="iconGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:.4rem;max-height:200px;overflow-y:auto;padding:.5rem;background:var(--bg);border:1px solid var(--border);border-radius:10px">${renderIconGrid(curIcon)}</div></div><div class="modal-field"><label>Color del Proyecto</label><div style="display:flex;align-items:center;gap:1rem"><div id="colorGrid" style="display:flex;gap:.5rem;flex-wrap:wrap;flex:1">${renderColorGrid(curColor)}</div><input type="color" id="projColorPicker" value="${curColor}" onchange="selectProjectColor(this.value)" style="width:40px;height:36px;border:none;border-radius:8px;cursor:pointer;flex-shrink:0" title="Color personalizado"></div></div><div style="display:flex;justify-content:flex-end;gap:.75rem;margin-top:1.5rem"><button onclick="closeModal()" class="m-cancel">Cancelar</button><button onclick="updateProject()" class="m-ok"><i class="fas fa-save"></i> Guardar Cambios</button></div></div></div>`;document.getElementById('modalRoot').innerHTML=modal;if(window.loadFeatherIcons)loadFeatherIcons()}
+
+async function updateProject(){const id=document.getElementById('editProjId')?.value;const name=document.getElementById('projName')?.value?.trim();const description=document.getElementById('projDesc')?.value?.trim()||null;const color=document.getElementById('projColorValue')?.value||'#3B82F6';const icono=document.getElementById('projIconValue')?.value||'folder';if(!name)return toast('Nombre del proyecto requerido');try{const r=await fetch(`/api/styly/projects/${id}`,{method:'PUT',headers:hdrs,body:JSON.stringify({name,description,color,icono})});const d=await r.json();if(d.error)throw new Error(d.error);toast('Proyecto actualizado');const idx=projects.findIndex(p=>p.id==id);if(idx!==-1)projects[idx]={...projects[idx],name,description,color,icono};closeModal();renderProyectos(document.getElementById('modContent'))}catch(e){toast('Error: '+e.message)}}
 
 function openCreateUserModal(){const modal=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-box" style="max-width:500px"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1.5rem"><div style="font-size:1.15rem;font-weight:700;color:var(--fg)"><i class="fas fa-user-plus" style="color:var(--sy);margin-right:.5rem"></i>Nuevo Usuario</div><button onclick="closeModal()" style="padding:.5rem;border:none;background:transparent;color:var(--mt);cursor:pointer;font-size:1.2rem">&times;</button></div><div class="modal-field"><label>Nombre Completo *</label><input type="text" id="userName" placeholder="Ej: Juan Pérez" style="width:100%"></div><div class="modal-field"><label>Email *</label><input type="email" id="userEmail" placeholder="correo@ejemplo.com" style="width:100%"></div><div class="modal-field"><label>Contraseña *</label><input type="password" id="userPassword" placeholder="Mínimo 6 caracteres" style="width:100%"></div><div style="display:flex;justify-content:flex-end;gap:.75rem;margin-top:1.5rem"><button onclick="closeModal()" class="m-cancel">Cancelar</button><button onclick="createUser()" class="m-ok"><i class="fas fa-check"></i> Crear Usuario</button></div></div></div>`;document.getElementById('modalRoot').innerHTML=modal}
 
 async function createUser(){const name=document.getElementById('userName')?.value?.trim();const email=document.getElementById('userEmail')?.value?.trim();const password=document.getElementById('userPassword')?.value;if(!name)return toast('Nombre requerido');if(!email)return toast('Email requerido');if(!password||password.length<6)return toast('Contraseña mínimo 6 caracteres');try{const r=await fetch('/api/styly/users',{method:'POST',headers:hdrs,body:JSON.stringify({name,email,password})});const d=await r.json();if(d.error)throw new Error(d.error);toast('Usuario creado');users.push(d.user);const newUserId=d.user.id;closeModal();await new Promise(resolve=>setTimeout(resolve,100));openNewTaskModal(null,'Pendiente',newUserId)}catch(e){toast('Error: '+e.message)}}
 
-async function createTask(){const titulo=document.getElementById('newDesc')?.value?.trim();const proyecto_id=document.getElementById('newProject')?.value;const seccion=document.getElementById('newModule')?.value?.trim()||null;const estado=document.getElementById('newStatus')?.value;const prioridad=document.getElementById('newPriority')?.value;const assignedUserId=document.getElementById('newAssigned')?.value||null;const fecha_inicio=document.getElementById('newStartDate')?.value||null;const fecha_vencimiento=document.getElementById('newDueDate')?.value||null;if(!titulo)return toast('Título requerido');if(!proyecto_id)return toast('Proyecto requerido');try{const nextId=Math.max(0,...tasks.map(t=>{const match=t.task_id?.match(/T-(\d+)/);return match?parseInt(match[1]):0}))+1;const taskId=`T-${String(nextId).padStart(3,'0')}`;const payload={task_id:taskId,titulo,proyecto_id,seccion,prioridad,fecha_inicio,fecha_vencimiento};if(assignedUserId){payload.asignados=[parseInt(assignedUserId)];}const r=await fetch('/api/styly/tasks',{method:'POST',headers:hdrs,body:JSON.stringify(payload)});const d=await r.json();if(d.error)throw new Error(d.error);toast('Tarea creada');closeModal();tasksLoaded=false;renderTareas(document.getElementById('modContent'))}catch(e){toast('Error: '+e.message)}}
+async function createTask(){const titulo=document.getElementById('newDesc')?.value?.trim();const notas=document.getElementById('newNotas')?.value?.trim()||null;const proyecto_id=document.getElementById('newProject')?.value;const seccion=document.getElementById('newModule')?.value?.trim()||null;const estado=document.getElementById('newStatus')?.value;const prioridad=document.getElementById('newPriority')?.value;const assignedUserId=document.getElementById('newAssigned')?.value||null;const fecha_inicio=document.getElementById('newStartDate')?.value||null;const fecha_vencimiento=document.getElementById('newDueDate')?.value||null;if(!titulo)return toast('Título requerido');if(!proyecto_id)return toast('Proyecto requerido');try{const nextId=Math.max(0,...tasks.map(t=>{const match=t.task_id?.match(/T-(\d+)/);return match?parseInt(match[1]):0}))+1;const taskId=`T-${String(nextId).padStart(3,'0')}`;const payload={task_id:taskId,titulo,notas,proyecto_id,seccion,prioridad,fecha_inicio,fecha_vencimiento};if(assignedUserId){payload.asignados=[parseInt(assignedUserId)];}const r=await fetch('/api/styly/tasks',{method:'POST',headers:hdrs,body:JSON.stringify(payload)});const d=await r.json();if(d.error)throw new Error(d.error);toast('Tarea creada');closeModal();tasksLoaded=false;renderTareas(document.getElementById('modContent'))}catch(e){toast('Error: '+e.message)}}
 
 async function renderProyectos(m){
   const header=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem"><h2 style="color:var(--fg);margin:0;font-size:1.5rem"><i class="fas fa-folder" style="margin-right:.5rem;color:var(--sy)"></i>Administrar Proyectos</h2><div style="display:flex;gap:.5rem"><button onclick="openCreateProjectModal('admin')" class="glass-btn"><i class="fas fa-plus"></i> Nuevo Proyecto</button><button onclick="switchTasksSubView('tareas')" class="glass-btn" style="background:rgba(139,92,246,0.15)"><i class="fas fa-arrow-left"></i> Volver</button></div></div>`;
@@ -980,8 +1110,9 @@ async function renderProyectos(m){
     m.innerHTML=header+`<div style="text-align:center;padding:3rem;color:var(--mt)"><div style="font-size:2.5rem;margin-bottom:1rem"><i class="feather" data-icon="folder" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></div><div style="font-size:1rem;font-weight:600">No hay proyectos</div><div style="font-size:.85rem;margin-top:.5rem">Crea tu primer proyecto para comenzar</div></div>`;
     return;
   }
-  const projectsList=projects.map(p=>`<div class="glass-card" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><div style="flex:1"><div style="font-size:1.1rem;font-weight:700;color:var(--fg);display:flex;align-items:center;gap:.75rem"><span style="width:20px;height:20px;background:${p.color||'#3B82F6'};border-radius:6px;box-shadow:0 4px 12px ${p.color||'#3B82F6'}40"></span>${p.name}</div><div style="font-size:.85rem;color:rgba(255,255,255,0.7);margin-top:.5rem">${p.description||'Sin descripción'}</div><div style="font-size:.75rem;color:rgba(255,255,255,0.7);margin-top:.75rem;display:flex;gap:1rem"><span><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Estado: <strong>${p.estado||'activo'}</strong></span><span><i class="feather" data-icon="calendar" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Creado: ${new Date(p.created_at).toLocaleDateString('es-MX')}</span></div></div><button onclick="deleteProject(${p.id})" style="padding:.65rem 1.25rem;border-radius:12px;border:1px solid rgba(239,68,68,0.4);background:rgba(239,68,68,0.1);color:#EF4444;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .3s;white-space:nowrap;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)" onmouseover="this.style.background='#EF4444';this.style.color='#fff';this.style.border='1px solid #EF4444'" onmouseout="this.style.background='rgba(239,68,68,0.1)';this.style.color='#EF4444';this.style.border='1px solid rgba(239,68,68,0.4)'"><i class="fas fa-trash"></i> Eliminar</button></div>`).join('');
-  m.innerHTML=header+projectsList
+  const projectsList=projects.map(p=>{const cfg=getProjectConfig(p);const taskCount=tasks.filter(t=>t.proyecto_id===p.id).length;const doneCount=tasks.filter(t=>t.proyecto_id===p.id&&t.estado==='Completada').length;return`<div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;background:linear-gradient(135deg,${cfg.color}15,${cfg.color}05);border:2px solid ${cfg.color}40;border-radius:14px;margin-bottom:1rem;transition:all .2s"><div style="display:flex;align-items:center;gap:.75rem;flex:1;min-width:0">${getProjectIconBox(p,44)}<div style="min-width:0"><div style="font-size:1.1rem;font-weight:700;color:var(--fg)">${esc(p.name)}</div><div style="font-size:.8rem;color:var(--mt);margin-top:.15rem">${p.description||'Sin descripcion'}</div><div style="font-size:.75rem;color:var(--mt);font-weight:400;margin-top:.35rem;display:flex;flex-wrap:wrap;gap:.75rem"><span>${taskCount} tareas</span><span>${doneCount} completadas</span><span>${new Date(p.created_at).toLocaleDateString('es-MX')}</span></div></div></div><div style="display:flex;gap:.5rem;flex-shrink:0"><button onclick="openEditProjectModal(${p.id})" style="padding:.5rem .85rem;border-radius:10px;border:1px solid rgba(139,92,246,0.4);background:rgba(139,92,246,0.1);color:#8B5CF6;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .3s;white-space:nowrap" onmouseover="this.style.background='#8B5CF6';this.style.color='#fff'" onmouseout="this.style.background='rgba(139,92,246,0.1)';this.style.color='#8B5CF6'"><i class="fas fa-edit"></i> Editar</button><button onclick="deleteProject(${p.id})" style="padding:.5rem .85rem;border-radius:10px;border:1px solid rgba(239,68,68,0.4);background:rgba(239,68,68,0.1);color:#EF4444;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .3s;white-space:nowrap" onmouseover="this.style.background='#EF4444';this.style.color='#fff'" onmouseout="this.style.background='rgba(239,68,68,0.1)';this.style.color='#EF4444'"><i class="fas fa-trash"></i> Eliminar</button></div></div>`}).join('');
+  m.innerHTML=header+projectsList;
+  if(window.loadFeatherIcons)loadFeatherIcons()
 }
 
 async function deleteProject(id){
@@ -1004,6 +1135,250 @@ async function deleteProject(id){
   }catch(e){
     console.error('deleteProject error:',e.message);
     toast('Error: '+e.message);
+  }
+}
+
+// ================================================================
+// BULK IMPORT FEATURE
+// ================================================================
+let parsedImportTasks = [];
+let importFileName = '';
+
+function openBulkImportModal() {
+  parsedImportTasks = [];
+  importFileName = '';
+  const modal = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal-box" style="max-width:750px;max-height:90vh;overflow-y:auto">
+      <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1.5rem">
+        <div style="font-size:1.15rem;font-weight:700;color:var(--fg)"><i class="fas fa-file-import" style="color:var(--sy);margin-right:.5rem"></i>Importar Tareas desde Excel</div>
+        <button onclick="closeModal()" style="padding:.5rem;border:none;background:transparent;color:var(--mt);cursor:pointer;font-size:1.2rem">&times;</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+        <button onclick="downloadTemplate()" class="glass-btn" style="padding:1.25rem;display:flex;flex-direction:column;align-items:center;gap:.5rem;text-align:center">
+          <i class="fas fa-download" style="font-size:1.5rem;color:var(--sy)"></i>
+          <span style="font-weight:600">Descargar Template</span>
+          <span style="font-size:.75rem;color:var(--mt)">Archivo Excel con formato y ejemplo</span>
+        </button>
+        <label style="padding:1.25rem;display:flex;flex-direction:column;align-items:center;gap:.5rem;text-align:center;cursor:pointer;background:rgba(139,92,246,0.08);border:2px dashed rgba(139,92,246,0.3);border-radius:12px;transition:all .3s" onmouseover="this.style.borderColor='var(--sy)';this.style.background='rgba(139,92,246,0.15)'" onmouseout="this.style.borderColor='rgba(139,92,246,0.3)';this.style.background='rgba(139,92,246,0.08)'">
+          <i class="fas fa-upload" style="font-size:1.5rem;color:var(--sy)"></i>
+          <span style="font-weight:600">Subir Archivo</span>
+          <span style="font-size:.75rem;color:var(--mt)">.xlsx, .xls o .csv</span>
+          <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFileUpload(this.files[0])" style="display:none">
+        </label>
+      </div>
+
+      <div id="importPreview"></div>
+      <div id="importActions" style="display:none;margin-top:1rem;display:flex;justify-content:flex-end;gap:.75rem">
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('modalRoot').innerHTML = modal;
+}
+
+function downloadTemplate() {
+  if (typeof XLSX === 'undefined') { toast('Error: libreria XLSX no cargada'); return; }
+
+  const headers = ['task_id', 'titulo', 'descripcion', 'notas', 'proyecto', 'seccion', 'prioridad', 'asignado', 'fecha_inicio', 'fecha_vencimiento'];
+  const example = ['T-001', 'Diseño del panel principal', 'Crear layout responsive', 'Incluir diseño mobile-first, animaciones suaves, componentes reutilizables', 'STYLY Panel', 'Frontend', 'Alta', 'Admin', '2026-02-10', '2026-02-24'];
+  const instructions = ['(auto)', '* Requerido', 'Breve descripcion', 'Detalles y notas extensas (opcional)', '* Nombre del proyecto (debe existir)', 'Categoria o modulo (opcional)', 'Alta / Media / Baja', 'Nombre del usuario (opcional)', 'YYYY-MM-DD (opcional)', 'YYYY-MM-DD (opcional)'];
+
+  const ws = XLSX.utils.aoa_to_sheet([headers, example, instructions]);
+
+  // Column widths
+  ws['!cols'] = [
+    {wch: 10}, {wch: 30}, {wch: 30}, {wch: 45},
+    {wch: 20}, {wch: 15}, {wch: 10}, {wch: 15}, {wch: 14}, {wch: 14}
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Tareas');
+  XLSX.writeFile(wb, 'STYLY_Template_Tareas.xlsx');
+  toast('Template descargado');
+}
+
+function handleFileUpload(file) {
+  if (!file) return;
+  importFileName = file.name;
+  if (typeof XLSX === 'undefined') { toast('Error: libreria XLSX no cargada'); return; }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+
+      if (rows.length === 0) { toast('El archivo esta vacio'); return; }
+
+      // Filter out instruction rows (rows where titulo starts with '*' or '(' or is empty)
+      const validRows = rows.filter(r =>
+        r.titulo && !r.titulo.startsWith('*') && !r.titulo.startsWith('(')
+      );
+
+      if (validRows.length === 0) { toast('No se encontraron tareas validas'); return; }
+
+      parsedImportTasks = validRows.map(r => ({
+        task_id: r.task_id || '',
+        titulo: r.titulo || '',
+        descripcion: r.descripcion || '',
+        notas: r.notas || '',
+        proyecto: r.proyecto || '',
+        seccion: r.seccion || '',
+        prioridad: r.prioridad || 'Media',
+        asignado: r.asignado || '',
+        fecha_inicio: formatExcelDate(r.fecha_inicio),
+        fecha_vencimiento: formatExcelDate(r.fecha_vencimiento)
+      }));
+
+      renderImportPreview();
+    } catch (err) {
+      toast('Error leyendo archivo: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function formatExcelDate(val) {
+  if (!val) return '';
+  // If it's already a string in YYYY-MM-DD format
+  if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+  // If it's an Excel date number
+  if (typeof val === 'number') {
+    const d = new Date((val - 25569) * 86400 * 1000);
+    return d.toISOString().split('T')[0];
+  }
+  // Try parsing as date string
+  const d = new Date(val);
+  if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
+  return '';
+}
+
+function renderImportPreview() {
+  const preview = document.getElementById('importPreview');
+  if (!parsedImportTasks.length) {
+    preview.innerHTML = '';
+    return;
+  }
+
+  // Check which projects exist
+  const existingProjects = projects.map(p => p.name.toLowerCase());
+  const missingProjects = [...new Set(
+    parsedImportTasks
+      .map(t => t.proyecto)
+      .filter(p => p && !existingProjects.includes(p.toLowerCase()))
+  )];
+
+  let html = `<div style="margin-bottom:1rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+      <span style="font-weight:600;color:var(--fg)">${parsedImportTasks.length} tareas encontradas</span>
+      <span style="font-size:.8rem;color:var(--mt)">${importFileName || 'Archivo cargado'}</span>
+    </div>`;
+
+  if (missingProjects.length > 0) {
+    html += `<div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:.75rem;margin-bottom:1rem;font-size:.85rem">
+      <strong style="color:#D97706"><i class="fas fa-exclamation-triangle"></i> Proyectos no encontrados:</strong>
+      <span style="color:var(--mt)"> ${missingProjects.join(', ')} — se crearan automaticamente</span>
+    </div>`;
+  }
+
+  html += `<div style="overflow-x:auto;border:1px solid var(--border);border-radius:10px">
+    <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+      <thead><tr style="background:rgba(255,255,255,0.05)">
+        <th style="padding:.6rem;text-align:left;border-bottom:1px solid var(--border);color:var(--mt)">#</th>
+        <th style="padding:.6rem;text-align:left;border-bottom:1px solid var(--border);color:var(--mt)">Titulo</th>
+        <th style="padding:.6rem;text-align:left;border-bottom:1px solid var(--border);color:var(--mt)">Notas</th>
+        <th style="padding:.6rem;text-align:left;border-bottom:1px solid var(--border);color:var(--mt)">Proyecto</th>
+        <th style="padding:.6rem;text-align:left;border-bottom:1px solid var(--border);color:var(--mt)">Prioridad</th>
+        <th style="padding:.6rem;text-align:left;border-bottom:1px solid var(--border);color:var(--mt)">Vence</th>
+      </tr></thead>
+      <tbody>`;
+
+  parsedImportTasks.forEach((t, i) => {
+    const isMissing = t.proyecto && !existingProjects.includes(t.proyecto.toLowerCase());
+    html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+      <td style="padding:.5rem;color:var(--mt)">${i + 1}</td>
+      <td style="padding:.5rem;color:var(--fg);font-weight:500">${esc(t.titulo)}</td>
+      <td style="padding:.5rem;color:var(--mt);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(t.notas)}">${esc(t.notas ? t.notas.substring(0, 40) + (t.notas.length > 40 ? '...' : '') : '-')}</td>
+      <td style="padding:.5rem;color:${isMissing ? '#D97706' : 'var(--fg)'}">${esc(t.proyecto) || '-'}${isMissing ? ' <i class="fas fa-plus-circle" style="font-size:.65rem"></i>' : ''}</td>
+      <td style="padding:.5rem"><span style="padding:2px 6px;border-radius:4px;font-size:.7rem;font-weight:600;background:${t.prioridad === 'Alta' ? 'rgba(239,68,68,.15)' : t.prioridad === 'Baja' ? 'rgba(107,114,128,.1)' : 'rgba(245,158,11,.15)'};color:${t.prioridad === 'Alta' ? '#DC2626' : t.prioridad === 'Baja' ? '#6B7280' : '#D97706'}">${t.prioridad}</span></td>
+      <td style="padding:.5rem;color:var(--mt)">${t.fecha_vencimiento || '-'}</td>
+    </tr>`;
+  });
+
+  html += `</tbody></table></div></div>
+    <div style="display:flex;justify-content:flex-end;gap:.75rem;margin-top:1rem">
+      <button onclick="parsedImportTasks=[];document.getElementById('importPreview').innerHTML='';toast('Datos limpiados')" class="m-cancel">Limpiar</button>
+      <button onclick="confirmBulkImport()" class="m-ok"><i class="fas fa-check"></i> Importar ${parsedImportTasks.length} Tareas</button>
+    </div>`;
+
+  preview.innerHTML = html;
+}
+
+async function confirmBulkImport() {
+  if (!parsedImportTasks.length) { toast('No hay tareas para importar'); return; }
+
+  try {
+    // 1. Create missing projects first
+    const existingProjectMap = {};
+    projects.forEach(p => { existingProjectMap[p.name.toLowerCase()] = p.id; });
+
+    const uniqueProjects = [...new Set(parsedImportTasks.map(t => t.proyecto).filter(Boolean))];
+    for (const projName of uniqueProjects) {
+      if (!existingProjectMap[projName.toLowerCase()]) {
+        const r = await fetch('/api/styly/projects', {
+          method: 'POST', headers: hdrs,
+          body: JSON.stringify({ name: projName, description: '', color: '#3B82F6' })
+        });
+        const d = await r.json();
+        if (d.project && d.project.id) {
+          existingProjectMap[projName.toLowerCase()] = d.project.id;
+          projects.push(d.project);
+        }
+      }
+    }
+
+    // 2. Auto-generate task IDs for tasks without one
+    const existingIds = tasks.map(t => {
+      const match = t.task_id?.match(/T-(\d+)/);
+      return match ? parseInt(match[1]) : 0;
+    });
+    let nextId = Math.max(0, ...existingIds) + 1;
+
+    // 3. Map tasks to API format
+    const apiTasks = parsedImportTasks.map(t => {
+      const taskId = t.task_id || `T-${String(nextId++).padStart(3, '0')}`;
+      return {
+        task_id: taskId,
+        titulo: t.titulo,
+        descripcion: t.descripcion || null,
+        notas: t.notas || null,
+        proyecto_id: existingProjectMap[t.proyecto.toLowerCase()] || (projects.length > 0 ? projects[0].id : 1),
+        seccion: t.seccion || null,
+        prioridad: t.prioridad || 'Media',
+        fecha_inicio: t.fecha_inicio || null,
+        fecha_vencimiento: t.fecha_vencimiento || null,
+        asignados: t.asignado ? [t.asignado] : []
+      };
+    });
+
+    // 4. Send to bulk-create
+    const r = await fetch('/api/styly/tasks/bulk-create', {
+      method: 'POST', headers: hdrs,
+      body: JSON.stringify({ tasks: apiTasks })
+    });
+
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Error en importacion');
+
+    toast(`${d.created}/${d.total_attempted} tareas importadas`);
+    closeModal();
+    tasksLoaded = false;
+    renderTareas(document.getElementById('modContent'));
+  } catch (e) {
+    toast('Error: ' + e.message);
   }
 }
 

@@ -83,74 +83,137 @@ router.post('/ask', async (req, res) => {
       context.businessDetail = bdRes.rows;
     }
 
-    // Styly tasks data (for task-related questions)
+    // STYLY Task Manager Context - Comprehensive aggregation
+    let stylyContext = null;
     try {
-      const tasksRes = await pool.query(
-        `SELECT t.task_id, t.titulo, t.descripcion, t.prioridad, t.estado, t.seccion, t.created_at, t.updated_at,
-                p.nombre as proyecto_nombre
-         FROM styly_tasks t LEFT JOIN styly_projects p ON t.proyecto_id = p.id
-         ORDER BY t.prioridad DESC, t.task_id ASC`
-      );
-      const asigRes = await pool.query(
-        `SELECT ta.task_id, u.name FROM styly_task_asignados ta JOIN users u ON ta.user_id = u.id`
-      );
-      const asigMap = {};
-      asigRes.rows.forEach(a => {
-        if (!asigMap[a.task_id]) asigMap[a.task_id] = [];
-        asigMap[a.task_id].push(a.name);
-      });
-      const allTasks = tasksRes.rows;
-      context.stylyTasks = {
-        total: allTasks.length,
-        byStatus: {
-          pendiente: allTasks.filter(t => (t.estado || '').toLowerCase() === 'pendiente').length,
-          enProgreso: allTasks.filter(t => (t.estado || '').toLowerCase() === 'en progreso').length,
-          completada: allTasks.filter(t => (t.estado || '').toLowerCase() === 'completada').length
-        },
-        byPriority: {
-          alta: allTasks.filter(t => (t.prioridad || '').toLowerCase() === 'alta').length,
-          media: allTasks.filter(t => (t.prioridad || '').toLowerCase() === 'media').length,
-          baja: allTasks.filter(t => (t.prioridad || '').toLowerCase() === 'baja').length
-        },
-        byUser: {},
-        byProject: {},
-        highPriorityPending: allTasks.filter(t => (t.prioridad || '').toLowerCase() === 'alta' && (t.estado || '').toLowerCase() === 'pendiente').map(t => ({ id: t.task_id, desc: t.titulo, section: t.seccion, assigned: (asigMap[t.id]||[]).join(', '), project: t.proyecto_nombre })),
-        allTasks: allTasks.map(t => ({ id: t.task_id, desc: t.titulo, section: t.seccion, priority: t.prioridad, assigned: (asigMap[t.id]||[]).join(', '), status: t.estado, project: t.proyecto_nombre }))
-      };
-      // Aggregate by user
-      allTasks.forEach(t => {
-        const users = asigMap[t.id] || ['Sin asignar'];
-        users.forEach(u => {
-          if (!context.stylyTasks.byUser[u]) context.stylyTasks.byUser[u] = { total: 0, pendiente: 0, completada: 0 };
-          context.stylyTasks.byUser[u].total++;
-          if ((t.estado || '').toLowerCase() === 'pendiente') context.stylyTasks.byUser[u].pendiente++;
-          if ((t.estado || '').toLowerCase() === 'completada') context.stylyTasks.byUser[u].completada++;
+      const stylyTasksRes = await pool.query(`
+        SELECT
+          t.id, t.task_id, t.titulo, t.estado, t.prioridad,
+          t.fecha_vencimiento, t.progreso,
+          p.nombre as proyecto, p.color as proyecto_color,
+          ARRAY_AGG(DISTINCT u.name) FILTER (WHERE u.name IS NOT NULL) as asignados
+        FROM styly_tasks t
+        LEFT JOIN styly_projects p ON t.proyecto_id = p.id
+        LEFT JOIN styly_task_asignados ta ON t.id = ta.task_id
+        LEFT JOIN users u ON ta.user_id = u.id
+        GROUP BY t.id, p.nombre, p.color
+        ORDER BY t.id DESC
+      `);
+
+      if (stylyTasksRes.rows.length > 0) {
+        const tasks = stylyTasksRes.rows;
+        const totalTasks = tasks.length;
+        const completedTasks = tasks.filter(t => t.estado === 'Completada').length;
+        const today = new Date();
+
+        // Calculate overdue tasks
+        const overdueTasks = tasks.filter(t =>
+          t.fecha_vencimiento &&
+          new Date(t.fecha_vencimiento) < today &&
+          t.estado !== 'Completada'
+        );
+
+        // Workload by assignee
+        const workloadMap = {};
+        tasks.forEach(task => {
+          if (task.asignados && task.estado !== 'Completada') {
+            task.asignados.forEach(assignee => {
+              workloadMap[assignee] = (workloadMap[assignee] || 0) + 1;
+            });
+          }
         });
-      });
-      // Aggregate by project
-      allTasks.forEach(t => {
-        const p = t.proyecto_nombre || 'Sin proyecto';
-        if (!context.stylyTasks.byProject[p]) context.stylyTasks.byProject[p] = { total: 0, pendiente: 0, completada: 0 };
-        context.stylyTasks.byProject[p].total++;
-        if ((t.estado || '').toLowerCase() === 'pendiente') context.stylyTasks.byProject[p].pendiente++;
-        if ((t.estado || '').toLowerCase() === 'completada') context.stylyTasks.byProject[p].completada++;
-      });
-    } catch (_) { /* styly_tasks table may not exist yet */ }
+
+        // High priority incomplete tasks
+        const highPriorityTasks = tasks.filter(t =>
+          t.prioridad === 'Alta' && t.estado !== 'Completada'
+        );
+
+        // Unassigned tasks
+        const unassignedTasks = tasks.filter(t =>
+          (!t.asignados || t.asignados.length === 0) && t.estado !== 'Completada'
+        );
+
+        // Tasks by project
+        const byProject = {};
+        tasks.forEach(t => {
+          const proj = t.proyecto || 'Sin proyecto';
+          if (!byProject[proj]) byProject[proj] = { total: 0, completada: 0, pendiente: 0, enProgreso: 0 };
+          byProject[proj].total++;
+          if (t.estado === 'Completada') byProject[proj].completada++;
+          if (t.estado === 'Pendiente') byProject[proj].pendiente++;
+          if (t.estado === 'En Progreso') byProject[proj].enProgreso++;
+        });
+
+        stylyContext = {
+          total_tasks: totalTasks,
+          completed: completedTasks,
+          pending: tasks.filter(t => t.estado === 'Pendiente').length,
+          in_progress: tasks.filter(t => t.estado === 'En Progreso').length,
+          completion_rate: Math.round((completedTasks / totalTasks) * 100),
+          overdue_count: overdueTasks.length,
+          overdue_tasks: overdueTasks.slice(0, 5).map(t => ({
+            id: t.task_id,
+            titulo: t.titulo,
+            proyecto: t.proyecto,
+            dias_vencido: Math.floor((today - new Date(t.fecha_vencimiento)) / (1000 * 60 * 60 * 24))
+          })),
+          high_priority_count: highPriorityTasks.length,
+          high_priority: highPriorityTasks.slice(0, 5).map(t => ({
+            id: t.task_id,
+            titulo: t.titulo,
+            proyecto: t.proyecto
+          })),
+          unassigned_count: unassignedTasks.length,
+          unassigned: unassignedTasks.slice(0, 5).map(t => ({
+            id: t.task_id,
+            titulo: t.titulo,
+            proyecto: t.proyecto
+          })),
+          workload: Object.entries(workloadMap).map(([name, count]) => ({
+            assignee: name,
+            active_tasks: count
+          })),
+          by_project: byProject
+        };
+        context.stylyTasks = stylyContext;
+      }
+    } catch (e) {
+      console.error('Error cargando contexto STYLY:', e.message);
+    }
 
     const today = new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-    const systemPrompt = `Eres el asistente de IA de Panel Central, una plataforma de gestion de contenido para 4 negocios: NOSOTROS (medio digital), DUELAZO (apuestas deportivas), SPACEBOX (mini bodegas) y STYLY (software de gestion para belleza/bienestar).
+    const systemPrompt = `Eres el asistente de IA de Panel Central, una plataforma integral de gestion para 4 negocios:
+- NOSOTROS: Plataforma de contenido digital con IA
+- DUELAZO: Contenido deportivo y apuestas
+- SPACEBOX: Mini bodegas y almacenaje
+- STYLY: Software de gestion para belleza y bienestar (incluye task manager de desarrollo)
 
-Tu trabajo es analizar datos REALES de la plataforma y dar respuestas utiles, concretas y accionables. NO inventes datos. Solo usa la informacion que te proporciono.
+TAREA PRINCIPAL:
+Analizar datos REALES de la plataforma y dar respuestas utiles, concretas y accionables. NUNCA inventes datos. Solo usa informacion que te proporciono.
 
-Tambien tienes acceso a las tareas de desarrollo de STYLY (software de gestion para belleza/bienestar). Puedes analizar el estado de las tareas, identificar bottlenecks, sugerir prioridades, y dar recomendaciones sobre asignaciones y progreso del equipo de desarrollo.
+CAPACIDADES ESPECIALES:
+- Generar ideas y contenido para redes sociales
+- Analizar metricas de negocio y trends
+- Gestionar y analizar tareas de desarrollo STYLY
+- Proporcionar insights sobre productividad, deadlines y cargas de trabajo
+- Identificar bottlenecks y sugerir prioridades de desarrollo
+- Dar recomendaciones sobre asignaciones y progreso del equipo
 
 Hoy es ${today}.
 
-DATOS REALES DE LA PLATAFORMA ESTA SEMANA:
+DATOS REALES DE LA PLATAFORMA:
 ${JSON.stringify(context, null, 2)}
 
-Responde en espanol, de forma concisa y con datos concretos. Si detectas problemas (baja actividad, huecos en calendario, desbalance), mencionalos proactivamente. Usa emojis moderadamente para claridad. Si no hay datos suficientes, dilo honestamente.`;
+INSTRUCCIONES:
+1. USA SOLO datos reales proporcionados arriba
+2. Para STYLY: analiza tareas vencidas, prioridades, cargas de trabajo, progreso por proyecto
+3. Si hay tareas vencidas o sin asignar, mencionalas proactivamente
+4. Si detectas problemas (desbalance de carga, baja tasa de completitud, muchas tareas pendientes), sugiere acciones concretas
+5. Se conciso pero completo
+6. Incluye numeros especificos cuando analices datos
+7. Usa emojis moderadamente para claridad
+8. Si no hay datos suficientes, dilo honestamente`;
 
     const answer = await generate(question, systemPrompt);
 
@@ -276,22 +339,57 @@ router.post('/weekly-report', async (req, res) => {
       `SELECT business, COUNT(*) as count FROM ideas WHERE status='new' GROUP BY business`
     );
 
-    // Styly tasks
+    // STYLY Task Manager Analysis for Weekly Report
     let stylyTaskData = {};
     try {
-      const tasksQ = await pool.query(
-        `SELECT t.task_id, t.titulo, t.prioridad, t.estado, p.nombre as proyecto_nombre
-         FROM styly_tasks t LEFT JOIN styly_projects p ON t.proyecto_id = p.id`
-      );
-      const allT = tasksQ.rows;
-      stylyTaskData = {
-        total: allT.length,
-        pendiente: allT.filter(t => (t.estado || '').toLowerCase() === 'pendiente').length,
-        enProgreso: allT.filter(t => (t.estado || '').toLowerCase() === 'en progreso').length,
-        completada: allT.filter(t => (t.estado || '').toLowerCase() === 'completada').length,
-        altaPrioridad: allT.filter(t => (t.prioridad || '').toLowerCase() === 'alta' && (t.estado || '').toLowerCase() === 'pendiente').map(t => t.task_id + ': ' + t.titulo).slice(0, 10)
-      };
-    } catch (_) {}
+      const stylyWeeklyRes = await pool.query(`
+        SELECT
+          t.task_id, t.titulo, t.prioridad, t.estado, p.nombre as proyecto_nombre,
+          t.fecha_vencimiento, t.created_at,
+          COUNT(DISTINCT ta.user_id) as asignados_count
+        FROM styly_tasks t
+        LEFT JOIN styly_projects p ON t.proyecto_id = p.id
+        LEFT JOIN styly_task_asignados ta ON t.id = ta.task_id
+        GROUP BY t.id, p.nombre, t.task_id, t.titulo, t.prioridad, t.estado, t.fecha_vencimiento, t.created_at
+        ORDER BY t.created_at DESC
+      `);
+
+      if (stylyWeeklyRes.rows.length > 0) {
+        const allT = stylyWeeklyRes.rows;
+        const today = new Date();
+        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+        const thisWeek = allT.filter(t => new Date(t.created_at) >= weekAgo);
+        const completed = allT.filter(t => t.estado === 'Completada');
+        const completedThisWeek = thisWeek.filter(t => t.estado === 'Completada');
+        const overdue = allT.filter(t =>
+          t.fecha_vencimiento &&
+          new Date(t.fecha_vencimiento) < today &&
+          t.estado !== 'Completada'
+        );
+
+        stylyTaskData = {
+          total: allT.length,
+          pendiente: allT.filter(t => t.estado === 'Pendiente').length,
+          enProgreso: allT.filter(t => t.estado === 'En Progreso').length,
+          completada: completed.length,
+          completionRate: allT.length > 0 ? Math.round((completed.length / allT.length) * 100) : 0,
+          thisWeek: {
+            created: thisWeek.length,
+            completed: completedThisWeek.length,
+            completionRate: thisWeek.length > 0 ? Math.round((completedThisWeek.length / thisWeek.length) * 100) : 0
+          },
+          overdue: overdue.length,
+          highPriority: allT.filter(t => t.prioridad === 'Alta' && t.estado !== 'Completada').length,
+          topPendingTasks: allT.filter(t => t.estado !== 'Completada')
+            .sort((a, b) => (b.prioridad === 'Alta' ? 1 : 0) - (a.prioridad === 'Alta' ? 1 : 0))
+            .slice(0, 5)
+            .map(t => `[${t.task_id}] ${t.titulo} (${t.proyecto_nombre}) - ${t.prioridad}`)
+        };
+      }
+    } catch (e) {
+      console.error('Error generating STYLY weekly data:', e.message);
+    }
 
     const today = new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -371,21 +469,72 @@ router.get('/suggestions', async (req, res) => {
       suggestions.push({ icon: '💡', text: `${total} ideas pendientes por usar`, question: 'Que ideas pendientes tenemos y cuales deberiamos priorizar?' });
     }
 
-    // Styly tasks suggestions
+    // STYLY Task Manager Suggestions
     try {
-      const taskRes = await pool.query(
-        `SELECT estado, prioridad FROM styly_tasks`
-      );
-      const allTasks = taskRes.rows;
-      const pendingTasks = allTasks.filter(t => (t.estado || '').toLowerCase() === 'pendiente');
-      const highPri = pendingTasks.filter(t => (t.prioridad || '').toLowerCase() === 'alta');
-      if (highPri.length > 0) {
-        suggestions.push({ icon: '⚠️', text: `${highPri.length} tareas urgentes de Styly pendientes`, question: `Hay ${highPri.length} tareas de alta prioridad pendientes en Styly. Cuales son y que recomiendas priorizar?` });
+      const stylyTasksRes = await pool.query(`
+        SELECT t.estado, t.prioridad, t.fecha_vencimiento,
+          ARRAY_AGG(DISTINCT u.name) FILTER (WHERE u.name IS NOT NULL) as asignados
+        FROM styly_tasks t
+        LEFT JOIN styly_task_asignados ta ON t.id = ta.task_id
+        LEFT JOIN users u ON ta.user_id = u.id
+        GROUP BY t.id, t.estado, t.prioridad, t.fecha_vencimiento
+      `);
+
+      if (stylyTasksRes.rows.length > 0) {
+        const tasks = stylyTasksRes.rows;
+        const today = new Date();
+
+        // Overdue tasks
+        const overdue = tasks.filter(t =>
+          t.fecha_vencimiento &&
+          new Date(t.fecha_vencimiento) < today &&
+          t.estado !== 'Completada'
+        );
+
+        if (overdue.length > 0) {
+          suggestions.push({
+            icon: '⏰',
+            text: `${overdue.length} tarea${overdue.length > 1 ? 's' : ''} vencida${overdue.length > 1 ? 's' : ''} en STYLY`,
+            question: `Tengo ${overdue.length} tarea${overdue.length > 1 ? 's' : ''} vencida${overdue.length > 1 ? 's' : ''} en STYLY. Cuales son y que debo hacer primero?`
+          });
+        }
+
+        // High priority pending
+        const highPriority = tasks.filter(t =>
+          t.prioridad === 'Alta' && t.estado !== 'Completada'
+        );
+
+        if (highPriority.length > 0) {
+          suggestions.push({
+            icon: '🔴',
+            text: `${highPriority.length} tarea${highPriority.length > 1 ? 's' : ''} de alta prioridad pendiente${highPriority.length > 1 ? 's' : ''}`,
+            question: `Dame un resumen de las ${highPriority.length} tarea${highPriority.length > 1 ? 's' : ''} urgentes de STYLY y recommienda el orden de ejecucion`
+          });
+        }
+
+        // Unassigned tasks
+        const unassigned = tasks.filter(t =>
+          (!t.asignados || t.asignados.length === 0) && t.estado !== 'Completada'
+        );
+
+        if (unassigned.length > 0) {
+          suggestions.push({
+            icon: '👤',
+            text: `${unassigned.length} tarea${unassigned.length > 1 ? 's' : ''} sin asignar`,
+            question: `Tengo ${unassigned.length} tarea${unassigned.length > 1 ? 's' : ''} sin asignar en STYLY. A quién debería asignarlas?`
+          });
+        }
+
+        // General STYLY analysis
+        suggestions.push({
+          icon: '📊',
+          text: 'Analizar estado de STYLY',
+          question: 'Dame un resumen del estado de todas las tareas de STYLY: progreso, bottlenecks, cargas de trabajo'
+        });
       }
-      if (pendingTasks.length > 10) {
-        suggestions.push({ icon: '✅', text: `${pendingTasks.length} tareas Styly sin completar`, question: `Como van las tareas de desarrollo de Styly? Dame un analisis de bottlenecks y recomendaciones para el equipo` });
-      }
-    } catch (_) {}
+    } catch (e) {
+      console.error('Error generating STYLY suggestions:', e.message);
+    }
 
     // Weekly report suggestion (always available)
     suggestions.push({ icon: '📊', text: 'Generar reporte semanal', question: 'Dame un reporte completo de como va la semana en todos los negocios' });

@@ -119,6 +119,7 @@ async function initDB() {
         id SERIAL PRIMARY KEY,
         nombre VARCHAR(100) NOT NULL,
         descripcion TEXT,
+        icono VARCHAR(50) DEFAULT 'folder',
         color VARCHAR(10),
         propietario_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
         equipo_id INTEGER REFERENCES styly_equipos(id) ON DELETE SET NULL,
@@ -138,6 +139,7 @@ async function initDB() {
         task_id VARCHAR(10) NOT NULL UNIQUE,
         titulo VARCHAR(255) NOT NULL,
         descripcion TEXT,
+        notas TEXT,
         proyecto_id INTEGER REFERENCES styly_projects(id) ON DELETE CASCADE,
         seccion VARCHAR(50),
         estado VARCHAR(20) DEFAULT 'Pendiente',
@@ -201,14 +203,29 @@ async function initDB() {
       );
     `);
 
+    // ========== STYLY: ARCHIVOS DE TAREA ==========
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS styly_task_archivos (
+        id SERIAL PRIMARY KEY,
+        task_id INTEGER REFERENCES styly_tasks(id) ON DELETE CASCADE,
+        nombre VARCHAR(255) NOT NULL,
+        tipo VARCHAR(100),
+        tamano INTEGER,
+        ruta VARCHAR(500) NOT NULL,
+        subido_por INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
     // Create indexes
     await client.query(`
-      CREATE INDEX idx_styly_tasks_proyecto ON styly_tasks(proyecto_id);
-      CREATE INDEX idx_styly_tasks_estado ON styly_tasks(estado);
-      CREATE INDEX idx_styly_tasks_creado_por ON styly_tasks(creado_por);
-      CREATE INDEX idx_styly_task_asignados_task ON styly_task_asignados(task_id);
-      CREATE INDEX idx_styly_task_asignados_user ON styly_task_asignados(user_id);
-      CREATE INDEX idx_styly_comentarios_task ON styly_comentarios(task_id);
+      CREATE INDEX IF NOT EXISTS idx_styly_tasks_proyecto ON styly_tasks(proyecto_id);
+      CREATE INDEX IF NOT EXISTS idx_styly_tasks_estado ON styly_tasks(estado);
+      CREATE INDEX IF NOT EXISTS idx_styly_tasks_creado_por ON styly_tasks(creado_por);
+      CREATE INDEX IF NOT EXISTS idx_styly_task_asignados_task ON styly_task_asignados(task_id);
+      CREATE INDEX IF NOT EXISTS idx_styly_task_asignados_user ON styly_task_asignados(user_id);
+      CREATE INDEX IF NOT EXISTS idx_styly_comentarios_task ON styly_comentarios(task_id);
+      CREATE INDEX IF NOT EXISTS idx_styly_task_archivos_task ON styly_task_archivos(task_id);
     `);
 
     // ========== STYLY: ROLES POR DEFECTO ==========

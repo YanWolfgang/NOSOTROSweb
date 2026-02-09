@@ -107,9 +107,12 @@ button{font-family:inherit;cursor:pointer}
 .biz-card .biz-desc{font-size:.82rem;color:var(--mt)}
 
 /* ========== NOSOTROS MODULE ========== */
-.module-tabs{display:flex;gap:0;border:1px solid var(--glass-border);border-radius:12px;overflow:hidden;margin-bottom:1.5rem;width:fit-content;background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
-.module-tab{padding:.55rem 1.2rem;font-size:.85rem;font-weight:500;background:transparent;border:none;color:var(--mt);transition:all .3s ease}
+.module-tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:0;border:1px solid var(--glass-border);border-radius:12px;overflow:hidden;margin-bottom:1.5rem;background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.module-tab{display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.6rem .5rem;font-size:.85rem;font-weight:500;background:transparent;border:none;color:var(--mt);cursor:pointer;transition:all .3s ease;min-height:44px;-webkit-tap-highlight-color:transparent}
+.module-tab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;z-index:1}
+.module-tab:active{background:rgba(139,92,246,.15);transform:scale(.96)}
 .module-tab.active{background:var(--accent);color:#fff}
+.module-tab i{font-size:1rem}
 
 /* Format Grid */
 .fmt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem}
@@ -267,10 +270,11 @@ button{font-family:inherit;cursor:pointer}
   .biz-grid{grid-template-columns:1fr}
   .search-bar{flex-direction:column}
 
-  /* Module tabs scrollable */
-  .module-tabs{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-radius:10px}
-  .module-tabs::-webkit-scrollbar{display:none}
-  .module-tab{white-space:nowrap;flex-shrink:0;padding:.5rem 1rem;font-size:.82rem;min-height:44px}
+  /* Module tabs — 3-column grid on mobile */
+  .module-tabs{grid-template-columns:repeat(3,1fr);border-radius:10px;gap:0}
+  .module-tab{flex-direction:column;gap:.15rem;padding:.6rem .25rem;font-size:.75rem;min-height:48px}
+  .module-tab i{font-size:1.1rem}
+  .module-tab .tab-text{font-size:.7rem;line-height:1}
 
   /* Actions stacked */
   .actions{flex-direction:column;align-items:stretch}
@@ -528,6 +532,12 @@ button{font-family:inherit;cursor:pointer}
   .stat-box .s-value{font-size:1.4rem}
   .page-header{margin-bottom:1rem}
   .dash-section{margin-bottom:1.25rem}
+}
+@media(max-width:360px){
+  .module-tabs{grid-template-columns:repeat(3,1fr)}
+  .module-tab{padding:.5rem .15rem;font-size:.7rem;min-height:44px}
+  .module-tab i{font-size:1rem}
+  .module-tab .tab-text{font-size:.65rem}
 }
 
 /* ========== ANIMATIONS ========== */
