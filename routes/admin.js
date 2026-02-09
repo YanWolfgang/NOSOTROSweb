@@ -42,11 +42,24 @@ router.put('/users/:id', async (req, res) => {
 });
 
 router.delete('/users/:id', async (req, res) => {
+  const id = req.params.id;
+  if (id == req.user.id) return res.status(400).json({ error: 'No puedes eliminarte a ti mismo' });
+  const client = await pool.connect();
   try {
-    await pool.query('DELETE FROM users WHERE id = $1', [req.params.id]);
+    await client.query('BEGIN');
+    // Delete dependent records that lack ON DELETE CASCADE
+    await client.query('DELETE FROM content_history WHERE user_id = $1', [id]);
+    await client.query('DELETE FROM ai_conversations WHERE user_id = $1', [id]);
+    // Now delete the user (remaining FKs have CASCADE or SET NULL)
+    const { rowCount } = await client.query('DELETE FROM users WHERE id = $1', [id]);
+    await client.query('COMMIT');
+    if (rowCount === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
     res.json({ message: 'Usuario eliminado' });
   } catch (e) {
+    await client.query('ROLLBACK');
     res.status(500).json({ error: e.message });
+  } finally {
+    client.release();
   }
 });
 

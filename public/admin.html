@@ -201,11 +201,13 @@ async function savePermisos(id){
 function closeModal(){document.getElementById('modal').innerHTML=''}
 
 async function deleteUser(id){
-  if(!confirm('Eliminar este usuario?'))return;
+  if(!confirm('Eliminar este usuario? Se borrará su historial de contenido.'))return;
   try{
-    await fetch(`/api/admin/users/${id}`,{method:'DELETE',headers:hdrs});
+    const r=await fetch(`/api/admin/users/${id}`,{method:'DELETE',headers:hdrs});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'Error al eliminar');
     loadUsers();
-  }catch(e){alert(e.message)}
+  }catch(e){alert('Error: '+e.message)}
 }
 
 loadUsers();
