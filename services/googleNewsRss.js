@@ -30,7 +30,7 @@ const CATEGORY_QUERIES = {
   salud: '(salud OR medicina OR doctor OR hospital OR vacuna OR enfermedad OR virus OR coronavirus OR psicología OR nutrición)',
   ciencia: '(ciencia OR investigación OR descubrimiento OR física OR química OR biología OR espacio OR astronomía OR NASA) -videojuegos',
   guerra: '(guerra OR conflicto OR militar OR ejército OR defensa OR armado OR ataque OR geopolítica) (Ucrania OR Rusia OR Gaza OR Israel OR Palestina)',
-  mexico: '(México OR mexicano OR mexicana OR CDMX OR jalisco OR monterrey OR guadalajara OR veracruz OR yucatán OR quintana roo) -internacional -global -world -estados unidos -canada -america'
+  mexico: 'México -internacional -global -world -estados unidos -canada -america -latinoamérica'
 };
 
 // ========== URL BUILDER ==========
@@ -89,7 +89,7 @@ const CATEGORY_KEYWORDS = {
   salud: ['salud', 'medicina', 'doctor', 'médico', 'hospital', 'paciente', 'enfermedad', 'tratamiento', 'virus', 'vacuna', 'psicología', 'nutrición', 'ejercicio', 'bienestar', 'síntoma', 'diagnóstico', 'cura', 'fármaco', 'epidemia'],
   ciencia: ['ciencia', 'investigación', 'descubrimiento', 'física', 'química', 'biología', 'espacio', 'astronomía', 'nasa', 'planeta', 'estrella', 'científico', 'laboratorio', 'experimento', 'estudio', 'hallazgo', 'investigador', 'teoría'],
   guerra: ['guerra', 'conflicto', 'militar', 'ejército', 'defensa', 'armado', 'ataque', 'batalla', 'geopolítica', 'soldado', 'ucrania', 'rusia', 'gaza', 'israel', 'palestina', 'tropas', 'misil', 'operación'],
-  mexico: ['méxico', 'mexicano', 'mexicana', 'cdmx', 'ciudad de méxico', 'jalisco', 'monterrey', 'guadalajara', 'veracruz', 'yucatán', 'quintana roo', 'nacional', 'interno', 'doméstico', 'local', 'estado', 'municipio', 'pemex', 'imss', 'segob', 'secretaría', 'gobernador']
+  mexico: ['méxico', 'mexicano', 'mexicana', 'nacional', 'doméstico', 'interno', 'cdmx', 'pemex', 'imss', 'segob', 'secretaría de', 'presidente', 'senado', 'congreso', 'ministro', 'gobernador', 'diputado']
 };
 
 // Define exclusion keywords for each category (to filter out false positives)
@@ -102,7 +102,7 @@ const CATEGORY_EXCLUSIONS = {
   salud: ['película', 'serie', 'cine', 'actor', 'política', 'economía', 'videojuego'],
   ciencia: ['película', 'serie', 'cine', 'videojuego', 'entretenimiento', 'música'],
   guerra: ['película', 'serie', 'videojuego', 'ficción'],
-  mexico: ['ucrania', 'rusia', 'gaza', 'israel', 'palestina', 'ee.uu', 'estados unidos', 'norteamérica', 'europa', 'china', 'india', 'japón', 'corea', 'africano', 'árabe', 'europeo', 'nicaragua', 'guatemala', 'honduras', 'el salvador', 'costa rica', 'panamá', 'colombia', 'venezuela', 'brasil', 'argentina', 'perú', 'chile', 'ecuador', 'bolivia', 'uruguay', 'paraguay', 'canada', 'canadiense']
+  mexico: ['ucrania', 'rusia', 'gaza', 'israel', 'palestina', 'ee.uu', 'estados unidos', 'norteamérica', 'canadiense', 'europeo', 'china', 'india', 'japón', 'rusia', 'tailandia', 'vietnam', 'corea', 'latinoamérica', 'latinoamericano', 'centroamérica', 'centroamericano', 'caribeño', 'nicaragüa', 'guatemala', 'honduras', 'el salvador', 'costa rica', 'panamá', 'colombia', 'venezuela', 'brasil', 'argentino', 'argentina', 'perú', 'chileno', 'chile', 'ecuatoriano', 'ecuador', 'bolivia', 'uruguay', 'paraguay', 'africa', 'europeo', 'asiático']
 };
 
 function isRelevantArticle(title, category) {
@@ -114,14 +114,13 @@ function isRelevantArticle(title, category) {
 
   // Special handling for Mexico category: MUST have Mexico/Mexican reference
   if (category === 'mexico') {
-    // Article must mention México or Mexican entities
+    // Article MUST mention México or Mexican entities (non-negotiable)
     const hasMexicoReference = keywords.some(keyword => title_lower.includes(keyword));
     if (!hasMexicoReference) return false;
 
-    // Must NOT mention other countries
-    const hasExclusion = exclusions.some(exclude => title_lower.includes(exclude));
-    if (hasExclusion) return false;
-
+    // It's OK to mention other countries AS LONG AS México is also mentioned
+    // We don't exclude based on other country mentions anymore
+    // The Mexico mention is what matters
     return true;
   }
 
