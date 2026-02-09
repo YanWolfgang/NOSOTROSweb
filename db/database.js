@@ -44,6 +44,7 @@ async function initDB() {
       ALTER TABLE ideas ADD COLUMN IF NOT EXISTS season_relevance VARCHAR(100);
       ALTER TABLE content_history ADD COLUMN IF NOT EXISTS notes TEXT;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS styly_modules JSONB DEFAULT '[]';
+      ALTER TABLE styly_tasks ALTER COLUMN estado TYPE VARCHAR(50);
     `);
 
     // AI conversations table
@@ -142,7 +143,7 @@ async function initDB() {
         notas TEXT,
         proyecto_id INTEGER REFERENCES styly_projects(id) ON DELETE CASCADE,
         seccion VARCHAR(50),
-        estado VARCHAR(20) DEFAULT 'Pendiente',
+        estado VARCHAR(50) DEFAULT 'Pendiente',
         prioridad VARCHAR(10) DEFAULT 'Media',
         etiquetas JSONB DEFAULT '[]',
         duracion_estimada INTEGER,
