@@ -346,7 +346,7 @@ function retryFetch(){S.err=null;const f=F();newsPagination.page=1;S.phase='load
 async function changePage(page){
   if(page<1||page>newsPagination.totalPages)return;
   newsPagination.page=page;
-  S.sn=new Set(); // Clear selections when changing page
+  // NO limpiar selecciones al cambiar página - mantener selecciones
   await fetchN(F().scope,S.sq||undefined,newsPagination.page);
 }
 async function fetchN(scope,query,page=1){
@@ -354,7 +354,10 @@ async function fetchN(scope,query,page=1){
   try{
     const news=await apiNews(scope,S.cat,page,newsPagination.pageSize);
     if(!news.length)throw new Error('No se encontraron noticias.');
-    S.news=news;S.sn=new Set();S.phase='select';
+    S.news=news;
+    // Si es la primera página, limpiar selecciones. Si no, mantener las del usuario
+    if(page===1)S.sn=new Set();
+    S.phase='select';
   }catch(e){S.err=e.message;S.phase='input';S.news=[]}
   render();
 }
