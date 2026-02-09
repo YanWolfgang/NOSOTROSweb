@@ -42,6 +42,7 @@ async function initDB() {
     // Add columns if missing (safe for re-runs)
     await client.query(`
       ALTER TABLE ideas ADD COLUMN IF NOT EXISTS season_relevance VARCHAR(100);
+      ALTER TABLE ideas ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE CASCADE;
       ALTER TABLE content_history ADD COLUMN IF NOT EXISTS notes TEXT;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS styly_modules JSONB DEFAULT '[]';
     `);

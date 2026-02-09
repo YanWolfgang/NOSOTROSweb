@@ -385,6 +385,8 @@ let toolView=null,toolResult='',toolLoading=false;
 let calcInputs={locales:5,modules:2,partners:3},calcResult=null;
 let calWeekStart=getMonday(new Date());
 let histFilter={format:'',audience:'',status:''};
+let ideasMultiSelectMode=false;
+let selectedIdeas=[];
 
 // ========== HELPERS ==========
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
@@ -557,9 +559,15 @@ async function renderIdeas(m){
     const ideas=d.ideas||[];
     m.innerHTML=`<div class="ideas-hdr">
       <div><h3 style="color:var(--fg);margin:0">💡 Ideas Semanales</h3><span style="font-size:.75rem;color:var(--mt)">Balance: 60% clientes · 40% afiliadas</span></div>
-      <div style="display:flex;gap:.5rem">
-        <button class="btn" onclick="showFormatPickerModal()"><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Generar ideas</button>
-        ${ideas.length?`<button class="btn" style="background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.3)" onclick="deleteAllIdeas()"><i class="feather" data-icon="trash-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Eliminar todas</button>`:''}
+      <div style="display:flex;gap:.5rem;align-items:center">
+        ${!ideasMultiSelectMode?`
+          <button class="btn" onclick="genIdeas()"><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Generar ideas</button>
+          ${ideas.length?`<button class="btn" style="background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.3)" onclick="enableMultiSelect()"><i class="feather" data-icon="trash-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Eliminar</button>`:''}
+        `:`
+          <span style="color:var(--fg);font-size:.9rem">${selectedIdeas.length} seleccionadas</span>
+          <button class="btn" style="background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.3)" onclick="deleteMultipleIdeas()" ${selectedIdeas.length===0?'disabled':''}><i class="feather" data-icon="trash-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Confirmar eliminación</button>
+          <button class="btn" onclick="cancelMultiSelect()"><i class="feather" data-icon="x" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Cancelar</button>
+        `}
       </div>
     </div>
       ${ideas.length?`<div class="ideas-grid">${ideas.map(renderIdeaCard).join('')}</div>`:'<p style="color:var(--mt);text-align:center;padding:2rem">No hay ideas. Genera las primeras 4.</p>'}`;
@@ -568,30 +576,56 @@ async function renderIdeas(m){
 function renderIdeaCard(idea){
   const s=idea.status,aud=idea.season_relevance||'clients';
   const fObj=ALL_FMTS.find(f=>f.id===idea.format);
-  return`<div class="idea-card ${s}">
-    <span class="idea-bdg ${s==='new'?'new':s==='used'?'used':'discarded'}">${s==='new'?'NUEVA':s==='used'?'USADA':'DESCARTADA'}</span>
-    <span class="idea-bdg ${aud==='affiliates'?'affiliates':'clients'}">${aud==='affiliates'?'AFILIADAS':'CLIENTES'}</span>
+  const isSelected=selectedIdeas.includes(idea.id);
+
+  // Mapeo de IDs de categoría a nombres legibles
+  const categoryMap={
+    'caso_exito':'Caso de Éxito',
+    'post_feature':'Post Feature',
+    'post_inspiracional':'Inspiracional',
+    'comercial_styly':'Comercial',
+    'reclutamiento':'Reclutamiento',
+    'exito_afiliadas':'Éxito de Afiliadas',
+    'capacitacion':'Capacitación'
+  };
+  const categoryName=categoryMap[idea.format]||idea.format;
+
+  return`<div class="idea-card ${s} ${ideasMultiSelectMode?'selectable':''} ${isSelected?'selected':''}" ${ideasMultiSelectMode?`onclick="toggleIdeaSelection(${idea.id})"`:''}style="${ideasMultiSelectMode?'cursor:pointer':''} ${isSelected?'border-color:rgba(139,92,246,0.5);background:rgba(139,92,246,0.1)':''}position:relative">
+    <button class="idea-btn danger" onclick="event.stopPropagation();deleteIdea(${idea.id})" style="position:absolute;top:.25rem;right:.25rem;padding:.12rem .2rem;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);border-radius:3px;cursor:pointer;font-size:.7rem;line-height:1;color:rgba(239,68,68,0.9);font-weight:bold;min-width:auto" title="Eliminar idea">✕</button>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem">
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;padding-right:2rem">
+        ${ideasMultiSelectMode?`<input type="checkbox" ${isSelected?'checked':''} onclick="event.stopPropagation();toggleIdeaSelection(${idea.id})" style="width:1.2rem;height:1.2rem;cursor:pointer">`:''}
+        <span class="idea-bdg ${s==='new'?'new':s==='used'?'used':'discarded'}">${s==='new'?'NUEVA':s==='used'?'USADA':'DESCARTADA'}</span>
+        <span class="idea-bdg ${aud==='affiliates'?'affiliates':'clients'}">${aud==='affiliates'?'AFILIADAS':'CLIENTES'}</span>
+      </div>
+    </div>
+    <div style="font-size:.75rem;color:rgba(139,92,246,0.7);font-weight:600;margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.5px">${categoryName}</div>
     <div class="idea-txt">${esc(idea.idea_text)}</div>
     <div class="idea-tags"><span class="idea-tag">${fObj?.icon||'<i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'} ${fObj?.name||idea.format}</span></div>
-    ${s==='new'?`<div class="idea-acts">
-      <button class="idea-btn" onclick="useIdea(${idea.id},'${idea.format}','${aud}',\`${esc(idea.idea_text).replace(/`/g,'')}\`)"><i class="feather" data-icon="edit-3" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Generar</button>
+    ${s==='new'&&!ideasMultiSelectMode?`<div class="idea-acts">
+      <button class="idea-btn" onclick="showFormatSelectModal(${idea.id},'${idea.format}','${aud}',\`${esc(idea.idea_text).replace(/`/g,'')}\`)"><i class="feather" data-icon="edit-3" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Generar</button>
       <button class="idea-btn danger" onclick="discardIdea(${idea.id})"><i class="feather" data-icon="x-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Descartar</button>
     </div>`:''}
   </div>`;
 }
-function showFormatPickerModal(){
+async function genIdeas(){
+  const m=document.getElementById('modContent');
+  m.innerHTML='<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div><div class="loader-text">Generando 4 ideas semanales...</div></div>';
+  try{await fetch('/api/styly/ideas/generate',{method:'POST',headers:hdrs,body:'{}'});toast('4 ideas generadas');renderIdeas(m)}catch(e){toast('Error: '+e.message);renderIdeas(m)}
+}
+function showFormatSelectModal(ideaId,category,aud,text){
   const modal=document.getElementById('modalRoot');
-  modal.innerHTML=`<div class="modal-overlay" onclick="closeModal()"></div>
+  modal.innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"></div>
     <div class="modal glass-card" style="max-width:500px">
       <div class="modal-header">
-        <h3 style="margin:0;color:var(--fg)">Selecciona formato para ideas</h3>
+        <h3 style="margin:0;color:var(--fg)">Selecciona formato para generar</h3>
         <button class="modal-close" onclick="closeModal()"><i class="feather" data-icon="x" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>
       </div>
       <div class="modal-body">
-        <p style="color:var(--mt);margin-bottom:1rem">Las 4 ideas se generarán con este formato:</p>
+        <p style="color:var(--mt);margin-bottom:1rem">Elige el formato en que deseas generar este contenido:</p>
         <div style="display:flex;flex-direction:column;gap:.75rem">
           ${PUBLICATION_FORMATS.map(f=>`
-            <button class="sy-fmt" onclick="genIdeasWithFormat('${f.id}')" style="text-align:left;padding:1rem;cursor:pointer;border:1px solid rgba(255,255,255,0.12);border-radius:8px;background:rgba(255,255,255,0.05);transition:all 0.2s" onmouseover="this.style.background='rgba(139,92,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+            <button onclick="useIdeaWithFormat(${ideaId},'${category}','${aud}',\`${text}\`,'${f.id}')" style="text-align:left;padding:1rem;border:1px solid rgba(255,255,255,0.12);border-radius:8px;background:rgba(255,255,255,0.05);cursor:pointer;transition:all 0.2s" onmouseover="this.style.background='rgba(139,92,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
               <div style="display:flex;align-items:center;gap:1rem">
                 <div style="font-size:2rem">${f.icon}</div>
                 <div>
@@ -606,33 +640,11 @@ function showFormatPickerModal(){
     </div>`;
   modal.style.display='flex';
 }
-function closeModal(){
-  const modal=document.getElementById('modalRoot');
-  modal.style.display='none';
-  modal.innerHTML='';
-}
-async function genIdeasWithFormat(format){
+function useIdeaWithFormat(ideaId,category,aud,text,format){
   closeModal();
-  const m=document.getElementById('modContent');
-  m.innerHTML='<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div><div class="loader-text">Generando 4 ideas semanales...</div></div>';
-  try{
-    await fetch('/api/styly/ideas/generate',{method:'POST',headers:hdrs,body:JSON.stringify({format})});
-    toast('4 ideas generadas');
-    renderIdeas(m);
-  }catch(e){
-    toast('Error: '+e.message);
-    renderIdeas(m);
-  }
-}
-async function deleteAllIdeas(){
-  if(!confirm('¿Eliminar TODAS las ideas? Esta acción no se puede deshacer.')){return}
-  try{
-    await fetch('/api/styly/ideas',{method:'DELETE',headers:hdrs});
-    toast('Todas las ideas eliminadas');
-    renderIdeas(document.getElementById('modContent'));
-  }catch(e){
-    toast('Error: '+e.message);
-  }
+  G.category=category;G.format=format;G.aud=aud==='affiliates'?'affiliates':'clients';G.topic=text;G.phase='topic';G.result='';G.resultId=null;
+  fetch('/api/styly/ideas/'+ideaId,{method:'PUT',headers:hdrs,body:JSON.stringify({status:'used'})});
+  setTab('generar');
 }
 function useIdea(id,format,aud,text){
   G.fmt=format;G.aud=aud==='affiliates'?'affiliates':'clients';G.topic=text;G.phase='topic';G.result='';G.resultId=null;
@@ -642,6 +654,62 @@ function useIdea(id,format,aud,text){
 async function discardIdea(id){
   await fetch('/api/styly/ideas/'+id,{method:'PUT',headers:hdrs,body:JSON.stringify({status:'discarded'})});
   toast('Descartada');renderIdeas(document.getElementById('modContent'));
+}
+async function deleteIdea(id){
+  if(!confirm('¿Eliminar esta idea permanentemente?'))return;
+  try{
+    await fetch('/api/styly/ideas/'+id,{method:'DELETE',headers:hdrs});
+    toast('Idea eliminada');
+    renderIdeas(document.getElementById('modContent'));
+  }catch(e){
+    toast('Error: '+e.message);
+  }
+}
+function enableMultiSelect(){
+  ideasMultiSelectMode=true;
+  selectedIdeas=[];
+  renderIdeas(document.getElementById('modContent'));
+}
+function cancelMultiSelect(){
+  ideasMultiSelectMode=false;
+  selectedIdeas=[];
+  renderIdeas(document.getElementById('modContent'));
+}
+function toggleIdeaSelection(id){
+  if(selectedIdeas.includes(id)){
+    selectedIdeas=selectedIdeas.filter(i=>i!==id);
+  }else{
+    selectedIdeas.push(id);
+  }
+  renderIdeas(document.getElementById('modContent'));
+}
+async function deleteMultipleIdeas(){
+  if(selectedIdeas.length===0){
+    toast('Selecciona al menos una idea');
+    return;
+  }
+  if(!confirm(`¿Eliminar ${selectedIdeas.length} idea(s) permanentemente?`))return;
+  console.log('Eliminando ideas:', selectedIdeas);
+  try{
+    const promises=selectedIdeas.map(async id=>{
+      console.log('DELETE request para idea:', id);
+      const res=await fetch('/api/styly/ideas/'+id,{method:'DELETE',headers:hdrs});
+      const data=await res.json();
+      console.log('Response para idea', id, ':', res.status, data);
+      if(!res.ok)throw new Error(data.error||'Error al eliminar');
+      return data;
+    });
+    const results=await Promise.all(promises);
+    console.log('Todas eliminadas:', results);
+    toast(`${selectedIdeas.length} ideas eliminadas`);
+    ideasMultiSelectMode=false;
+    selectedIdeas=[];
+    renderIdeas(document.getElementById('modContent'));
+  }catch(e){
+    console.error('Error eliminando:', e);
+    toast('Error: '+e.message);
+    renderIdeas(document.getElementById('modContent'));
+  }
 }
 
 // ================================================================
@@ -871,7 +939,7 @@ async function doApprove(){
 // SHARED
 // ================================================================
 function showModal(html){document.getElementById('modalRoot').innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-box">${html}</div></div>`}
-function closeModal(){document.getElementById('modalRoot').innerHTML=''}
+function closeModal(){const m=document.getElementById('modalRoot');m.innerHTML='';m.style.display='none'}
 function cpClip(text){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).catch(()=>fbCp(text))}else{fbCp(text)}}
 function fbCp(text){const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta)}
 
