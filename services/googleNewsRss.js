@@ -166,6 +166,12 @@ async function fetchGoogleNewsRss(scope, category) {
           source: sourceText,
           date: item.pubDate || new Date().toISOString()
         };
+      })
+      // Sort by date descending (most recent first)
+      .sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateB - dateA; // Descending order (newest first)
       });
 
     console.log(`[GoogleNewsRss] Found ${articles.length} relevant articles for ${cacheKey} (filtered from RSS feed)`);
