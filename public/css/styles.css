@@ -471,6 +471,100 @@ button{font-family:inherit;cursor:pointer}
 .view-btn:hover{background:rgba(139,92,246,0.15);border-color:rgba(139,92,246,0.4)}
 .view-btn.active{background:rgba(139,92,246,0.3);border-color:rgba(139,92,246,0.6);color:var(--accent);font-weight:600;box-shadow:0 4px 16px rgba(139,92,246,0.2)}
 
+/* ========== STYLY KANBAN BOARD ========== */
+
+/* Board container */
+.kanban-board{display:flex;gap:1.25rem;height:calc(100vh - 340px);min-width:min-content;padding-bottom:.5rem}
+
+/* Columns */
+.kanban-column{background:var(--glass);-webkit-backdrop-filter:blur(15px);backdrop-filter:blur(15px);border:1px solid var(--glass-border);border-radius:16px;padding:1rem;display:flex;flex-direction:column;overflow:hidden;min-width:290px;flex:1 0 290px;transition:all .3s ease}
+.kanban-column.drag-over{border-color:var(--accent);background:rgba(139,92,246,.06);box-shadow:0 0 20px rgba(139,92,246,.1)}
+.kanban-column.editing{border-style:dashed}
+
+/* Column header */
+.kanban-col-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;padding-bottom:.6rem;border-bottom:1px solid var(--glass-border)}
+.kanban-col-title{display:flex;align-items:center;gap:.5rem;min-width:0}
+.kanban-col-title .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:0 0 8px currentColor}
+.kanban-col-title h3{font-size:.95rem;font-weight:700;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0}
+.kanban-col-count{font-size:.65rem;font-weight:700;color:var(--mt);background:var(--glass-strong);padding:2px 8px;border-radius:10px;border:1px solid var(--glass-border)}
+.kanban-col-actions{display:flex;gap:.2rem;flex-shrink:0}
+
+/* Column action buttons */
+.col-action-btn{padding:4px 6px;border-radius:6px;border:none;background:transparent;color:var(--mt);cursor:pointer;font-size:.7rem;transition:all .2s;line-height:1}
+.col-action-btn:hover{background:var(--glass-strong);color:var(--fg)}
+.col-action-btn.danger:hover{background:rgba(239,68,68,.1);color:#EF4444}
+
+/* Column body — scrollable */
+.kanban-col-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:.6rem;padding-right:2px}
+.kanban-col-body::-webkit-scrollbar{width:3px}
+.kanban-col-body::-webkit-scrollbar-track{background:transparent}
+.kanban-col-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+.kanban-col-body::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.2)}
+[data-theme="light"] .kanban-col-body::-webkit-scrollbar-thumb{background:rgba(0,0,0,.1)}
+[data-theme="light"] .kanban-col-body::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.2)}
+
+/* Board cards */
+.board-card{background:var(--glass-strong);border:1px solid var(--glass-border);border-radius:12px;padding:.85rem;cursor:pointer;transition:all .25s ease;position:relative;overflow:hidden}
+.board-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;background:var(--accent-col,var(--accent));transition:width .2s}
+.board-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.12);border-color:rgba(255,255,255,.18)}
+.board-card:active{transform:translateY(0);box-shadow:var(--shadow-sm)}
+.board-card.dragging{opacity:.5;transform:rotate(2deg) scale(1.02);box-shadow:0 12px 32px rgba(0,0,0,.2)}
+[data-theme="light"] .board-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.08);border-color:rgba(0,0,0,.12)}
+
+/* Card sections */
+.board-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.45rem}
+.board-card-project{display:flex;align-items:center;gap:.35rem;font-size:.68rem;font-weight:600;color:var(--mt)}
+.board-card-project .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.board-card-id{font-size:.62rem;font-weight:700;color:var(--mt);background:var(--glass);padding:1px 6px;border-radius:4px;border:1px solid var(--glass-border)}
+.board-card-title{font-size:.86rem;font-weight:600;color:var(--fg);line-height:1.35;margin-bottom:.55rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* Progress bar */
+.board-card-progress{height:3px;background:var(--glass);border-radius:3px;margin-bottom:.55rem;overflow:hidden}
+.board-card-progress-fill{height:100%;border-radius:3px;transition:width .3s ease}
+
+/* Tags */
+.board-card-tags{display:flex;flex-wrap:wrap;gap:.3rem}
+.board-card-tag{display:inline-flex;align-items:center;gap:.25rem;padding:2px 7px;border-radius:5px;font-size:.65rem;font-weight:600;line-height:1.4}
+.tag-alta{background:rgba(239,68,68,.12);color:#EF4444}
+.tag-media{background:rgba(245,158,11,.12);color:#D97706}
+.tag-baja{background:rgba(107,114,128,.12);color:#6B7280}
+.tag-assignee{background:rgba(139,92,246,.1);color:#A78BFA}
+.tag-date{background:rgba(59,130,246,.1);color:#60A5FA}
+.tag-overdue{background:rgba(239,68,68,.12);color:#EF4444}
+.tag-subtasks{background:var(--glass);color:var(--mt);border:1px solid var(--glass-border)}
+.tag-comments{background:var(--glass);color:var(--mt);border:1px solid var(--glass-border)}
+
+/* Filter bar */
+.board-filter-bar{margin-bottom:1rem;padding:.85rem;background:var(--glass);-webkit-backdrop-filter:blur(15px);backdrop-filter:blur(15px);border:1px solid var(--glass-border);border-radius:14px}
+.board-filter-row{display:flex;gap:.6rem;align-items:center}
+.board-filter-input{flex:1;min-width:0;padding:.5rem .75rem;border-radius:10px;border:1px solid var(--glass-border);background:var(--glass-strong);color:var(--fg);font-size:.84rem;transition:all .2s;font-family:inherit}
+.board-filter-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,92,246,.1)}
+.board-filter-input::placeholder{color:var(--mt)}
+.board-filter-select{flex:1;min-width:130px;padding:.5rem .75rem;border-radius:10px;border:1px solid var(--glass-border);background:var(--glass-strong);color:var(--fg);font-size:.82rem;font-family:inherit;cursor:pointer;transition:all .2s}
+.board-filter-select:focus{outline:none;border-color:var(--accent)}
+.board-filter-panel{display:none;flex-wrap:wrap;gap:.6rem;margin-top:.7rem;padding-top:.7rem;border-top:1px solid var(--glass-border)}
+.board-filter-panel.open{display:flex}
+.board-filter-btn{padding:.45rem .7rem;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-strong);color:var(--fg);cursor:pointer;font-size:.82rem;transition:all .2s;font-family:inherit}
+.board-filter-btn:hover{background:rgba(139,92,246,.1);border-color:rgba(139,92,246,.3)}
+.board-filter-btn.active-edit{border-color:var(--accent);background:rgba(139,92,246,.12);color:var(--accent)}
+.filter-badge{display:inline-flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;border-radius:50%;width:16px;height:16px;font-size:.6rem;font-weight:700;margin-left:.3rem}
+
+/* Add column button */
+.kanban-add-col{min-width:180px;flex-shrink:0;border:2px dashed var(--glass-border);border-radius:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .3s;padding:1rem}
+.kanban-add-col:hover{border-color:var(--accent);background:rgba(139,92,246,.04)}
+.kanban-add-col span{text-align:center;color:var(--mt)}
+
+/* Add task card at bottom of column */
+.kanban-add-task{border:1px dashed var(--glass-border);border-radius:10px;padding:.6rem;text-align:center;color:var(--mt);font-size:.78rem;cursor:pointer;transition:all .2s;margin-top:.25rem}
+.kanban-add-task:hover{border-color:var(--accent);color:var(--accent);background:rgba(139,92,246,.04)}
+
+/* Empty column state */
+.kanban-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--mt);font-size:.82rem;gap:.5rem;padding:2rem 0;opacity:.6}
+
+/* Card enter animation */
+@keyframes cardSlideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.board-card{animation:cardSlideIn .3s ease both}
+
 /* ========== RESPONSIVE DASHBOARD ========== */
 @media(max-width:1024px){
   .stats-row{grid-template-columns:repeat(2,1fr)}
@@ -524,6 +618,13 @@ button{font-family:inherit;cursor:pointer}
   #stylyTasksArea>div>div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
   #stylyTasksArea>div>div[style*="grid-template-columns: 2fr 1fr"],
   #stylyTasksArea>div>div[style*="grid-template-columns:2fr 1fr"]{grid-template-columns:1fr !important}
+  /* Kanban board mobile */
+  .kanban-board{flex-direction:column;height:auto;max-height:none}
+  .kanban-column{min-width:100%;flex:none;max-height:400px}
+  .board-filter-row{flex-wrap:wrap}
+  .board-filter-input{min-width:0}
+  .board-filter-select{min-width:0;flex-basis:calc(50% - .3rem)}
+  .kanban-add-col{min-width:100%}
 }
 @media(max-width:480px){
   .stats-row{grid-template-columns:1fr}
