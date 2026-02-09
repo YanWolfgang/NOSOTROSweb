@@ -28,7 +28,8 @@ const CATEGORY_QUERIES = {
   deportes: 'deportes OR fútbol OR NBA OR olimpiadas OR F1',
   entretenimiento: 'entretenimiento OR cine OR música OR celebridades OR serie',
   guerra: 'guerra OR conflicto OR militar OR Ucrania OR Gaza OR defensa',
-  ciencia: 'ciencia OR salud OR medicina OR investigación OR espacio'
+  ciencia: 'ciencia OR salud OR medicina OR investigación OR espacio',
+  mexico: 'México OR CDMX OR Guadalajara OR Monterrey OR noticias mexicanas'
 };
 
 // ========== URL BUILDER ==========
