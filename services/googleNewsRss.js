@@ -22,14 +22,14 @@ function setCache(key, data) {
 
 // ========== CATEGORY MAPPING ==========
 const CATEGORY_QUERIES = {
-  politica: 'política OR gobierno OR elecciones OR congreso OR presidente',
-  economia: 'economía OR mercados OR finanzas OR negocios OR inflación',
-  tecnologia: 'tecnología OR inteligencia artificial OR startup OR digital',
-  deportes: 'deportes OR fútbol OR NBA OR olimpiadas OR F1',
-  entretenimiento: 'entretenimiento OR cine OR música OR celebridades OR serie',
-  guerra: 'guerra OR conflicto OR militar OR Ucrania OR Gaza OR defensa',
-  ciencia: 'ciencia OR salud OR medicina OR investigación OR espacio',
-  mexico: 'México OR CDMX OR Guadalajara OR Monterrey OR noticias mexicanas'
+  politica: 'política mexicana OR gobierno mexicano OR elecciones México OR congreso México OR presidente México',
+  economia: 'economía México OR mercados financieros OR negocios México OR inflación México OR finanzas',
+  tecnologia: 'inteligencia artificial OR tecnología OR startups OR innovación digital',
+  deportes: 'fútbol mexicano OR deportes México OR NBA OR F1 OR olimpiadas',
+  entretenimiento: 'cine México OR películas OR series televisión OR música OR entretenimiento',
+  guerra: 'guerra Ucrania OR conflicto Rusia OR conflicto Gaza OR defensa militar',
+  ciencia: 'ciencia salud OR medicina investigación OR salud pública OR investigación científica',
+  mexico: 'México noticias OR noticia México -política -economía -deportes -cine'
 };
 
 // ========== URL BUILDER ==========
@@ -78,6 +78,30 @@ function extractSummary(description, title) {
   return cleaned;
 }
 
+// ========== KEYWORD VALIDATION ==========
+const CATEGORY_KEYWORDS = {
+  politica: ['política', 'gobierno', 'elecciones', 'congreso', 'presidente', 'legislatura', 'diputado', 'senador', 'voto', 'candidato', 'ministro'],
+  economia: ['economía', 'mercado', 'finanza', 'negocio', 'inflación', 'salario', 'bolsa', 'inversión', 'comercio', 'precio', 'crecimiento'],
+  tecnologia: ['tecnología', 'inteligencia artificial', 'ia', 'ai', 'software', 'hardware', 'digital', 'startup', 'computadora', 'sistema', 'innovación', 'programación'],
+  deportes: ['deporte', 'fútbol', 'basketball', 'nba', 'f1', 'olímpico', 'atleta', 'equipo', 'campeonato', 'liga', 'jugador', 'entrenador'],
+  entretenimiento: ['cine', 'película', 'serie', 'música', 'artista', 'actor', 'cantante', 'show', 'concierto', 'televisión', 'famoso', 'estrella'],
+  guerra: ['guerra', 'conflicto', 'militar', 'ucrania', 'rusia', 'gaza', 'defensa', 'ataque', 'armado', 'ejército', 'soldado', 'batalla'],
+  ciencia: ['ciencia', 'salud', 'medicina', 'investigación', 'doctor', 'científico', 'laboratorio', 'espacio', 'físico', 'químico', 'descubrimiento', 'estudio'],
+  mexico: ['méxico', 'cdmx', 'jalisco', 'monterrey', 'guadalajara', 'veracruz', 'mexico', 'mexicano', 'mexicana', 'nacional', 'país']
+};
+
+function isRelevantArticle(title, category) {
+  if (!category || !CATEGORY_KEYWORDS[category]) return true;
+
+  const title_lower = (title || '').toLowerCase();
+  const keywords = CATEGORY_KEYWORDS[category];
+
+  // Check if title contains at least one keyword from the category
+  const hasKeyword = keywords.some(keyword => title_lower.includes(keyword));
+
+  return hasKeyword;
+}
+
 // ========== XML PARSER ==========
 async function fetchGoogleNewsRss(scope, category) {
   const cacheKey = `${scope}:${category || 'all'}`;
@@ -121,28 +145,30 @@ async function fetchGoogleNewsRss(scope, category) {
       ? result.rss.channel.item
       : [result.rss.channel.item];
 
-    // Transform to standard format
-    const articles = items.map((item, i) => {
-      let sourceText = item.source || 'Google News';
+    // Transform to standard format with keyword filtering
+    const articles = items
+      .filter(item => isRelevantArticle(item.title, category))
+      .map((item, i) => {
+        let sourceText = item.source || 'Google News';
 
-      // Extract source name if it's an object with attributes
-      if (typeof sourceText === 'object' && sourceText['#text']) {
-        sourceText = sourceText['#text'];
-      }
+        // Extract source name if it's an object with attributes
+        if (typeof sourceText === 'object' && sourceText['#text']) {
+          sourceText = sourceText['#text'];
+        }
 
-      // Extract and clean summary
-      const summary = extractSummary(item.description, item.title).slice(0, 400);
+        // Extract and clean summary
+        const summary = extractSummary(item.description, item.title).slice(0, 400);
 
-      return {
-        id: i + 1,
-        title: (item.title || '').slice(0, 300),
-        summary: summary,
-        source: sourceText,
-        date: item.pubDate || new Date().toISOString()
-      };
-    });
+        return {
+          id: i + 1,
+          title: (item.title || '').slice(0, 300),
+          summary: summary,
+          source: sourceText,
+          date: item.pubDate || new Date().toISOString()
+        };
+      });
 
-    console.log(`[GoogleNewsRss] Found ${articles.length} articles for ${cacheKey}`);
+    console.log(`[GoogleNewsRss] Found ${articles.length} relevant articles for ${cacheKey} (filtered from RSS feed)`);
 
     setCache(cacheKey, articles);
     return articles;
