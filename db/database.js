@@ -44,8 +44,9 @@ async function initDB() {
       ALTER TABLE ideas ADD COLUMN IF NOT EXISTS season_relevance VARCHAR(100);
       ALTER TABLE content_history ADD COLUMN IF NOT EXISTS notes TEXT;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS styly_modules JSONB DEFAULT '[]';
-      ALTER TABLE styly_tasks ALTER COLUMN estado TYPE VARCHAR(50);
     `);
+    // Alter styly_tasks estado column only if table exists
+    try { await client.query("ALTER TABLE styly_tasks ALTER COLUMN estado TYPE VARCHAR(50)"); } catch(_) {}
 
     // AI conversations table
     await client.query(`
@@ -61,19 +62,6 @@ async function initDB() {
       CREATE INDEX IF NOT EXISTS idx_ai_conv_user ON ai_conversations(user_id);
       CREATE INDEX IF NOT EXISTS idx_ai_conv_expires ON ai_conversations(expires_at);
     `);
-
-    // ========== STYLY: DROP OLD TABLES ==========
-    // Drop all Styly tables to recreate with new schema (CASCADE will handle foreign keys)
-    await client.query(`DROP TABLE IF EXISTS styly_comentarios CASCADE;`);
-    await client.query(`DROP TABLE IF EXISTS styly_subtasks CASCADE;`);
-    await client.query(`DROP TABLE IF EXISTS styly_task_observadores CASCADE;`);
-    await client.query(`DROP TABLE IF EXISTS styly_task_asignados CASCADE;`);
-    await client.query(`DROP TABLE IF EXISTS styly_tasks CASCADE;`);
-    await client.query(`DROP TABLE IF EXISTS styly_projects CASCADE;`);
-    await client.query(`DROP TABLE IF EXISTS styly_equipo_miembros CASCADE;`);
-    await client.query(`DROP TABLE IF EXISTS styly_equipos CASCADE;`);
-    await client.query(`DROP TABLE IF EXISTS styly_roles CASCADE;`);
-    await client.query(`DROP TABLE IF EXISTS styly_user_permissions CASCADE;`);
 
     // ========== STYLY: ROLES Y PERMISOS ==========
     await client.query(`
@@ -116,7 +104,7 @@ async function initDB() {
 
     // ========== STYLY: PROYECTOS ==========
     await client.query(`
-      CREATE TABLE styly_projects (
+      CREATE TABLE IF NOT EXISTS styly_projects (
         id SERIAL PRIMARY KEY,
         nombre VARCHAR(100) NOT NULL,
         descripcion TEXT,
@@ -135,7 +123,7 @@ async function initDB() {
 
     // ========== STYLY: TAREAS ==========
     await client.query(`
-      CREATE TABLE styly_tasks (
+      CREATE TABLE IF NOT EXISTS styly_tasks (
         id SERIAL PRIMARY KEY,
         task_id VARCHAR(10) NOT NULL UNIQUE,
         titulo VARCHAR(255) NOT NULL,
@@ -159,7 +147,7 @@ async function initDB() {
 
     // Tareas: Asignados (muchos a muchos)
     await client.query(`
-      CREATE TABLE styly_task_asignados (
+      CREATE TABLE IF NOT EXISTS styly_task_asignados (
         id SERIAL PRIMARY KEY,
         task_id INTEGER REFERENCES styly_tasks(id) ON DELETE CASCADE,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -170,7 +158,7 @@ async function initDB() {
 
     // Tareas: Observadores (muchos a muchos)
     await client.query(`
-      CREATE TABLE styly_task_observadores (
+      CREATE TABLE IF NOT EXISTS styly_task_observadores (
         id SERIAL PRIMARY KEY,
         task_id INTEGER REFERENCES styly_tasks(id) ON DELETE CASCADE,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -181,7 +169,7 @@ async function initDB() {
 
     // Tareas: Subtareas
     await client.query(`
-      CREATE TABLE styly_subtasks (
+      CREATE TABLE IF NOT EXISTS styly_subtasks (
         id SERIAL PRIMARY KEY,
         parent_task_id INTEGER REFERENCES styly_tasks(id) ON DELETE CASCADE,
         titulo VARCHAR(255) NOT NULL,
@@ -193,7 +181,7 @@ async function initDB() {
 
     // ========== STYLY: COMENTARIOS ==========
     await client.query(`
-      CREATE TABLE styly_comentarios (
+      CREATE TABLE IF NOT EXISTS styly_comentarios (
         id SERIAL PRIMARY KEY,
         task_id INTEGER REFERENCES styly_tasks(id) ON DELETE CASCADE,
         user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
