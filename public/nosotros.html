@@ -105,13 +105,19 @@ const CATS=[
 // ========== STATE ==========
 let S={view:'home',fid:null,step:0,phase:'input',ltxt:'',
   sq:'',cat:null,news:[],sn:new Set(),angles:[],sa:new Set(),
-  structs:[],ss:null,result:'',itxt:'',err:null};
+  structs:[],ss:null,result:'',itxt:'',err:null,selectedIds:new Set()};
 let modTab='generar';
 let newsPagination={page:1,pageSize:8,total:0,totalPages:0};
 
 // ========== HELPERS ==========
 function F(){return FORMATS.find(f=>f.id===S.fid)}
-function selN(){return[...S.sn].map(i=>S.news[i])}
+function getArticleId(article){return `${article.title}|${article.source}|${article.date}`}
+function selN(){
+  return S.news.filter((n,i)=>{
+    const id=getArticleId(n);
+    return S.selectedIds.has(id);
+  })
+}
 function selA(){return[...S.sa].map(i=>S.angles[i])}
 function pJ(t){const i=t.indexOf('{'),j=t.lastIndexOf('}');if(i===-1||j<=i)return null;try{return JSON.parse(t.substring(i,j+1))}catch{return null}}
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
@@ -258,7 +264,7 @@ function rContent(f){
 }
 
 function rNewsSel(f){
-  const n=f.ns,ok=S.sn.size===n;
+  const n=f.ns,ok=S.selectedIds.size===n;
   const cats=`<div class="cats">${CATS.map(c=>`<button class="cat-btn ${S.cat===c.id?'active':''}" onclick="setCat(${c.id===null?'null':"'"+c.id+"'"})">${c.label}</button>`).join('')}</div>`;
 
   // Pagination controls
@@ -270,15 +276,17 @@ function rNewsSel(f){
       <button class="btn-outline" ${pag.page===pag.totalPages?'disabled':''} onclick="changePage(${pag.page+1})" style="padding:4px 12px;font-size:.8rem">Siguiente →</button>
     </div>` : '';
 
-  return`${cats}${pagControls}<p class="sel-hint">Selecciona ${n} noticia${n>1?'s':''} (${S.sn.size}/${n})</p>
-    <div class="sel-list">${S.news.map((nw,i)=>`
-      <div class="sel-card ${S.sn.has(i)?'on':''}" onclick="tgN(${i})">
-        <div class="sel-check">${S.sn.has(i)?'<i class="feather" data-icon="check" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>':''}</div>
+  return`${cats}${pagControls}<p class="sel-hint">Selecciona ${n} noticia${n>1?'s':''} (${S.selectedIds.size}/${n})</p>
+    <div class="sel-list">${S.news.map((nw,i)=>{
+      const id=getArticleId(nw);
+      return `<div class="sel-card ${S.selectedIds.has(id)?'on':''}" onclick="tgN(${i})">
+        <div class="sel-check">${S.selectedIds.has(id)?'<i class="feather" data-icon="check" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>':''}</div>
         <div class="sel-body">
           <div class="sel-title">${esc(nw.title)}</div>
           <div class="sel-desc">${esc(nw.summary)}</div>
           <div class="sel-source">${esc(nw.source)} ${nw.date?'• '+formatNewsDate(nw.date):''}</div>
-        </div></div>`).join('')}</div>
+        </div></div>`;
+    }).join('')}</div>
     <div class="actions"><button class="btn" ${ok?'':'disabled'} onclick="${f.steps[S.step+1]==='Contenido'?'goDirectContent()':'goAngles()'}">
       ${f.steps[S.step+1]==='Contenido'?'Generar contenido':'Generar angulos'}</button></div>`;
 }
@@ -331,12 +339,12 @@ function formatNewsDate(dateStr){
 }
 
 // ========== HANDLERS ==========
-function goHome(){S={view:'home',fid:null,step:0,phase:'input',ltxt:'',sq:'',cat:null,news:[],sn:new Set(),angles:[],sa:new Set(),structs:[],ss:null,result:'',itxt:'',err:null};newsPagination={page:1,pageSize:8,total:0,totalPages:0};render()}
+function goHome(){S={view:'home',fid:null,step:0,phase:'input',ltxt:'',sq:'',cat:null,news:[],sn:new Set(),angles:[],sa:new Set(),structs:[],ss:null,result:'',itxt:'',err:null,selectedIds:new Set()};newsPagination={page:1,pageSize:8,total:0,totalPages:0};render()}
 function clErr(){S.err=null;render()}
-function setCat(c){if(S.cat===c)return;S.cat=c;S.sn=new Set();S.err=null;newsPagination.page=1;fetchN(F().scope,S.sq||undefined)}
+function setCat(c){if(S.cat===c)return;S.cat=c;S.selectedIds=new Set();S.err=null;newsPagination.page=1;fetchN(F().scope,S.sq||undefined)}
 function goFmt(id){
   S.view='flow';S.fid=id;S.step=0;S.news=[];S.sn=new Set();S.angles=[];S.sa=new Set();
-  S.structs=[];S.ss=null;S.result='';S.err=null;S.sq='';S.cat=null;S.itxt='';
+  S.structs=[];S.ss=null;S.result='';S.err=null;S.sq='';S.cat=null;S.itxt='';S.selectedIds=new Set();
   newsPagination={page:1,pageSize:8,total:0,totalPages:0};
   const f=F();
   if(f.id==='copy'){S.phase='input';render();return}
@@ -356,12 +364,24 @@ async function fetchN(scope,query,page=1){
     if(!news.length)throw new Error('No se encontraron noticias.');
     S.news=news;
     // Si es la primera página, limpiar selecciones. Si no, mantener las del usuario
-    if(page===1)S.sn=new Set();
+    if(page===1)S.selectedIds=new Set();
     S.phase='select';
   }catch(e){S.err=e.message;S.phase='input';S.news=[]}
   render();
 }
-function tgN(i){const f=F();if(S.sn.has(i))S.sn.delete(i);else{if(f.ns===1)S.sn.clear();if(S.sn.size<f.ns)S.sn.add(i)}render()}
+function tgN(i){
+  const f=F();
+  const article=S.news[i];
+  const id=getArticleId(article);
+
+  if(S.selectedIds.has(id)){
+    S.selectedIds.delete(id);
+  }else{
+    if(f.ns===1)S.selectedIds.clear();
+    if(S.selectedIds.size<f.ns)S.selectedIds.add(id);
+  }
+  render()
+}
 function tgA(i){const f=F();if(S.sa.has(i))S.sa.delete(i);else{if(S.sa.size<f.ma)S.sa.add(i)}render()}
 function selStr(i){S.ss=i;render()}
 
