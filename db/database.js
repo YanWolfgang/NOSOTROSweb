@@ -45,9 +45,35 @@ async function initDB() {
       ALTER TABLE ideas ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE CASCADE;
       ALTER TABLE content_history ADD COLUMN IF NOT EXISTS notes TEXT;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS styly_modules JSONB DEFAULT '[]';
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS permissions JSONB DEFAULT '{}';
     `);
     // Alter styly_tasks estado column only if table exists
     try { await client.query("ALTER TABLE styly_tasks ALTER COLUMN estado TYPE VARCHAR(50)"); } catch(_) {}
+
+    // ========== MIGRATE: businesses → permissions ==========
+    // Convert existing businesses array + styly_modules to unified permissions
+    try {
+      const { rows: usersToMigrate } = await client.query(
+        "SELECT id, role, businesses, styly_modules, permissions FROM users WHERE permissions = '{}' OR permissions IS NULL"
+      );
+      for (const u of usersToMigrate) {
+        const biz = u.businesses || [];
+        const isAdmin = u.role === 'admin';
+        const perms = {};
+        for (const b of biz) {
+          perms[b] = isAdmin ? ['ver','crear','editar'] : ['ver','crear'];
+        }
+        // Admin gets all modules
+        if (isAdmin) {
+          for (const b of ['nosotros','duelazo','spacebox','styly']) {
+            perms[b] = ['ver','crear','editar'];
+          }
+        }
+        if (Object.keys(perms).length > 0) {
+          await client.query("UPDATE users SET permissions = $1 WHERE id = $2", [JSON.stringify(perms), u.id]);
+        }
+      }
+    } catch(_) {}
 
     // AI conversations table
     await client.query(`

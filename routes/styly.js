@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { verifyToken, requireBusiness } = require('../middleware/auth');
+const { verifyToken, requireBusiness, requirePermission } = require('../middleware/auth');
 const { generate } = require('../services/ai');
 const { pool } = require('../db/database');
 const router = express.Router();
@@ -31,7 +31,7 @@ const SYS_AFFILIATES = 'Eres el equipo de marketing de STYLY para el programa Af
 const SYS_SCRIPTS = 'Eres experto en ventas de software SaaS para negocios de belleza y bienestar en México. Generas scripts de venta para STYLY ($599/mes). El script debe ser natural y conversacional, no robótico. Adapta los ejemplos y dolores al tipo de negocio específico. Un tatuador tiene problemas diferentes a una estética. Features principales para vender: agenda digital (adiós libreta, citas ilimitadas), website donde clientes agendan solos 24/7 (tu-negocio.styly.mx), cobro automático de membresías, CRM con historial. URL: styly.mx';
 
 // ========== GENERATE CONTENT ==========
-router.post('/generate', async (req, res) => {
+router.post('/generate', requirePermission('styly', 'crear'), async (req, res) => {
   try {
     const { category, format, audience, topic, context, industry, feature, previousContent, editInstructions } = req.body;
 
@@ -354,7 +354,7 @@ VISUAL: [Descripción]
 }
 
 // ========== GENERATE SCRIPT ==========
-router.post('/generate-script', async (req, res) => {
+router.post('/generate-script', requirePermission('styly', 'crear'), async (req, res) => {
   try {
     const { type, industry, stage } = req.body;
     if (!type) return res.status(400).json({ error: 'Se requiere tipo de script' });
@@ -583,7 +583,7 @@ router.get('/history/:id', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.delete('/history/:id', async (req, res) => {
+router.delete('/history/:id', requirePermission('styly', 'editar'), async (req, res) => {
   try {
     const { rowCount } = await pool.query('DELETE FROM content_history WHERE id = $1 AND user_id = $2 AND business = $3', [req.params.id, req.user.id, 'styly']);
     if (!rowCount) return res.status(404).json({ error: 'No encontrado' });
@@ -591,7 +591,7 @@ router.delete('/history/:id', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/history/bulk-delete', async (req, res) => {
+router.post('/history/bulk-delete', requirePermission('styly', 'editar'), async (req, res) => {
   try {
     const { ids } = req.body;
     if (!ids || !Array.isArray(ids) || !ids.length) return res.status(400).json({ error: 'Se requiere array de ids' });
@@ -643,7 +643,7 @@ router.get('/projects', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/projects', async (req, res) => {
+router.post('/projects', requirePermission('styly', 'crear'), async (req, res) => {
   try {
     const { name, description, icono, color } = req.body;
     if (!name) return res.status(400).json({ error: 'Nombre requerido' });
@@ -674,7 +674,7 @@ router.put('/projects/:id', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.delete('/projects/:id', async (req, res) => {
+router.delete('/projects/:id', requirePermission('styly', 'editar'), async (req, res) => {
   try {
     const { rowCount } = await pool.query(
       'DELETE FROM styly_projects WHERE id = $1',
@@ -856,7 +856,7 @@ router.post('/users', async (req, res) => {
   }
 });
 
-router.post('/tasks', async (req, res) => {
+router.post('/tasks', requirePermission('styly', 'crear'), async (req, res) => {
   try {
     const { task_id, titulo, descripcion, notas, proyecto_id, seccion, prioridad, asignados, fecha_inicio, fecha_vencimiento } = req.body;
     if (!task_id || !titulo) return res.status(400).json({ error: 'Faltan campos requeridos' });
@@ -919,7 +919,7 @@ router.put('/tasks/:id', async (req, res) => {
 });
 
 // Bulk delete all tasks and projects (must be before /tasks/:id)
-router.delete('/tasks/bulk-delete', async (req, res) => {
+router.delete('/tasks/bulk-delete', requirePermission('styly', 'editar'), async (req, res) => {
   try {
     const client = await pool.connect();
     try {
@@ -941,7 +941,7 @@ router.delete('/tasks/bulk-delete', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.delete('/tasks/:id', async (req, res) => {
+router.delete('/tasks/:id', requirePermission('styly', 'editar'), async (req, res) => {
   try {
     const { rowCount } = await pool.query('DELETE FROM styly_tasks WHERE id = $1', [req.params.id]);
     if (!rowCount) return res.status(404).json({ error: 'Tarea no encontrada' });
@@ -1039,7 +1039,7 @@ router.post('/tasks/bulk-update', async (req, res) => {
 });
 
 // Clear all tasks (admin only)
-router.delete('/tasks/all', async (req, res) => {
+router.delete('/tasks/all', requirePermission('styly', 'editar'), async (req, res) => {
   try {
     const { rowCount } = await pool.query('DELETE FROM styly_tasks');
     await pool.query('ALTER SEQUENCE styly_tasks_id_seq RESTART WITH 1');

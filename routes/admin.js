@@ -7,7 +7,7 @@ router.use(verifyToken, requireAdmin);
 
 router.get('/users', async (_req, res) => {
   try {
-    const { rows } = await pool.query('SELECT id, name, email, role, businesses, status, created_at FROM users ORDER BY created_at DESC');
+    const { rows } = await pool.query('SELECT id, name, email, role, businesses, permissions, status, created_at FROM users ORDER BY created_at DESC');
     res.json({ users: rows });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -16,16 +16,22 @@ router.get('/users', async (_req, res) => {
 
 router.put('/users/:id', async (req, res) => {
   try {
-    const { status, businesses, role } = req.body;
+    const { status, businesses, role, permissions } = req.body;
     const sets = [], vals = [];
     let idx = 1;
     if (status) { sets.push(`status = $${idx++}`); vals.push(status); }
     if (businesses) { sets.push(`businesses = $${idx++}`); vals.push(JSON.stringify(businesses)); }
     if (role) { sets.push(`role = $${idx++}`); vals.push(role); }
+    if (permissions) {
+      sets.push(`permissions = $${idx++}`); vals.push(JSON.stringify(permissions));
+      // Auto-sync businesses from permissions keys
+      const derivedBiz = Object.keys(permissions).filter(k => permissions[k] && permissions[k].length > 0);
+      sets.push(`businesses = $${idx++}`); vals.push(JSON.stringify(derivedBiz));
+    }
     if (!sets.length) return res.status(400).json({ error: 'Nada que actualizar' });
     vals.push(req.params.id);
     const { rows } = await pool.query(
-      `UPDATE users SET ${sets.join(', ')} WHERE id = $${idx} RETURNING id, name, email, role, businesses, status`,
+      `UPDATE users SET ${sets.join(', ')} WHERE id = $${idx} RETURNING id, name, email, role, businesses, permissions, status`,
       vals
     );
     if (!rows.length) return res.status(404).json({ error: 'Usuario no encontrado' });

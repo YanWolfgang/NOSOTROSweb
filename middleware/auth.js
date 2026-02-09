@@ -20,10 +20,24 @@ function requireAdmin(req, res, next) {
 
 function requireBusiness(business) {
   return (req, res, next) => {
+    if (req.user.role === 'admin') return next();
+    // Check unified permissions first, fallback to legacy businesses array
+    const perms = req.user.permissions || {};
+    if (perms[business] && perms[business].length > 0) return next();
     const bs = req.user.businesses || [];
-    if (req.user.role === 'admin' || bs.includes(business)) return next();
+    if (bs.includes(business)) return next();
     res.status(403).json({ error: `Sin acceso a ${business}` });
   };
 }
 
-module.exports = { verifyToken, requireAdmin, requireBusiness, SECRET };
+function requirePermission(business, action) {
+  return (req, res, next) => {
+    if (req.user.role === 'admin') return next();
+    const perms = req.user.permissions || {};
+    const modulePerms = perms[business] || [];
+    if (modulePerms.includes(action)) return next();
+    res.status(403).json({ error: `Sin permiso: ${action} en ${business}` });
+  };
+}
+
+module.exports = { verifyToken, requireAdmin, requireBusiness, requirePermission, SECRET };

@@ -31,11 +31,12 @@ router.post('/login', async (req, res) => {
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) return res.status(401).json({ error: 'Credenciales incorrectas' });
     if (user.status !== 'active') return res.status(403).json({ error: 'Cuenta pendiente de activación' });
+    const permissions = user.permissions || {};
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role, businesses: user.businesses, name: user.name },
+      { id: user.id, email: user.email, role: user.role, businesses: user.businesses, permissions, name: user.name },
       SECRET, { expiresIn: '7d' }
     );
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role, businesses: user.businesses } });
+    res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role, businesses: user.businesses, permissions } });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -43,7 +44,7 @@ router.post('/login', async (req, res) => {
 
 router.get('/me', verifyToken, async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT id, name, email, role, businesses, status, created_at FROM users WHERE id = $1', [req.user.id]);
+    const { rows } = await pool.query('SELECT id, name, email, role, businesses, permissions, status, created_at FROM users WHERE id = $1', [req.user.id]);
     if (!rows.length) return res.status(404).json({ error: 'Usuario no encontrado' });
     res.json({ user: rows[0] });
   } catch (e) {

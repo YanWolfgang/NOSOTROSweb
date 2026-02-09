@@ -33,6 +33,14 @@ const BUSINESSES=[
   {id:'styly',name:'STYLY',icon:'<i class="feather" data-icon="monitor" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#EC4899',url:'/styly.html'}
 ];
 const ALL_BIZ=['nosotros','duelazo','spacebox','styly'];
+const ALL_PERMS=['ver','crear','editar'];
+const ROLES=['admin','manager','editor','viewer'];
+const ROLE_DEFAULTS={
+  admin:ALL_BIZ.reduce((o,b)=>(o[b]=['ver','crear','editar'],o),{}),
+  manager:ALL_BIZ.reduce((o,b)=>(o[b]=['ver','crear'],o),{}),
+  editor:ALL_BIZ.reduce((o,b)=>(o[b]=['ver','crear'],o),{}),
+  viewer:ALL_BIZ.reduce((o,b)=>(o[b]=['ver'],o),{})
+};
 
 function renderSidebar(){
   const bs=user.businesses||[];const isAdmin=user.role==='admin';
@@ -70,21 +78,32 @@ async function loadUsers(){
   }catch(e){el.innerHTML=`<div class="error-bar"><span>${e.message}</span></div>`}
 }
 
+function permSummary(perms){
+  if(!perms||!Object.keys(perms).length)return'<span style="color:var(--mt)">Sin permisos</span>';
+  return Object.entries(perms).filter(([,v])=>v&&v.length).map(([biz,acts])=>{
+    const b=BUSINESSES.find(x=>x.id===biz);
+    const label=b?b.name:biz.toUpperCase();
+    const tags=acts.map(a=>{
+      const colors={ver:'#3B82F6',crear:'#10B981',editar:'#F59E0B'};
+      return`<span style="background:${colors[a]||'#666'};color:#fff;padding:1px 6px;border-radius:4px;font-size:.65rem;margin-left:2px">${a}</span>`;
+    }).join('');
+    return`<div style="margin-bottom:2px"><strong style="font-size:.75rem">${label}</strong> ${tags}</div>`;
+  }).join('');
+}
+
 function renderUsers(){
   const el=document.getElementById('userList');
   el.innerHTML=`<div style="overflow-x:auto"><table class="admin-table">
-    <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Negocios</th><th>Estado</th><th>Acciones</th></tr></thead>
+    <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Permisos</th><th>Estado</th><th>Acciones</th></tr></thead>
     <tbody>${users.map(u=>{
-      const bs=(u.businesses||[]);
       return`<tr>
         <td>${u.name}</td><td>${u.email}</td>
-        <td style="text-transform:capitalize">${u.role}</td>
-        <td>${bs.length?bs.join(', '):'<span style="color:var(--mt)">Ninguno</span>'}</td>
+        <td><span style="text-transform:capitalize;background:${u.role==='admin'?'#8B5CF6':u.role==='manager'?'#F59E0B':u.role==='viewer'?'#6B7280':'#3B82F6'};color:#fff;padding:2px 8px;border-radius:6px;font-size:.75rem">${u.role}</span></td>
+        <td style="max-width:250px">${permSummary(u.permissions)}</td>
         <td><span class="badge-status ${u.status==='active'?'badge-active':'badge-pending'}">${u.status}</span></td>
         <td><div class="admin-actions">
           ${u.status==='pending'?`<button onclick="activateUser(${u.id})">Activar</button>`:''}
-          <button onclick="editBiz(${u.id})">Negocios</button>
-          <button onclick="editStylyPermisos(${u.id})">Permisos STYLY</button>
+          <button onclick="editPermisos(${u.id})">Permisos</button>
           ${u.email!=='yan@admin.com'?`<button onclick="deleteUser(${u.id})" style="color:#f87171">Eliminar</button>`:''}
         </div></td>
       </tr>`}).join('')}</tbody></table></div>`;
@@ -97,66 +116,86 @@ async function activateUser(id){
   }catch(e){alert(e.message)}
 }
 
-function editBiz(id){
+let editingPerms={};
+function editPermisos(id){
   const u=users.find(x=>x.id===id);if(!u)return;
-  const bs=u.businesses||[];
+  editingPerms=JSON.parse(JSON.stringify(u.permissions||{}));
+  renderPermModal(u);
+}
+
+function renderPermModal(u){
+  const permColors={ver:'#3B82F6',crear:'#10B981',editar:'#F59E0B'};
+  const permLabels={ver:'Ver',crear:'Crear',editar:'Editar'};
   document.getElementById('modal').innerHTML=`
     <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
-      <div class="modal">
-        <h3>Negocios para ${u.name}</h3>
-        <div class="biz-checks" id="bizChecks">
-          ${ALL_BIZ.map(b=>`<label class="biz-check"><input type="checkbox" value="${b}" ${bs.includes(b)?'checked':''}>${b.toUpperCase()}</label>`).join('')}
+      <div class="modal" style="max-width:500px">
+        <h3 style="margin-bottom:1rem">Permisos para ${u.name}</h3>
+        <div style="margin-bottom:1.2rem">
+          <label style="font-size:.85rem;font-weight:600;display:block;margin-bottom:.4rem">Rol</label>
+          <select id="roleSelect" onchange="onRoleChange(${u.id})" style="width:100%;padding:.6rem;border-radius:8px;border:1px solid var(--glass-border);background:var(--card-bg);color:var(--text);font-size:.9rem">
+            ${ROLES.map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${r.charAt(0).toUpperCase()+r.slice(1)}</option>`).join('')}
+          </select>
+        </div>
+        <div style="margin-bottom:1rem">
+          <label style="font-size:.85rem;font-weight:600;display:block;margin-bottom:.6rem">Permisos por modulo</label>
+          ${BUSINESSES.map(b=>{
+            const bp=editingPerms[b.id]||[];
+            return`<div style="display:flex;align-items:center;gap:.6rem;padding:.6rem .8rem;margin-bottom:.4rem;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid var(--glass-border)">
+              <div style="min-width:90px;font-weight:600;font-size:.8rem;color:${b.color}">${b.name}</div>
+              <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                ${ALL_PERMS.map(p=>{
+                  const on=bp.includes(p);
+                  return`<label style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:3px 8px;border-radius:6px;font-size:.75rem;border:1px solid ${on?permColors[p]:'var(--glass-border)'};background:${on?permColors[p]+'22':'transparent'};transition:all .2s">
+                    <input type="checkbox" data-biz="${b.id}" data-perm="${p}" ${on?'checked':''} onchange="togglePerm('${b.id}','${p}',this.checked,${u.id})" style="display:none">
+                    <span style="color:${on?permColors[p]:'var(--mt)'};font-weight:${on?600:400}">${permLabels[p]}</span>
+                  </label>`;
+                }).join('')}
+              </div>
+            </div>`;
+          }).join('')}
         </div>
         <div class="modal-actions">
           <button class="btn-outline btn" onclick="closeModal()">Cancelar</button>
-          <button class="btn" onclick="saveBiz(${id})">Guardar</button>
+          <button class="btn" onclick="savePermisos(${u.id})">Guardar</button>
         </div>
       </div>
     </div>`;
 }
 
-async function saveBiz(id){
-  const checks=document.querySelectorAll('#bizChecks input:checked');
-  const businesses=[...checks].map(c=>c.value);
+function onRoleChange(id){
+  const role=document.getElementById('roleSelect').value;
+  const defaults=ROLE_DEFAULTS[role]||{};
+  editingPerms=JSON.parse(JSON.stringify(defaults));
+  const u=users.find(x=>x.id===id);if(!u)return;
+  // Temporarily update role for display
+  const tempU={...u,role,permissions:editingPerms};
+  renderPermModal(tempU);
+}
+
+function togglePerm(biz,perm,checked,uid){
+  if(!editingPerms[biz])editingPerms[biz]=[];
+  if(checked){
+    if(!editingPerms[biz].includes(perm))editingPerms[biz].push(perm);
+    // Auto-add 'ver' if creating/editing
+    if((perm==='crear'||perm==='editar')&&!editingPerms[biz].includes('ver'))editingPerms[biz].push('ver');
+  }else{
+    editingPerms[biz]=editingPerms[biz].filter(p=>p!==perm);
+    // Auto-remove crear/editar if removing ver
+    if(perm==='ver')editingPerms[biz]=[];
+  }
+  // Clean empty
+  if(!editingPerms[biz].length)delete editingPerms[biz];
+  const u=users.find(x=>x.id===uid);if(!u)return;
+  const role=document.getElementById('roleSelect').value;
+  renderPermModal({...u,role,permissions:editingPerms});
+}
+
+async function savePermisos(id){
+  const role=document.getElementById('roleSelect').value;
   try{
-    await fetch(`/api/admin/users/${id}`,{method:'PUT',headers:hdrs,body:JSON.stringify({businesses})});
+    await fetch(`/api/admin/users/${id}`,{method:'PUT',headers:hdrs,body:JSON.stringify({role,permissions:editingPerms})});
     closeModal();loadUsers();
   }catch(e){alert(e.message)}
-}
-
-async function editStylyPermisos(id){
-  const u=users.find(x=>x.id===id);if(!u)return;
-  try{
-    const r=await fetch(`/api/admin/styly/permissions/${id}`,{headers:hdrs});
-    if(!r.ok)throw new Error(`HTTP ${r.status}: ${r.statusText}`);
-    const text=await r.text();
-    let d;try{d=JSON.parse(text)}catch(e){throw new Error(`Respuesta inválida: ${text.substring(0,100)}`)}
-    const modules=d.modules||[];
-    document.getElementById('modal').innerHTML=`
-      <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
-        <div class="modal">
-          <h3>Permisos STYLY para ${u.name}</h3>
-          <div class="biz-checks" id="stylyPermsChecks">
-            <label class="biz-check"><input type="checkbox" value="tareas" ${modules.includes('tareas')?'checked':''}><i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Tareas</label>
-            <label class="biz-check"><input type="checkbox" value="ia-tareas" ${modules.includes('ia-tareas')?'checked':''}><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> IA - Tareas</label>
-          </div>
-          <div class="modal-actions">
-            <button class="btn-outline btn" onclick="closeModal()">Cancelar</button>
-            <button class="btn" onclick="saveStylyPermisos(${id})">Guardar</button>
-          </div>
-        </div>
-      </div>`;
-  }catch(e){console.error('Error editStylyPermisos:',e);alert('Error: '+e.message)}
-}
-
-async function saveStylyPermisos(id){
-  const checks=document.querySelectorAll('#stylyPermsChecks input:checked');
-  const modules=[...checks].map(c=>c.value);
-  try{
-    const r=await fetch(`/api/admin/styly/permissions/${id}`,{method:'POST',headers:hdrs,body:JSON.stringify({modules})});
-    const d=await r.json();if(d.error)throw new Error(d.error);
-    closeModal();loadUsers();
-  }catch(e){alert('Error: '+e.message)}
 }
 
 function closeModal(){document.getElementById('modal').innerHTML=''}

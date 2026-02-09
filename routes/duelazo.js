@@ -1,5 +1,5 @@
 const express = require('express');
-const { verifyToken, requireBusiness } = require('../middleware/auth');
+const { verifyToken, requireBusiness, requirePermission } = require('../middleware/auth');
 const { generate } = require('../services/ai');
 const { pool } = require('../db/database');
 const router = express.Router();
@@ -189,7 +189,7 @@ router.get('/standings', async (req, res) => {
 });
 
 // Generar contenido deportivo
-router.post('/generate', async (req, res) => {
+router.post('/generate', requirePermission('duelazo', 'crear'), async (req, res) => {
   try {
     const { prompt, format_type, input_data } = req.body;
     if (!prompt) return res.status(400).json({ error: 'Se requiere prompt' });
@@ -226,7 +226,7 @@ router.get('/history/:id', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.delete('/history/:id', async (req, res) => {
+router.delete('/history/:id', requirePermission('duelazo', 'editar'), async (req, res) => {
   try {
     const { rowCount } = await pool.query('DELETE FROM content_history WHERE id = $1 AND user_id = $2 AND business = $3', [req.params.id, req.user.id, 'duelazo']);
     if (!rowCount) return res.status(404).json({ error: 'No encontrado' });
@@ -234,7 +234,7 @@ router.delete('/history/:id', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/history/bulk-delete', async (req, res) => {
+router.post('/history/bulk-delete', requirePermission('duelazo', 'editar'), async (req, res) => {
   try {
     const { ids } = req.body;
     if (!ids || !Array.isArray(ids) || !ids.length) return res.status(400).json({ error: 'Se requiere array de ids' });
