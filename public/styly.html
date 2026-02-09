@@ -892,19 +892,25 @@ async function renderBoardView(){
       const prog=parseInt(t.progreso)||0;
       const sc=parseInt(t.subtasks_count)||0;
       const cc=parseInt(t.comentarios_count)||0;
+      const aInitial=aName?aName.charAt(0).toUpperCase():'';
+      const aColor=pColor!=='var(--mt)'?pColor:'#8B5CF6';
       return`<div class="board-card" draggable="true" data-task-id="${t.id}" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)" onclick="openTaskModal(${t.id})" style="--accent-col:${c};animation-delay:${ci*40}ms">
         <div class="board-card-header">
           <div class="board-card-project"><span class="dot" style="background:${pColor}"></span>${esc(pName)}</div>
           <span class="board-card-id">${t.task_id||'#'+t.id}</span>
         </div>
         <div class="board-card-title">${esc(t.titulo)}</div>
+        ${t.notas?`<div class="board-card-notes"><i class="fas fa-sticky-note" style="font-size:.6rem;margin-right:.2rem;opacity:.6"></i>${esc(t.notas)}</div>`:''}
+        ${t.seccion?`<div class="board-card-section"><i class="fas fa-tag" style="font-size:.55rem"></i>${esc(t.seccion)}</div>`:''}
         ${prog>0?`<div class="board-card-progress"><div class="board-card-progress-fill" style="width:${prog}%;background:${c}"></div></div>`:''}
+        ${aName||t.fecha_vencimiento?`<div class="board-card-footer">
+          ${aName?`<div class="board-card-assignee"><span class="avatar" style="background:${aColor}">${aInitial}</span><span>${esc(aName)}</span></div>`:`<div class="board-card-assignee" style="color:var(--mt);opacity:.5"><i class="fas fa-user-slash" style="font-size:.65rem"></i><span>Sin asignar</span></div>`}
+          ${t.fecha_vencimiento?`<div class="board-card-due ${isOverdue?'overdue':'on-time'}"><i class="far fa-calendar" style="font-size:.6rem"></i>${formatDateShort(t.fecha_vencimiento)}</div>`:''}
+        </div>`:''}
         <div class="board-card-tags">
           ${t.prioridad?`<span class="board-card-tag ${prioClass}">${t.prioridad}</span>`:''}
-          ${aName?`<span class="board-card-tag tag-assignee"><i class="fas fa-user" style="font-size:.55rem"></i>${esc(aName)}</span>`:''}
-          ${t.fecha_vencimiento?`<span class="board-card-tag ${isOverdue?'tag-overdue':'tag-date'}"><i class="fas fa-calendar" style="font-size:.55rem"></i>${formatDateShort(t.fecha_vencimiento)}</span>`:''}
-          ${sc>0?`<span class="board-card-tag tag-subtasks"><i class="fas fa-list-check" style="font-size:.55rem"></i>${sc}</span>`:''}
-          ${cc>0?`<span class="board-card-tag tag-comments"><i class="fas fa-comment" style="font-size:.55rem"></i>${cc}</span>`:''}
+          ${sc>0?`<span class="board-card-tag tag-subtasks"><i class="fas fa-list-check" style="font-size:.6rem"></i> ${sc} subtareas</span>`:''}
+          ${cc>0?`<span class="board-card-tag tag-comments"><i class="fas fa-comment" style="font-size:.6rem"></i> ${cc}</span>`:''}
         </div>
       </div>`;
     }).join('');

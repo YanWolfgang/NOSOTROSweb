@@ -477,7 +477,7 @@ button{font-family:inherit;cursor:pointer}
 .kanban-board{display:flex;gap:1.25rem;height:calc(100vh - 340px);min-width:min-content;padding-bottom:.5rem}
 
 /* Columns */
-.kanban-column{background:var(--glass);-webkit-backdrop-filter:blur(15px);backdrop-filter:blur(15px);border:1px solid var(--glass-border);border-radius:16px;padding:1rem;display:flex;flex-direction:column;overflow:hidden;min-width:290px;flex:1 0 290px;transition:all .3s ease}
+.kanban-column{background:var(--glass);-webkit-backdrop-filter:blur(15px);backdrop-filter:blur(15px);border:1px solid var(--glass-border);border-radius:16px;padding:1rem;display:flex;flex-direction:column;overflow:hidden;min-width:320px;flex:1 0 320px;transition:all .3s ease}
 .kanban-column.drag-over{border-color:var(--accent);background:rgba(139,92,246,.06);box-shadow:0 0 20px rgba(139,92,246,.1)}
 .kanban-column.editing{border-style:dashed}
 
@@ -504,27 +504,39 @@ button{font-family:inherit;cursor:pointer}
 [data-theme="light"] .kanban-col-body::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.2)}
 
 /* Board cards */
-.board-card{background:var(--glass-strong);border:1px solid var(--glass-border);border-radius:12px;padding:.85rem;cursor:pointer;transition:all .25s ease;position:relative;overflow:hidden}
+.board-card{background:var(--glass-strong);border:1px solid var(--glass-border);border-radius:12px;padding:1rem;cursor:pointer;transition:all .25s ease;position:relative;overflow:hidden}
 .board-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;background:var(--accent-col,var(--accent));transition:width .2s}
 .board-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.12);border-color:rgba(255,255,255,.18)}
+.board-card:hover::before{width:5px}
 .board-card:active{transform:translateY(0);box-shadow:var(--shadow-sm)}
 .board-card.dragging{opacity:.5;transform:rotate(2deg) scale(1.02);box-shadow:0 12px 32px rgba(0,0,0,.2)}
 [data-theme="light"] .board-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.08);border-color:rgba(0,0,0,.12)}
 
 /* Card sections */
-.board-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.45rem}
-.board-card-project{display:flex;align-items:center;gap:.35rem;font-size:.68rem;font-weight:600;color:var(--mt)}
-.board-card-project .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.board-card-id{font-size:.62rem;font-weight:700;color:var(--mt);background:var(--glass);padding:1px 6px;border-radius:4px;border:1px solid var(--glass-border)}
-.board-card-title{font-size:.86rem;font-weight:600;color:var(--fg);line-height:1.35;margin-bottom:.55rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.board-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
+.board-card-project{display:flex;align-items:center;gap:.35rem;font-size:.72rem;font-weight:600;color:var(--mt)}
+.board-card-project .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.board-card-id{font-size:.65rem;font-weight:700;color:var(--mt);background:var(--glass);padding:2px 8px;border-radius:5px;border:1px solid var(--glass-border)}
+.board-card-title{font-size:.92rem;font-weight:600;color:var(--fg);line-height:1.4;margin-bottom:.4rem}
+.board-card-notes{font-size:.78rem;color:var(--mt);line-height:1.4;margin-bottom:.55rem;font-style:italic;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.board-card-section{display:inline-flex;align-items:center;gap:.25rem;padding:2px 8px;border-radius:5px;font-size:.68rem;font-weight:600;background:rgba(139,92,246,.08);color:#A78BFA;margin-bottom:.55rem}
 
 /* Progress bar */
-.board-card-progress{height:3px;background:var(--glass);border-radius:3px;margin-bottom:.55rem;overflow:hidden}
-.board-card-progress-fill{height:100%;border-radius:3px;transition:width .3s ease}
+.board-card-progress{height:4px;background:var(--glass);border-radius:4px;margin-bottom:.55rem;overflow:hidden}
+.board-card-progress-fill{height:100%;border-radius:4px;transition:width .3s ease}
+
+/* Card footer: assignee + date row */
+.board-card-footer{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.5rem;padding-top:.5rem;border-top:1px solid var(--glass-border)}
+.board-card-assignee{display:flex;align-items:center;gap:.35rem;font-size:.75rem;font-weight:500;color:var(--fg);min-width:0}
+.board-card-assignee .avatar{width:22px;height:22px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:700;color:#fff;flex-shrink:0}
+.board-card-assignee span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.board-card-due{display:flex;align-items:center;gap:.3rem;font-size:.72rem;font-weight:600;white-space:nowrap;padding:3px 8px;border-radius:6px}
+.board-card-due.on-time{background:rgba(59,130,246,.08);color:#60A5FA}
+.board-card-due.overdue{background:rgba(239,68,68,.1);color:#EF4444}
 
 /* Tags */
-.board-card-tags{display:flex;flex-wrap:wrap;gap:.3rem}
-.board-card-tag{display:inline-flex;align-items:center;gap:.25rem;padding:2px 7px;border-radius:5px;font-size:.65rem;font-weight:600;line-height:1.4}
+.board-card-tags{display:flex;flex-wrap:wrap;gap:.35rem}
+.board-card-tag{display:inline-flex;align-items:center;gap:.25rem;padding:3px 8px;border-radius:6px;font-size:.7rem;font-weight:600;line-height:1.3}
 .tag-alta{background:rgba(239,68,68,.12);color:#EF4444}
 .tag-media{background:rgba(245,158,11,.12);color:#D97706}
 .tag-baja{background:rgba(107,114,128,.12);color:#6B7280}
