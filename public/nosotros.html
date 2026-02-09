@@ -16,7 +16,6 @@
   <main class="content fade-in" id="content">
     <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
       <div><h1 style="color:var(--nosotros)"><i class="feather" data-icon="newspaper" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> NOSOTROS</h1><p>Plataforma de contenido digital con IA</p></div>
-      <div id="srcToggle" style="display:flex;align-items:center;gap:.5rem;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:.4rem .7rem"></div>
     </div>
     <div class="module-tabs" id="modTabs">
       <button class="module-tab active" onclick="setModTab('generar')">Generar</button>
@@ -108,7 +107,6 @@ let S={view:'home',fid:null,step:0,phase:'input',ltxt:'',
   sq:'',cat:null,news:[],sn:new Set(),angles:[],sa:new Set(),
   structs:[],ss:null,result:'',itxt:'',err:null};
 let modTab='generar';
-let newsSource=localStorage.getItem('newsSource')||'api'; // 'api' or 'ia'
 let newsPagination={page:1,pageSize:8,total:0,totalPages:0};
 
 // ========== HELPERS ==========
@@ -124,22 +122,11 @@ function md(t){
 }
 
 // ========== API ==========
-async function apiNews(scope,query,category,page=1,pageSize=8){
-  const r=await fetch('/api/nosotros/news',{method:'POST',headers:hdrs,body:JSON.stringify({scope,query:query||undefined,category:category||undefined,page,pageSize})});
-  const d=await r.json();if(d.error)throw new Error(d.error);
-  if(d.pagination)newsPagination=d.pagination;
-  return d.news||[];
-}
-async function apiNewsAI(scope,category,page=1,pageSize=8){
+async function apiNews(scope,category,page=1,pageSize=8){
   const r=await fetch('/api/nosotros/news-ai',{method:'POST',headers:hdrs,body:JSON.stringify({scope,category:category||undefined,page,pageSize})});
   const d=await r.json();if(d.error)throw new Error(d.error);
   if(d.pagination)newsPagination=d.pagination;
   return d.news||[];
-}
-function toggleNewsSource(){
-  newsSource=newsSource==='api'?'ia':'api';
-  localStorage.setItem('newsSource',newsSource);
-  renderToggle();
 }
 async function apiGen(prompt,system,format_type){
   const r=await fetch('/api/nosotros/generate',{method:'POST',headers:hdrs,
@@ -363,19 +350,9 @@ async function changePage(page){
   await fetchN(F().scope,S.sq||undefined,newsPagination.page);
 }
 async function fetchN(scope,query,page=1){
-  S.phase='loading';S.ltxt=newsSource==='ia'?'IA buscando noticias actuales...':'Buscando noticias via API...';render();
+  S.phase='loading';S.ltxt='Buscando noticias actuales...';render();
   try{
-    let news;
-    if(newsSource==='ia'){
-      news=await apiNewsAI(scope,S.cat,page,newsPagination.pageSize);
-    }else{
-      try{news=await apiNews(scope,query,S.cat,page,newsPagination.pageSize)}
-      catch(apiErr){
-        // Auto-fallback to IA if API fails (rate limit, etc)
-        S.ltxt='API no disponible, consultando IA...';render();
-        news=await apiNewsAI(scope,S.cat,page,newsPagination.pageSize);
-      }
-    }
+    const news=await apiNews(scope,S.cat,page,newsPagination.pageSize);
     if(!news.length)throw new Error('No se encontraron noticias.');
     S.news=news;S.sn=new Set();S.phase='select';
   }catch(e){S.err=e.message;S.phase='input';S.news=[]}
@@ -467,20 +444,7 @@ function fallbackCopy(text){
 }
 function showCopied(){const b=document.querySelector('.copy-btn');if(b){b.textContent='Copiado!';setTimeout(()=>b.textContent='<i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Copiar',2000)}}
 
-// ========== TOGGLE RENDER ==========
-function renderToggle(){
-  const el=document.getElementById('srcToggle');if(!el)return;
-  const isAPI=newsSource==='api';
-  el.innerHTML=`
-    <span style="font-size:.75rem;font-weight:600;color:${isAPI?'var(--nosotros)':'var(--mt)'}">API</span>
-    <div onclick="toggleNewsSource()" style="width:42px;height:22px;border-radius:99px;background:${isAPI?'var(--bd)':'var(--nosotros)'};cursor:pointer;position:relative;transition:background .2s">
-      <div style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:2px;${isAPI?'left:2px':'left:22px'};transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>
-    </div>
-    <span style="font-size:.75rem;font-weight:600;color:${!isAPI?'var(--nosotros)':'var(--mt)'}"><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> IA</span>`;
-}
-
 // ========== INIT ==========
-renderToggle();
 render();
 </script>
 <script src="/emoji-to-svg.js"></script></body>
