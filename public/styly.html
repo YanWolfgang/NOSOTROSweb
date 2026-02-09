@@ -317,7 +317,8 @@ function renderSidebar(){
   document.getElementById('sidebar').innerHTML=`
     <button class="sidebar-close" onclick="toggleSidebar()">&times;</button>
     <div class="sidebar-header"><h2>Panel <span>Central</span></h2></div>
-    <div class="sidebar-section"><div class="sidebar-label">General</div><a href="/dashboard.html" class="sidebar-item"><span class="icon"><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></span>Dashboard</a></div>
+    ${isAdmin?`<div class="sidebar-section"><div class="sidebar-label">General</div><a href="/dashboard.html" class="sidebar-item"><span class="icon"><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></span>Dashboard</a></div>`:
+    `<div class="sidebar-section"><div class="sidebar-label">General</div><a href="/profile.html" class="sidebar-item"><span class="icon"><i class="feather" data-icon="user" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></span>Panel Individual</a></div>`}
     <div class="sidebar-section"><div class="sidebar-label">Negocios</div>
       ${items.map(b=>`<a href="${b.url}" class="sidebar-item ${b.id==='styly'?'active':''}" style="--accent:${b.color}"><span class="icon">${b.icon}</span>${b.name}</a>`).join('')}
     </div>
