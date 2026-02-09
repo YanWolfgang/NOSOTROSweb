@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Central — Mi Perfil</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css">
+<style>
+.profile-hero{background:linear-gradient(135deg,rgba(139,92,246,0.1) 0%,rgba(59,130,246,0.1) 100%);padding:2rem;border-radius:12px;margin-bottom:2rem;display:flex;align-items:center;gap:1.5rem}
+.profile-avatar{width:80px;height:80px;background:linear-gradient(135deg,#8B5CF6,#3B82F6);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:2rem;font-weight:700;box-shadow:0 4px 12px rgba(139,92,246,0.3)}
+.profile-info h2{margin:0;font-size:1.8rem}
+.profile-info p{margin:.5rem 0 0 0;color:var(--mt);font-size:.95rem}
+.profile-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:2rem}
+.profile-stat{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:1.2rem;text-align:center}
+.profile-stat-value{font-size:2rem;font-weight:700;color:#8B5CF6}
+.profile-stat-label{font-size:.85rem;color:var(--mt);margin-top:.5rem;text-transform:uppercase;letter-spacing:.5px}
+.tasks-section{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+.tasks-section h3{margin:0 0 1.5rem 0;font-size:1.2rem}
+.task-item{background:rgba(255,255,255,0.03);border-left:3px solid #8B5CF6;padding:1rem;margin-bottom:1rem;border-radius:6px;display:flex;justify-content:space-between;align-items:center}
+.task-item.done{opacity:.6;border-left-color:#10B981}
+.task-info h4{margin:0;font-size:.95rem}
+.task-info p{margin:.3rem 0 0 0;color:var(--mt);font-size:.8rem}
+.task-status{display:flex;gap:.5rem;align-items:center}
+.badge-pending{background:#F59E0B;color:#fff;padding:.3rem .8rem;border-radius:6px;font-size:.75rem;font-weight:600}
+.badge-completed{background:#10B981;color:#fff;padding:.3rem .8rem;border-radius:6px;font-size:.75rem;font-weight:600}
+.modules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2rem}
+.module-card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:1.5rem;text-align:center;cursor:pointer;transition:all .3s;text-decoration:none;color:inherit}
+.module-card:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.2);transform:translateY(-4px)}
+.module-icon{font-size:2rem;margin-bottom:.5rem}
+.module-name{font-weight:600;margin-bottom:.3rem}
+.module-perms{font-size:.75rem;color:var(--mt)}
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--mt)}
+.empty-state p{margin:1rem 0 0 0}
+</style>
+</head>
+<body>
+<button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+<div class="app">
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+  <nav class="sidebar" id="sidebar"></nav>
+  <main class="content fade-in" id="content">
+    <div class="page-header"><h1><i class="feather" data-icon="user" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Mi Perfil</h1><p>Bienvenido a Panel Central</p></div>
+    <div id="mainContent"></div>
+  </main>
+</div>
+<script>
+const token=localStorage.getItem('token');
+if(!token){window.location.href='/index.html';throw new Error('No token')}
+const user=JSON.parse(localStorage.getItem('user')||'{}');
+const hdrs={'Content-Type':'application/json','Authorization':'Bearer '+token};
+
+const BUSINESSES=[
+  {id:'nosotros',name:'NOSOTROS',icon:'<i class="feather" data-icon="newspaper" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#8B5CF6',url:'/nosotros.html'},
+  {id:'duelazo',name:'DUELAZO',icon:'<i class="feather" data-icon="activity" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#10B981',url:'/duelazo.html'},
+  {id:'spacebox',name:'SPACEBOX',icon:'<i class="feather" data-icon="package" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#3B82F6',url:'/spacebox.html'},
+  {id:'styly',name:'STYLY',icon:'<i class="feather" data-icon="monitor" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>',color:'#EC4899',url:'/styly.html'}
+];
+
+function renderSidebar(){
+  const bs=user.businesses||[];const isAdmin=user.role==='admin';
+  const items=BUSINESSES.filter(b=>isAdmin||bs.includes(b.id));
+  document.getElementById('sidebar').innerHTML=`
+    <button class="sidebar-close" onclick="toggleSidebar()">&times;</button>
+    <div class="sidebar-header"><h2>Panel <span>Central</span></h2></div>
+    ${isAdmin?`<div class="sidebar-section">
+      <div class="sidebar-label">General</div>
+      <a href="/dashboard.html" class="sidebar-item"><span class="icon"><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></span>Dashboard</a>
+    </div>`:``}
+    <div class="sidebar-section"><div class="sidebar-label">Negocios</div>
+      ${items.map(b=>`<a href="${b.url}" class="sidebar-item" style="--accent:${b.color}"><span class="icon">${b.icon}</span>${b.name}</a>`).join('')}
+    </div>
+    ${isAdmin?`<div class="sidebar-section"><div class="sidebar-label">Admin</div><a href="/admin.html" class="sidebar-item"><span class="icon"><i class="feather" data-icon="users" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></span>Usuarios</a></div>`:``}
+    <div class="sidebar-footer">
+      <div class="sidebar-avatar">${(user.name||'U')[0].toUpperCase()}</div>
+      <div class="sidebar-user"><div class="name">${user.name||'Usuario'}</div><div class="role">${user.role||'editor'}</div></div>
+      <button class="theme-btn" onclick="toggleTheme()" title="Cambiar tema"><i class="feather" data-icon="moon" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>
+      <button class="theme-btn" onclick="logout()" title="Cerrar sesion" style="font-size:.75rem"><i class="feather" data-icon="share-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>
+    </div>`;
+}
+
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show')}
+function toggleTheme(){const t=document.documentElement.getAttribute('data-theme')==='light'?'':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t)}
+function logout(){localStorage.clear();window.location.href='/index.html'}
+
+if(localStorage.getItem('theme')==='light') document.documentElement.setAttribute('data-theme','light');
+renderSidebar();
+
+async function loadProfileData(){
+  const el=document.getElementById('mainContent');
+  try{
+    // Render hero
+    const avatarColor=['#8B5CF6','#3B82F6','#10B981','#F59E0B','#EC4899'][Math.floor(Math.random()*5)];
+    el.innerHTML=`
+      <div class="profile-hero">
+        <div class="profile-avatar">${(user.name||'U')[0].toUpperCase()}</div>
+        <div class="profile-info">
+          <h2>${user.name||'Usuario'}</h2>
+          <p>${user.email}</p>
+          <p style="text-transform:capitalize;font-weight:600;color:#8B5CF6;margin-top:.8rem">${user.role||'editor'}</p>
+        </div>
+      </div>
+
+      <div class="profile-stats">
+        <div class="profile-stat">
+          <div class="profile-stat-value" id="statTasks">--</div>
+          <div class="profile-stat-label">Tareas Pendientes</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-value" id="statGenerated">--</div>
+          <div class="profile-stat-label">Contenido Generado</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-value" id="statModules">${(user.businesses||[]).length}</div>
+          <div class="profile-stat-label">Modulos Accesibles</div>
+        </div>
+      </div>
+
+      <div class="tasks-section" id="tasksContainer"></div>
+
+      <h3 style="margin-bottom:1rem">Mis Modulos</h3>
+      <div class="modules-grid" id="modulesContainer"></div>
+    `;
+
+    // Load tasks from STYLY if accessible
+    const stylyPerms=(user.permissions||{}).styly||[];
+    if(stylyPerms.length>0){
+      try{
+        const tasksResp=await fetch('/api/styly/tasks?status=pending',{headers:hdrs});
+        if(tasksResp.ok){
+          const tasksData=await tasksResp.json();
+          const pendingTasks=tasksData.tasks||[];
+          document.getElementById('statTasks').textContent=pendingTasks.length;
+
+          if(pendingTasks.length>0){
+            const tasksHtml=`
+              <h3>Tareas Pendientes (STYLY)</h3>
+              ${pendingTasks.slice(0,5).map(t=>`
+                <div class="task-item">
+                  <div class="task-info">
+                    <h4>${t.name||'Sin nombre'}</h4>
+                    <p>${t.description||'Sin descripción'}</p>
+                  </div>
+                  <div class="task-status"><span class="badge-pending">Pendiente</span></div>
+                </div>
+              `).join('')}
+              ${pendingTasks.length>5?`<p style="color:var(--mt);font-size:.85rem;text-align:center;margin-top:1rem"><a href="/styly.html" style="color:#8B5CF6">Ver todas las tareas →</a></p>`:``}
+            `;
+            document.getElementById('tasksContainer').innerHTML=tasksHtml;
+          }else{
+            document.getElementById('tasksContainer').innerHTML='<div class="empty-state"><i class="feather" data-icon="check-circle" style="display:inline-block;width:2em;height:2em;color:#10B981" aria-hidden="true"></i><p>¡Sin tareas pendientes!</p></div>';
+          }
+        }
+      }catch(e){}
+    }
+
+    // Load content generated count
+    try{
+      const contentResp=await fetch('/api/admin/business-stats',{headers:hdrs});
+      if(contentResp.ok){
+        const contentData=await contentResp.json();
+        document.getElementById('statGenerated').textContent=contentData.totalThisWeek||0;
+      }
+    }catch(e){}
+
+    // Render modules
+    const bs=user.businesses||[];
+    const perms=user.permissions||{};
+    const modulesHtml=BUSINESSES.filter(b=>bs.includes(b.id)||user.role==='admin').map(b=>{
+      const modulePerms=perms[b.id]||[];
+      const permLabels=modulePerms.map(p=>{
+        const labels={ver:'Ver',crear:'Crear',editar:'Editar'};
+        return labels[p]||p;
+      }).join(', ');
+      return`
+        <a href="${b.url}" class="module-card">
+          <div class="module-icon">${b.icon}</div>
+          <div class="module-name">${b.name}</div>
+          <div class="module-perms">${permLabels||'Sin acceso'}</div>
+        </a>
+      `;
+    }).join('');
+    document.getElementById('modulesContainer').innerHTML=modulesHtml||'<div class="empty-state"><p>Sin modulos asignados</p></div>';
+
+  }catch(e){
+    el.innerHTML=`<div style="color:#f87171">Error: ${e.message}</div>`;
+  }
+}
+
+loadProfileData();
+</script>
+<script src="/emoji-to-svg.js"></script></body>
+</html>
