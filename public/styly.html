@@ -299,10 +299,73 @@
 <div id="toastRoot"></div>
 <script>
 // ========== AUTH ==========
-const token=localStorage.getItem('token');
+let token=localStorage.getItem('token');
 if(!token){window.location.href='/index.html';}
-const user=JSON.parse(localStorage.getItem('user')||'{}');
-const hdrs={'Content-Type':'application/json','Authorization':'Bearer '+token,'x-business':'styly'};
+let user=JSON.parse(localStorage.getItem('user')||'{}');
+let hdrs={'Content-Type':'application/json','Authorization':'Bearer '+token,'x-business':'styly'};
+
+// Auto-refresh token if permissions are outdated
+async function refreshTokenIfNeeded(){
+  try{
+    const r=await fetch('/api/auth/refresh-token',{method:'POST',headers:hdrs});
+    if(!r.ok)return false;
+    const d=await r.json();
+    if(d.token&&d.user){
+      token=d.token;
+      user=d.user;
+      localStorage.setItem('token',token);
+      localStorage.setItem('user',JSON.stringify(user));
+      hdrs={'Content-Type':'application/json','Authorization':'Bearer '+token,'x-business':'styly'};
+      console.log('Token refreshed with updated permissions');
+      return true;
+    }
+  }catch(e){console.error('Error refreshing token:',e)}
+  return false;
+}
+
+// Check if user has proper STYLY permissions, if not try to refresh
+const stylyPerms = (user.permissions || {}).styly || [];
+const hasProperPerms = stylyPerms.includes('ver') && stylyPerms.includes('crear') && stylyPerms.includes('editar');
+
+if(!user.permissions || Object.keys(user.permissions).length===0 || !hasProperPerms){
+  console.log('⚠️ Refreshing token - missing permissions:', {stylyPerms, hasProperPerms, userRole: user.role});
+  refreshTokenIfNeeded().then(refreshed=>{
+    if(refreshed){
+      console.log('✅ Token refreshed, reloading page...');
+      window.location.reload();
+    }else{
+      console.error('❌ Could not refresh token. Trying manual refresh...');
+      // Force logout and redirect to login
+      alert('Tu sesión necesita actualizarse. Por favor inicia sesión nuevamente.');
+      localStorage.clear();
+      window.location.href='/index.html';
+    }
+  });
+}
+
+// Global fetch wrapper to handle 403 errors
+const originalFetch = window.fetch;
+window.fetch = async function(...args) {
+  const response = await originalFetch.apply(this, args);
+  if (response.status === 403) {
+    console.warn('⚠️ 403 Forbidden - Attempting token refresh...');
+    const refreshed = await refreshTokenIfNeeded();
+    if (refreshed) {
+      console.log('✅ Token refreshed, retrying request...');
+      // Retry the original request with new token
+      const newHeaders = {...(args[1]?.headers || {}), 'Authorization': 'Bearer ' + token};
+      const newArgs = [...args];
+      if (newArgs[1]) newArgs[1].headers = newHeaders;
+      else newArgs[1] = {headers: newHeaders};
+      return originalFetch.apply(this, newArgs);
+    } else {
+      alert('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
+      localStorage.clear();
+      window.location.href='/index.html';
+    }
+  }
+  return response;
+};
 
 // ========== SIDEBAR ==========
 const BUSINESSES=[

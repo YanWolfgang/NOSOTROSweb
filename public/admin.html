@@ -38,7 +38,7 @@ const ROLES=['admin','manager','editor','viewer'];
 const ROLE_DEFAULTS={
   admin:ALL_BIZ.reduce((o,b)=>(o[b]=['ver','crear','editar'],o),{}),
   manager:ALL_BIZ.reduce((o,b)=>(o[b]=['ver','crear'],o),{}),
-  editor:ALL_BIZ.reduce((o,b)=>(o[b]=['ver','crear'],o),{}),
+  editor:ALL_BIZ.reduce((o,b)=>(o[b]=['ver','crear','editar'],o),{}),
   viewer:ALL_BIZ.reduce((o,b)=>(o[b]=['ver'],o),{})
 };
 

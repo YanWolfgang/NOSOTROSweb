@@ -10,14 +10,15 @@ async function getFeatherIcon(iconName) {
   }
 
   try {
-    const response = await fetch(`https://cdn.jsdelivr.net/npm/feather-icons/dist/icons/${iconName}.svg`);
+    // Try the correct CDN path first
+    const response = await fetch(`https://unpkg.com/feather-icons@latest/dist/icons/${iconName}.svg`);
     if (response.ok) {
       const svg = await response.text();
       iconCache[iconName] = svg;
       return svg;
     }
   } catch (e) {
-    console.warn(`Could not load icon: ${iconName}`);
+    console.warn(`Could not load icon: ${iconName}`, e);
   }
   return null;
 }

@@ -52,16 +52,19 @@ async function initDB() {
 
     // ========== MIGRATE: businesses → permissions ==========
     // Convert existing businesses array + styly_modules to unified permissions
+    // Force re-run for all users to ensure editor role gets 'editar' permission
     try {
       const { rows: usersToMigrate } = await client.query(
-        "SELECT id, role, businesses, styly_modules, permissions FROM users WHERE permissions = '{}' OR permissions IS NULL"
+        "SELECT id, role, businesses, styly_modules, permissions FROM users"
       );
       for (const u of usersToMigrate) {
         const biz = u.businesses || [];
         const isAdmin = u.role === 'admin';
+        const isEditor = u.role === 'editor';
         const perms = {};
         for (const b of biz) {
-          perms[b] = isAdmin ? ['ver','crear','editar'] : ['ver','crear'];
+          // Admin gets full permissions, editor gets full permissions, others get ver+crear only
+          perms[b] = (isAdmin || isEditor) ? ['ver','crear','editar'] : ['ver','crear'];
         }
         // Admin gets all modules
         if (isAdmin) {

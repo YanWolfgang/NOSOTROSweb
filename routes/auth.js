@@ -52,4 +52,23 @@ router.get('/me', verifyToken, async (req, res) => {
   }
 });
 
+// Refresh token with updated permissions from database
+router.post('/refresh-token', verifyToken, async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM users WHERE id = $1', [req.user.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Usuario no encontrado' });
+    const user = rows[0];
+    if (user.status !== 'active') return res.status(403).json({ error: 'Cuenta inactiva' });
+
+    const permissions = user.permissions || {};
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role, businesses: user.businesses, permissions, name: user.name },
+      SECRET, { expiresIn: '7d' }
+    );
+    res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role, businesses: user.businesses, permissions } });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
