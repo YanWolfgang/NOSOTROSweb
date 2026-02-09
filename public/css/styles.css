@@ -619,14 +619,14 @@ button{font-family:inherit;cursor:pointer}
   #stylyTasksArea>div>div[style*="grid-template-columns: 2fr 1fr"],
   #stylyTasksArea>div>div[style*="grid-template-columns:2fr 1fr"]{grid-template-columns:1fr !important}
   /* Kanban board mobile — swipe navigation with peek */
-  .kanban-board-wrapper{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;scrollbar-width:none;scroll-behavior:smooth}
+  .kanban-board-wrapper{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;scrollbar-width:none;scroll-behavior:smooth;display:block}
   .kanban-board-wrapper::-webkit-scrollbar{display:none}
-  .kanban-board{flex-direction:row;height:calc(100vh - 340px);max-height:none;gap:1.25rem;padding-bottom:.5rem;width:100%}
-  .kanban-column{min-width:calc(100vw - 2.5rem - 60px);flex:0 0 calc(100vw - 2.5rem - 60px);max-height:none;scroll-snap-align:start;scroll-snap-stop:always}
+  .kanban-board{flex-direction:row;height:calc(100vh - 340px);max-height:none;gap:1rem;padding:0 1.25rem;min-width:min-content}
+  .kanban-column{width:calc(100vw - 3.5rem - 60px);flex:0 0 calc(100vw - 3.5rem - 60px);max-height:none;scroll-snap-align:start;scroll-snap-stop:always}
   .board-filter-row{flex-wrap:wrap}
   .board-filter-input{min-width:0}
   .board-filter-select{min-width:0;flex-basis:calc(50% - .3rem)}
-  .kanban-add-col{min-width:calc(100vw - 2.5rem - 60px)}
+  .kanban-add-col{width:calc(100vw - 3.5rem - 60px);flex:0 0 calc(100vw - 3.5rem - 60px)}
 }
 @media(max-width:480px){
   .stats-row{grid-template-columns:1fr}
