@@ -102,7 +102,7 @@ const CATEGORY_EXCLUSIONS = {
   salud: ['película', 'serie', 'cine', 'actor', 'política', 'economía', 'videojuego'],
   ciencia: ['película', 'serie', 'cine', 'videojuego', 'entretenimiento', 'música'],
   guerra: ['película', 'serie', 'videojuego', 'ficción'],
-  mexico: ['ucrania', 'rusia', 'gaza', 'israel', 'palestina', 'ee.uu', 'estados unidos', 'norteamérica', 'europa', 'china', 'india', 'japón', 'corea', 'africano', 'árabe', 'europeo']
+  mexico: ['ucrania', 'rusia', 'gaza', 'israel', 'palestina', 'ee.uu', 'estados unidos', 'norteamérica', 'europa', 'china', 'india', 'japón', 'corea', 'africano', 'árabe', 'europeo', 'nicaragua', 'guatemala', 'honduras', 'el salvador', 'costa rica', 'panamá', 'colombia', 'venezuela', 'brasil', 'argentina', 'perú', 'chile', 'ecuador', 'bolivia', 'uruguay', 'paraguay', 'canada', 'canadiense']
 };
 
 function isRelevantArticle(title, category) {
@@ -112,6 +112,20 @@ function isRelevantArticle(title, category) {
   const keywords = CATEGORY_KEYWORDS[category];
   const exclusions = CATEGORY_EXCLUSIONS[category] || [];
 
+  // Special handling for Mexico category: MUST have Mexico/Mexican reference
+  if (category === 'mexico') {
+    // Article must mention México or Mexican entities
+    const hasMexicoReference = keywords.some(keyword => title_lower.includes(keyword));
+    if (!hasMexicoReference) return false;
+
+    // Must NOT mention other countries
+    const hasExclusion = exclusions.some(exclude => title_lower.includes(exclude));
+    if (hasExclusion) return false;
+
+    return true;
+  }
+
+  // Standard filtering for other categories
   // Check if title contains any exclusion words (filter out false positives)
   const hasExclusion = exclusions.some(exclude => title_lower.includes(exclude));
   if (hasExclusion) return false;
