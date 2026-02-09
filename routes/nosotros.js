@@ -1,29 +1,38 @@
 const express = require('express');
 const { verifyToken, requireBusiness } = require('../middleware/auth');
-const { fetchNews } = require('../services/news');
+const { fetchGoogleNewsRss } = require('../services/googleNewsRss');
 const { generate } = require('../services/ai');
 const { pool } = require('../db/database');
 const router = express.Router();
 
 router.use(verifyToken, requireBusiness('nosotros'));
 
+// ========== NEWS VIA GOOGLE NEWS RSS ==========
 router.post('/news', async (req, res) => {
   try {
-    const { scope, query, category, page = 1, pageSize = 8 } = req.body;
-    const result = await fetchNews(scope, query, category);
+    const { scope, category, page = 1, pageSize = 8 } = req.body;
 
-    // Paginate results
+    // Fetch from Google News RSS
+    const articles = await fetchGoogleNewsRss(scope, category);
+
+    // Paginate
     const start = (page - 1) * pageSize;
     const end = start + pageSize;
-    const paginatedArticles = result.articles.slice(start, end);
+    const paginatedNews = articles.slice(start, end);
 
     res.json({
-      news: paginatedArticles,
+      news: paginatedNews.map((a, i) => ({
+        id: start + i + 1,
+        title: a.title,
+        summary: a.summary,
+        source: a.source,
+        date: a.date
+      })),
       pagination: {
         page,
         pageSize,
-        total: result.total,
-        totalPages: Math.ceil(result.total / pageSize)
+        total: articles.length,
+        totalPages: Math.ceil(articles.length / pageSize)
       }
     });
   } catch (e) {
@@ -32,55 +41,32 @@ router.post('/news', async (req, res) => {
   }
 });
 
-// ========== NEWS VIA IA (fallback when API limit reached) ==========
+// ========== NEWS VIA IA (now also uses Google News RSS) ==========
 router.post('/news-ai', async (req, res) => {
   try {
     const { scope, category, page = 1, pageSize = 8 } = req.body;
-    const today = new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    const todayISO = new Date().toISOString();
-    const scopeLabel = scope === 'intl' ? 'internacionales' : scope === 'both' ? 'internacionales y de Mexico' : 'de Mexico';
-    const catLabel = category ? ` sobre ${category}` : '';
-    const count = Math.max(pageSize * 3, 20); // Generate more articles to support pagination
 
-    const prompt = `Hoy es ${today}. Genera ${count} noticias REALES y ACTUALES ${scopeLabel}${catLabel} que esten ocurriendo hoy o esta semana.
+    // Same as /news - both use Google News RSS
+    const articles = await fetchGoogleNewsRss(scope, category);
 
-IMPORTANTE: Las noticias deben ser REALES, verificables, de hechos que realmente estan pasando en el mundo. No inventes noticias.
-
-Responde UNICAMENTE con JSON valido, sin texto antes ni despues:
-{"news":[{"id":1,"title":"Titulo de la noticia","summary":"Resumen en 1-2 oraciones con datos concretos","source":"Medio que la reporta"}]}
-
-Incluye variedad de temas${category ? '' : ': politica, economia, tecnologia, sociedad'}. Fuentes reales como Reuters, AP, EFE, El Universal, Milenio, etc.`;
-
-    const txt = await generate(prompt, 'Eres un curador de noticias. Solo reportas hechos reales y verificables. Nunca inventas noticias. Tu conocimiento llega hasta hoy.');
-    // Parse JSON from response
-    const start = txt.indexOf('{');
-    const end = txt.lastIndexOf('}');
-    if (start === -1 || end <= start) throw new Error('IA no devolvio formato valido');
-    // Clean control characters that break JSON.parse
-    const raw = txt.substring(start, end + 1).replace(/[\x00-\x1F\x7F]/g, m => m === '\n' || m === '\r' || m === '\t' ? m : '');
-    const parsed = JSON.parse(raw);
-    if (!parsed.news || !Array.isArray(parsed.news)) throw new Error('IA no devolvio noticias');
-
-    // Add today's date to all AI-generated news and paginate
-    const allNews = parsed.news.map((n, i) => ({
-      id: i + 1,
-      title: n.title,
-      summary: n.summary,
-      source: (n.source || 'IA') + ' (via IA)',
-      date: todayISO
-    }));
-
-    const paginatedStart = (page - 1) * pageSize;
-    const paginatedEnd = paginatedStart + pageSize;
-    const paginatedNews = allNews.slice(paginatedStart, paginatedEnd);
+    // Paginate
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const paginatedNews = articles.slice(start, end);
 
     res.json({
-      news: paginatedNews,
+      news: paginatedNews.map((a, i) => ({
+        id: start + i + 1,
+        title: a.title,
+        summary: a.summary,
+        source: a.source,
+        date: a.date
+      })),
       pagination: {
         page,
         pageSize,
-        total: allNews.length,
-        totalPages: Math.ceil(allNews.length / pageSize)
+        total: articles.length,
+        totalPages: Math.ceil(articles.length / pageSize)
       }
     });
   } catch (e) {
