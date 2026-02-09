@@ -235,6 +235,161 @@ INSTRUCCIONES:
   }
 });
 
+// ========== POST /process-command — AI Command Parser ==========
+router.post('/process-command', async (req, res) => {
+  try {
+    const { command } = req.body;
+    if (!command) return res.status(400).json({ error: 'Comando requerido' });
+
+    // 1. Gather compact context
+    const [usersR, projR, summaryR, unassignedR, byProjectR] = await Promise.all([
+      pool.query("SELECT id, name FROM users WHERE activo IS NOT false OR activo IS NULL ORDER BY name"),
+      pool.query("SELECT id, nombre FROM styly_projects ORDER BY order_index"),
+      pool.query("SELECT estado, prioridad, COUNT(*)::int as count FROM styly_tasks GROUP BY estado, prioridad"),
+      pool.query(`SELECT COUNT(*)::int as count FROM styly_tasks WHERE estado != 'Completada' AND id NOT IN (SELECT DISTINCT task_id FROM styly_task_asignados)`),
+      pool.query("SELECT p.nombre, t.estado, COUNT(*)::int as count FROM styly_tasks t JOIN styly_projects p ON t.proyecto_id=p.id GROUP BY p.nombre, t.estado")
+    ]);
+
+    const context = {
+      users: usersR.rows,
+      projects: projR.rows,
+      taskSummary: summaryR.rows,
+      byProject: byProjectR.rows,
+      unassigned: unassignedR.rows[0]?.count || 0
+    };
+
+    // 2. System prompt for command parsing
+    const systemPrompt = `Eres un parser de comandos para Panel Central. Tu UNICA funcion es analizar comandos en lenguaje natural y devolver JSON estructurado.
+
+NEGOCIOS: NOSOTROS, DUELAZO, SPACEBOX, STYLY
+
+USUARIOS DISPONIBLES:
+${JSON.stringify(context.users)}
+
+PROYECTOS DISPONIBLES:
+${JSON.stringify(context.projects)}
+
+CONTEXTO ACTUAL DE TAREAS:
+${JSON.stringify(context.taskSummary)}
+Tareas sin asignar: ${context.unassigned}
+
+TAREAS POR PROYECTO:
+${JSON.stringify(context.byProject)}
+
+ACCIONES SOPORTADAS:
+
+1. "distribute" - Distribuir tareas pendientes/sin asignar entre varios usuarios con porcentajes
+   Params: { "users": [{"name":"Admin", "percentage":60},{"name":"Emilio", "percentage":40}], "filters": {"estado":"Pendiente"} }
+
+2. "generate" - Crear tareas nuevas en bulk
+   Params: { "count":5, "tipo":"reel_educativo", "proyecto_nombre":"STYLY Panel", "asignado_nombre":"Admin", "prioridad":"Media" }
+
+3. "bulk_edit" - Editar o asignar multiples tareas que coincidan con filtros
+   Filtros disponibles: estado, prioridad, proyecto_nombre, asignado
+   Cambios disponibles: estado, prioridad, asignado_nombre (para asignar tareas a alguien)
+   Ejemplo asignar: { "filters": {"proyecto_nombre":"Panel Afiliados","estado":"Pendiente"}, "changes": {"asignado_nombre":"Emilio Uribe"} }
+   Ejemplo editar: { "filters": {"estado":"Pendiente"}, "changes": {"prioridad":"Alta"} }
+
+4. "analyze" - Analizar tareas y dar recomendaciones
+   Params: { "scope":"full" }
+
+RESPONDE SOLO con JSON valido, sin texto adicional, sin markdown:
+{"action":"...","params":{...},"summary":"Descripcion en espanol","requiresConfirmation":true,"affectedCount":5}
+
+REGLAS:
+- Si el comando no es claro, usa action "unknown" con summary explicando que no entendiste
+- requiresConfirmation = true para distribute, generate, bulk_edit. false para analyze.
+- Resuelve nombres de usuario a los disponibles (coincidencia parcial)
+- Los porcentajes en distribute deben sumar 100
+- SOLO agrega filtro de estado si el usuario lo menciona EXPLICITAMENTE (ej: "tareas pendientes"). Si solo dice "tareas del proyecto X", NO pongas filtro de estado
+- IMPORTANTE: affectedCount DEBE ser un numero calculado del contexto de tareas, NUNCA "?" o null. Usa los datos de TAREAS POR PROYECTO para contar. Suma todos los estados del proyecto si no hay filtro de estado
+- Si piden asignar tareas de un proyecto, usa bulk_edit con filtro proyecto_nombre y cambio asignado_nombre`;
+
+    // 3. Call Groq
+    const rawResponse = await generate(command, systemPrompt);
+
+    // 4. Parse JSON
+    const start = rawResponse.indexOf('{');
+    const end = rawResponse.lastIndexOf('}');
+    if (start === -1 || end <= start) {
+      return res.json({
+        action: 'unknown',
+        summary: 'No pude interpretar el comando. Intenta: "Distribuye tareas 60/40 entre Admin y Emilio"',
+        requiresConfirmation: false
+      });
+    }
+
+    const parsed = JSON.parse(rawResponse.substring(start, end + 1));
+
+    // 5. For analyze, do a second Groq call with full data
+    if (parsed.action === 'analyze') {
+      const analyticsR = await pool.query(`
+        SELECT t.id, t.task_id, t.titulo, t.estado, t.prioridad, t.fecha_vencimiento,
+          p.nombre as proyecto,
+          ARRAY_AGG(DISTINCT u.name) FILTER (WHERE u.name IS NOT NULL) as asignados
+        FROM styly_tasks t
+        LEFT JOIN styly_projects p ON t.proyecto_id = p.id
+        LEFT JOIN styly_task_asignados ta ON t.id = ta.task_id
+        LEFT JOIN users u ON ta.user_id = u.id
+        GROUP BY t.id, p.nombre ORDER BY t.id DESC
+      `);
+
+      const tasks = analyticsR.rows;
+      const total = tasks.length;
+      const completed = tasks.filter(t => t.estado === 'Completada').length;
+      const pending = tasks.filter(t => t.estado === 'Pendiente').length;
+      const inProgress = tasks.filter(t => t.estado === 'En Progreso').length;
+      const today = new Date();
+      const overdue = tasks.filter(t => t.fecha_vencimiento && new Date(t.fecha_vencimiento) < today && t.estado !== 'Completada');
+      const unassigned = tasks.filter(t => !t.asignados || t.asignados.length === 0 || (t.asignados.length === 1 && t.asignados[0] === null));
+      const highPriority = tasks.filter(t => t.prioridad === 'Alta' && t.estado !== 'Completada');
+
+      const workload = {};
+      tasks.forEach(t => {
+        if (t.asignados && t.estado !== 'Completada') {
+          t.asignados.forEach(a => { if (a) workload[a] = (workload[a] || 0) + 1; });
+        }
+      });
+
+      const byProject = {};
+      tasks.forEach(t => {
+        const pn = t.proyecto || 'Sin proyecto';
+        if (!byProject[pn]) byProject[pn] = { total: 0, completada: 0 };
+        byProject[pn].total++;
+        if (t.estado === 'Completada') byProject[pn].completada++;
+      });
+
+      const analysisData = {
+        total, completed, pending, inProgress,
+        completionRate: total > 0 ? Math.round((completed / total) * 100) : 0,
+        overdue: overdue.length,
+        overdueList: overdue.slice(0, 8).map(t => ({ id: t.task_id, titulo: t.titulo, proyecto: t.proyecto })),
+        unassigned: unassigned.length,
+        highPriority: highPriority.length,
+        workload,
+        byProject
+      };
+
+      const analysisPrompt = `Analiza estos datos de tareas de desarrollo y genera un reporte con:
+1. RESUMEN: Estado general
+2. PROBLEMAS: Bottlenecks y riesgos detectados
+3. CARGA DE TRABAJO: Balance entre equipo
+4. RECOMENDACIONES: 3-5 acciones concretas priorizadas
+
+Datos: ${JSON.stringify(analysisData)}
+Responde en espanol, se conciso, usa numeros reales, da recomendaciones accionables.`;
+
+      const analysis = await generate(analysisPrompt, 'Eres un analista senior de proyectos de software. Hablas en espanol.');
+      parsed.analysisResult = analysis;
+    }
+
+    res.json(parsed);
+  } catch (e) {
+    console.error('Process command error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ========== CONVERSATIONS CRUD ==========
 router.get('/conversations', async (req, res) => {
   try {
