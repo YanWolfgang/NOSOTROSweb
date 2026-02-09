@@ -268,101 +268,86 @@ TONO: Educativo, mentor, empoderador. Como si una Afiliada Senior te estuviera e
 
 function getFormatInstructions(format) {
   const formatInstructions = {
-    reel: `🎬 FORMATO: GUIÓN PARA REEL (Video Timeline)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚠️ ESTE ES UN GUIÓN DE VIDEO CON TIMELINE - NO ES UN CARRUSEL NI POST ESTÁTICO
-
-TU RESPUESTA DEBE INCLUIR ESTAS SECCIONES EN ORDEN:
+    reel: `FORMATO REEL: Guión de video con timeline (DIFERENTE a carrusel/estático)
+Responde EXACTAMENTE con estas secciones. Cada línea que termine en ":" será un header parseable.
 
 📺 TÍTULO PARA YOUTUBE:
 [Escribe título de 60-70 caracteres]
 
-🎬 GANCHO (0-3 segundos):
+🎬 GANCHO (0-3 seg):
 NARRACIÓN: [Qué se dice]
 VISUAL: [Qué se ve en pantalla]
-EFECTOS: [Efecto o transición]
+EFECTOS: [Transición]
 
-🎬 ESCENA 1 (3-10 segundos):
+🎬 ESCENA 1 (3-10 seg):
 NARRACIÓN: [Qué se dice]
-VISUAL: [Qué se ve en pantalla]
-EFECTOS: [Efecto o transición]
+VISUAL: [Qué se ve]
+EFECTOS: [Transición]
 
-🎬 ESCENA 2 (10-15 segundos):
+🎬 ESCENA 2 (10-15 seg):
 NARRACIÓN: [Qué se dice]
-VISUAL: [Qué se ve en pantalla]
-EFECTOS: [Efecto o transición]
+VISUAL: [Qué se ve]
+EFECTOS: [Transición]
 
-🎬 ESCENA 3 (15-22 segundos):
+🎬 ESCENA 3 (15-22 seg):
 NARRACIÓN: [Qué se dice]
-VISUAL: [Qué se ve en pantalla]
-EFECTOS: [Efecto o transición]
+VISUAL: [Qué se ve]
+EFECTOS: [Transición]
 
-🎬 CIERRE (22-30 segundos):
-NARRACIÓN: [Qué se dice + CTA]
-VISUAL: [Logo/CTA en pantalla]
-EFECTOS: [Efecto final]
+🎬 CIERRE (22-30 seg):
+NARRACIÓN: [CTA]
+VISUAL: [Logo/CTA]
+EFECTOS: [Final]
 
 📝 COPY PARA DESCRIPCIÓN:
-[Escribe 150-200 palabras de descripción]
+[150-200 palabras]
 
 #️⃣ HASHTAGS:
-[Lista 10-15 hashtags]
+[10-15 hashtags]`,
 
-⚠️ RECUERDA: Este es un GUIÓN con múltiples escenas con timeline (0-3s, 3-10s, etc)`,
-
-    estatico: `📸 FORMATO: POST ESTÁTICO (1 Imagen)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚠️ ESTE ES UN POST DE UNA SOLA IMAGEN - NO ES UN VIDEO NI CARRUSEL
-
-TU RESPUESTA DEBE INCLUIR ESTAS SECCIONES EN ORDEN:
+    estatico: `FORMATO ESTÁTICO: Post de UNA imagen (DIFERENTE a reel/carrusel)
+Responde EXACTAMENTE con estas secciones. Cada línea que termine en ":" será un header parseable.
 
 📸 SLIDE ÚNICO:
-TEXTO EN IMAGEN: [Headline corto 5-7 palabras + subtítulo]
+TEXTO EN IMAGEN: [Headline + subtítulo]
 
 📸 DESCRIPCIÓN VISUAL:
-[Describe composición, colores, elementos, estilo de LA IMAGEN]
+[Composición, colores, elementos de LA imagen]
 
 📝 COPY PRINCIPAL:
-[Escribe 150-250 palabras de copy para el caption]
+[150-250 palabras]
 
 #️⃣ HASHTAGS:
-[Lista 10-15 hashtags]
+[10-15 hashtags]`,
 
-⚠️ RECUERDA: Este es UN SOLO POST con UNA imagen - no múltiples slides ni video`,
-
-    carrusel: `🎴 FORMATO: CARRUSEL (4 Imágenes Secuenciales)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚠️ ESTE ES UN CARRUSEL DE 4 SLIDES - NO ES UN VIDEO NI POST ÚNICO
-
-TU RESPUESTA DEBE INCLUIR ESTAS SECCIONES EN ORDEN:
+    carrusel: `FORMATO CARRUSEL: 4 slides separados (DIFERENTE a reel/estático)
+Responde EXACTAMENTE con estas secciones. Cada línea que termine en ":" será un header parseable.
 
 🎴 SLIDE 1 - HOOK:
-HEADLINE: [Título impactante]
-CONTENIDO: [Texto del slide 1]
-VISUAL: [Descripción visual del slide 1]
+HEADLINE: [Título]
+CONTENIDO: [Texto]
+VISUAL: [Descripción]
 
 🎴 SLIDE 2 - PROBLEMA:
-TÍTULO: [Nombre del problema]
-CONTENIDO: [Texto del slide 2]
-VISUAL: [Descripción visual del slide 2]
+TÍTULO: [Título]
+CONTENIDO: [Texto]
+VISUAL: [Descripción]
 
 🎴 SLIDE 3 - SOLUCIÓN:
-TÍTULO: [Nombre de la solución]
-CONTENIDO: [Texto del slide 3]
-VISUAL: [Descripción visual del slide 3]
+TÍTULO: [Título]
+CONTENIDO: [Texto]
+VISUAL: [Descripción]
 
 🎴 SLIDE 4 - CTA:
-HEADLINE: [Llamada a acción]
-CONTENIDO: [Texto del slide 4]
-VISUAL: [Descripción visual del slide 4]
+HEADLINE: [Título]
+CONTENIDO: [Texto]
+VISUAL: [Descripción]
 
 📝 COPY PARA DESCRIPCIÓN:
-[Escribe 150-200 palabras de copy para el caption]
+[150-200 palabras]
 
 #️⃣ HASHTAGS:
-[Lista 10-15 hashtags]
-
-⚠️ RECUERDA: Este es un CARRUSEL con exactamente 4 slides separados - no un video con timeline`
+[10-15 hashtags]`
   };
 
   return formatInstructions[format] || formatInstructions.reel;
