@@ -506,7 +506,7 @@ function showCommandConfirmation(parsed){
 }
 
 function closeCmdModal(){document.getElementById('cmdOverlay').style.display='none';pendingCommand=null}
-function confirmCommand(){if(pendingCommand)executeAction(pendingCommand)}
+async function confirmCommand(){if(pendingCommand){const cmd=pendingCommand;pendingCommand=null;await executeAction(cmd)}}
 
 // ========== ACTION EXECUTORS ==========
 async function executeAction(parsed){
@@ -614,17 +614,19 @@ async function executeGenerate(params){
 async function executeBulkEdit(params){
   const{filters,changes}=params;
   const tasksR=await fetch('/api/styly/tasks',{headers:hdrs});
+  if(!tasksR.ok)throw new Error('Error obteniendo tareas: '+tasksR.status);
   const tasksD=await tasksR.json();
   let allTasks=tasksD.tasks||[];
   console.log('[BulkEdit] Total tasks:',allTasks.length,'Filters:',JSON.stringify(filters),'Changes:',JSON.stringify(changes));
-  // Apply filters — support both "proyecto" and "proyecto_nombre"
+  // Apply filters — support "proyecto", "proyecto_nombre", and "proyecto_id"
   const projFilter=filters.proyecto_nombre||filters.proyecto||null;
   let targetTasks=allTasks.filter(t=>{
     if(filters.estado&&t.estado!==filters.estado)return false;
     if(filters.prioridad&&t.prioridad!==filters.prioridad)return false;
     if(projFilter){
       const pn=(t.proyecto_nombre||'').toLowerCase();
-      if(!pn.includes(projFilter.toLowerCase()))return false;
+      const tid=(t.task_id||'').toLowerCase();
+      if(!pn.includes(projFilter.toLowerCase())&&!tid.includes(projFilter.toLowerCase()))return false;
     }
     if(filters.asignado){
       const names=(t.asignados||[]).map(a=>(a.name||'').toLowerCase());
@@ -632,15 +634,13 @@ async function executeBulkEdit(params){
     }
     return true;
   });
-  console.log('[BulkEdit] Filtered tasks:',targetTasks.length,targetTasks.map(t=>t.titulo+' ['+t.estado+'] ['+t.proyecto_nombre+']'));
+  console.log('[BulkEdit] Filtered tasks:',targetTasks.length,targetTasks.map(t=>t.titulo+' ['+t.estado+'] proj=['+t.proyecto_nombre+']'));
   if(targetTasks.length===0){
-    // Debug: show what projects exist
-    const projectNames=[...new Set(allTasks.map(t=>t.proyecto_nombre))];
-    const estados=[...new Set(allTasks.map(t=>t.estado))];
-    console.log('[BulkEdit] Available projects:',projectNames,'Available estados:',estados);
-    return'No se encontraron tareas que coincidan con los filtros.\n\nProyectos disponibles: '+projectNames.join(', ')+'\nEstados encontrados: '+estados.join(', ');
+    const projectNames=[...new Set(allTasks.map(t=>t.proyecto_nombre).filter(Boolean))];
+    const estados=[...new Set(allTasks.map(t=>t.estado).filter(Boolean))];
+    return'No se encontraron tareas que coincidan con los filtros.\n\n**Proyectos disponibles:** '+projectNames.join(', ')+'\n**Estados encontrados:** '+estados.join(', ');
   }
-  let updated=0;const results=[];
+  let updated=0;let errors=[];const results=[];
   // Handle assignment change
   const assignName=changes.asignado_nombre||changes.asignado||null;
   if(assignName){
@@ -649,9 +649,12 @@ async function executeBulkEdit(params){
     const user=(usersD.users||[]).find(u=>u.name.toLowerCase().includes(assignName.toLowerCase()));
     if(!user)return'Usuario "'+assignName+'" no encontrado en el sistema.';
     for(const task of targetTasks){
-      const r=await fetch('/api/styly/tasks/'+task.id+'/asignados',{method:'POST',headers:hdrs,body:JSON.stringify({user_id:user.id})});
-      const d=await r.json();
-      if(d.ok)updated++;
+      try{
+        const r=await fetch('/api/styly/tasks/'+task.id+'/asignados',{method:'POST',headers:hdrs,body:JSON.stringify({user_id:user.id})});
+        const d=await r.json();
+        if(r.ok&&(d.ok||d.asignado))updated++;
+        else errors.push(task.titulo+': '+(d.error||'error desconocido'));
+      }catch(e){errors.push(task.titulo+': '+e.message)}
     }
     results.push('Asignadas a **'+user.name+'**');
   }
@@ -662,14 +665,19 @@ async function executeBulkEdit(params){
   if(Object.keys(fieldChanges).length>0){
     let fieldUpdated=0;
     for(const task of targetTasks){
-      const r=await fetch('/api/styly/tasks/'+task.id,{method:'PUT',headers:hdrs,body:JSON.stringify(fieldChanges)});
-      const d=await r.json();
-      if(!d.error)fieldUpdated++;
+      try{
+        const r=await fetch('/api/styly/tasks/'+task.id,{method:'PUT',headers:hdrs,body:JSON.stringify(fieldChanges)});
+        const d=await r.json();
+        if(r.ok&&!d.error)fieldUpdated++;
+        else errors.push(task.titulo+': '+(d.error||'HTTP '+r.status));
+      }catch(e){errors.push(task.titulo+': '+e.message)}
     }
-    if(!assignName)updated=fieldUpdated;
-    results.push(Object.entries(fieldChanges).map(([k,v])=>'`'+k+' → '+v+'`').join(', '));
+    updated+=fieldUpdated;
+    results.push(Object.entries(fieldChanges).map(([k,v])=>'**'+k+'** → **'+v+'**').join(', '));
   }
-  return'## Edicion masiva completada\n\n**'+updated+'** tareas actualizadas de '+targetTasks.length+' encontradas.\n\n'+results.join('\n');
+  let msg='## Edicion masiva completada\n\n**'+updated+'** de '+targetTasks.length+' tareas actualizadas.\n\n'+results.join('\n');
+  if(errors.length>0)msg+='\n\n**Errores ('+errors.length+'):**\n'+errors.slice(0,5).map(e=>'- '+e).join('\n');
+  return msg;
 }
 
 function typeEffect(el){
