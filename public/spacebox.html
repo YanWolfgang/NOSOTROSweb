@@ -119,8 +119,8 @@
   <main class="content fade-in" id="content">
     <div class="page-header"><h1 style="color:var(--sb)"><i class="feather" data-icon="package" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> SPACEBOX</h1><p>Mini bodegas · Contenido Instagram semanal</p></div>
     <div class="module-tabs" id="modTabs">
-      <button class="module-tab active" onclick="setTab('generar')">Generar</button>
-      <button class="module-tab" onclick="setTab('ideas')">Ideas</button>
+      <button class="module-tab active" onclick="setTab('generar')" id="tabGenerar">Generar</button>
+      <button class="module-tab" onclick="setTab('ideas')" id="tabIdeas">Ideas</button>
       <button class="module-tab" onclick="setTab('calendario')">Calendario</button>
       <button class="module-tab" onclick="setTab('historial')">Historial</button>
     </div>
@@ -135,6 +135,9 @@ const token=localStorage.getItem('token');
 if(!token){window.location.href='/index.html';}
 const user=JSON.parse(localStorage.getItem('user')||'{}');
 const hdrs={'Content-Type':'application/json','Authorization':'Bearer '+token};
+const perms=(user.permissions||{}).spacebox||[];
+const canCreate=user.role==='admin'||perms.includes('crear');
+const canEdit=user.role==='admin'||perms.includes('editar');
 
 // ========== SIDEBAR ==========
 const BUSINESSES=[
@@ -270,7 +273,7 @@ function rGenResult(){
       <button class="sb-tool" onclick="aiReview()"><i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Revisar con IA</button>
       <button class="sb-tool" onclick="aiMulti()"><i class="feather" data-icon="refresh-cw" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Multi-formato</button>
       <button class="sb-tool" onclick="aiVariants()">🔀 Variantes A/B</button>
-      <button class="sb-tool" onclick="openApproveModal()"><i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Aprobar y Agendar</button>
+      ${canEdit?`<button class="sb-tool" onclick="openApproveModal()"><i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Aprobar y Agendar</button>`:''}
       <button class="sb-tool" onclick="doGenerate()">🔃 Regenerar</button>
     </div>
     <div class="sb-edit">
@@ -533,16 +536,16 @@ async function renderHistorial(m){
         </select>
       </div>
       ${items.length?`
-      <div style="display:flex;gap:.5rem;margin-bottom:.6rem;align-items:center;flex-wrap:wrap">
+      ${canEdit?`<div style="display:flex;gap:.5rem;margin-bottom:.6rem;align-items:center;flex-wrap:wrap">
         <label style="display:flex;align-items:center;gap:.35rem;cursor:pointer;font-size:.8rem;color:var(--mt)"><input type="checkbox" onchange="toggleAllHist(this.checked,${JSON.stringify(visibleIds)})"> Seleccionar todos</label>
         <span id="histSelCount" style="font-size:.75rem;color:var(--mt)"></span>
         <div style="margin-left:auto;display:flex;gap:.4rem">
           <button id="btnBulkDel" onclick="bulkDelHist()" style="display:none;background:#EF4444;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:.75rem;cursor:pointer">Eliminar seleccionados</button>
           <button onclick="delAllHist(${JSON.stringify(allItems.map(i=>i.id))})" style="background:none;border:1px solid #EF4444;color:#EF4444;border-radius:6px;padding:4px 10px;font-size:.75rem;cursor:pointer">Borrar todo</button>
         </div>
-      </div>
+      </div>`:''}
       ${items.map(it=>`<div class="hist-item">
-        <input type="checkbox" data-hid="${it.id}" onchange="toggleHistSel(${it.id},this.checked)" style="cursor:pointer;accent-color:#EF4444;margin-right:.4rem">
+        ${canEdit?`<input type="checkbox" data-hid="${it.id}" onchange="toggleHistSel(${it.id},this.checked)" style="cursor:pointer;accent-color:#EF4444;margin-right:.4rem">`:''}
         <div class="hist-left">
           <span class="hist-emoji">${FMT_EMOJI[it.format_type]||'<i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'}</span>
           <div class="hist-info">
@@ -554,7 +557,7 @@ async function renderHistorial(m){
           <span class="hist-status ${it.status==='approved'?'approved':'draft'}">${it.status==='approved'?'Approved':'Draft'}</span>
           <button class="idea-btn" onclick="viewHistItem(${it.id})">Ver</button>
           <button class="idea-btn" onclick="cpHistItem(${it.id})"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>
-          <button class="idea-btn danger" onclick="delHistItem(${it.id})"><i class="feather" data-icon="trash-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>
+          ${canEdit?`<button class="idea-btn danger" onclick="delHistItem(${it.id})"><i class="feather" data-icon="trash-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>`:''}
         </div>
       </div>`).join('')}`:'<p style="color:var(--mt);text-align:center;padding:2rem">No hay contenido generado aún.</p>'}`;
   }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
@@ -666,6 +669,15 @@ function fallbackCp(text){
   const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0';
   document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
   toast('Copiado');
+}
+
+// ========== PERMISSIONS ==========
+if(!canCreate){
+  document.getElementById('tabGenerar').style.display='none';
+  document.getElementById('tabIdeas').style.display='none';
+  tab='calendario';
+  document.querySelectorAll('.module-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.module-tab')[2].classList.add('active');
 }
 
 // ========== INIT ==========

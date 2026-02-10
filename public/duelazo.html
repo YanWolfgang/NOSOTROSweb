@@ -79,7 +79,7 @@
   <main class="content fade-in" id="content">
     <div class="page-header"><h1 style="color:#10B981"><i class="feather" data-icon="activity" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> DUELAZO</h1><p>Contenido deportivo para apuestas con IA</p></div>
     <div class="module-tabs" id="modTabs">
-      <button class="module-tab active" onclick="setModTab('generar')">Generar</button>
+      <button class="module-tab active" onclick="setModTab('generar')" id="tabGenerar">Generar</button>
       <button class="module-tab" onclick="setModTab('historial')">Historial</button>
     </div>
     <div id="modContent"></div>
@@ -91,6 +91,9 @@ const token=localStorage.getItem('token');
 if(!token){window.location.href='/index.html';}
 const user=JSON.parse(localStorage.getItem('user')||'{}');
 const hdrs={'Content-Type':'application/json','Authorization':'Bearer '+token};
+const perms=(user.permissions||{}).duelazo||[];
+const canCreate=user.role==='admin'||perms.includes('crear');
+const canEdit=user.role==='admin'||perms.includes('editar');
 
 // ========== SIDEBAR ==========
 const BUSINESSES=[
@@ -248,22 +251,22 @@ async function loadHistory(){
     const d=await r.json();if(d.error)throw new Error(d.error);
     const items=d.history||[];
     m.innerHTML=items.length?`
-      <div style="display:flex;gap:.5rem;margin-bottom:.75rem;align-items:center;flex-wrap:wrap">
+      ${canEdit?`<div style="display:flex;gap:.5rem;margin-bottom:.75rem;align-items:center;flex-wrap:wrap">
         <label style="display:flex;align-items:center;gap:.35rem;cursor:pointer;font-size:.8rem;color:var(--mt)"><input type="checkbox" onchange="toggleAllHist(this.checked,${JSON.stringify(items.map(i=>i.id))})"> Seleccionar todos</label>
         <span id="histSelCount" style="font-size:.75rem;color:var(--mt)"></span>
         <div style="margin-left:auto;display:flex;gap:.4rem">
           <button id="btnBulkDel" onclick="bulkDelHistory()" style="display:none;background:#EF4444;color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:.75rem;cursor:pointer">Eliminar seleccionados</button>
           <button onclick="delAllHistory()" style="background:none;border:1px solid #EF4444;color:#EF4444;border-radius:6px;padding:4px 12px;font-size:.75rem;cursor:pointer">Borrar todo</button>
         </div>
-      </div>
+      </div>`:''}
       <div class="history-list">${items.map(h=>`
       <div class="history-item" style="position:relative">
-        <input type="checkbox" data-hid="${h.id}" onchange="toggleHistSel(${h.id},this.checked)" style="position:absolute;top:.6rem;left:.5rem;cursor:pointer;accent-color:#EF4444">
-        <div onclick="viewHistory(${h.id})" style="cursor:pointer;flex:1;padding-left:1.5rem">
+        ${canEdit?`<input type="checkbox" data-hid="${h.id}" onchange="toggleHistSel(${h.id},this.checked)" style="position:absolute;top:.6rem;left:.5rem;cursor:pointer;accent-color:#EF4444">`:''}
+        <div onclick="viewHistory(${h.id})" style="cursor:pointer;flex:1;${canEdit?'padding-left:1.5rem':''}">
           <div class="history-meta"><span>${esc(h.format_type||'')}</span><span>${new Date(h.created_at).toLocaleString('es-MX')}</span></div>
           <div class="history-preview">${esc(h.preview||'')}</div>
         </div>
-        <button onclick="event.stopPropagation();delHistory(${h.id})" style="position:absolute;top:.5rem;right:.5rem;background:none;border:1px solid var(--border);border-radius:6px;color:var(--mt);cursor:pointer;padding:2px 6px;font-size:.7rem;transition:all .15s" onmouseover="this.style.borderColor='#EF4444';this.style.color='#EF4444'" onmouseout="this.style.borderColor='';this.style.color=''"><i class="feather" data-icon="trash-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>
+        ${canEdit?`<button onclick="event.stopPropagation();delHistory(${h.id})" style="position:absolute;top:.5rem;right:.5rem;background:none;border:1px solid var(--border);border-radius:6px;color:var(--mt);cursor:pointer;padding:2px 6px;font-size:.7rem;transition:all .15s" onmouseover="this.style.borderColor='#EF4444';this.style.color='#EF4444'" onmouseout="this.style.borderColor='';this.style.color=''"><i class="feather" data-icon="trash-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>`:''}
       </div>`).join('')}</div>`:'<p style="color:var(--mt);text-align:center;padding:2rem">No hay contenido generado aun.</p>';
   }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
 }
@@ -650,9 +653,12 @@ function fallbackCopy(text){
 }
 function showCopied(){const b=document.querySelector('.copy-btn');if(b){b.textContent='Copiado!';setTimeout(()=>b.textContent='<i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Copiar',2000)}}
 
+// ========== PERMISSIONS ==========
+if(!canCreate){document.getElementById('tabGenerar').style.display='none';modTab='historial';document.querySelectorAll('.module-tab')[1].classList.add('active')}
+
 // ========== INIT ==========
 S.fixDate=today();
-render();
+if(modTab==='historial')loadHistory();else render();
 </script>
 <script src="/emoji-to-svg.js"></script></body>
 </html>

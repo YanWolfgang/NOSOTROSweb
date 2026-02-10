@@ -8,7 +8,7 @@ const router = express.Router();
 router.use(verifyToken, requireBusiness('nosotros'));
 
 // ========== NEWS VIA GOOGLE NEWS RSS ==========
-router.post('/news', async (req, res) => {
+router.post('/news', requirePermission('nosotros', 'ver'), async (req, res) => {
   try {
     const { scope, category, page = 1, pageSize = 8 } = req.body;
 
@@ -42,7 +42,7 @@ router.post('/news', async (req, res) => {
 });
 
 // ========== NEWS VIA IA (now also uses Google News RSS) ==========
-router.post('/news-ai', async (req, res) => {
+router.post('/news-ai', requirePermission('nosotros', 'ver'), async (req, res) => {
   try {
     const { scope, category, page = 1, pageSize = 8 } = req.body;
 
@@ -96,7 +96,7 @@ router.post('/generate', requirePermission('nosotros', 'crear'), async (req, res
   }
 });
 
-router.get('/history', async (req, res) => {
+router.get('/history', requirePermission('nosotros', 'ver'), async (req, res) => {
   try {
     const { rows } = await pool.query(
       'SELECT id, format_type, status, scheduled_date, scheduled_platform, created_at, LEFT(output_text, 200) as preview FROM content_history WHERE user_id = $1 AND business = $2 ORDER BY created_at DESC LIMIT 50',
@@ -108,7 +108,7 @@ router.get('/history', async (req, res) => {
   }
 });
 
-router.get('/history/:id', async (req, res) => {
+router.get('/history/:id', requirePermission('nosotros', 'ver'), async (req, res) => {
   try {
     const { rows } = await pool.query(
       'SELECT * FROM content_history WHERE id = $1 AND user_id = $2',

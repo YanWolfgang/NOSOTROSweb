@@ -20,6 +20,63 @@ function setCache(key, data) {
   }
 }
 
+// ========== NEWSPAPER RSS FEEDS (Direct sources for higher quality) ==========
+const NEWSPAPER_FEEDS = {
+  internacional: [
+    'https://feeds.bbci.co.uk/mundo/rss.xml',                   // BBC Mundo
+    'https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/section/internacional/portada', // El País
+    'https://rss.dw.com/rss-sp-all',                            // DW Español
+    'https://www.france24.com/es/rss',                           // France24 Español
+    'https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/section/america/portada', // El País América
+    'https://www.europapress.es/rss/rss.aspx',                   // Europa Press
+  ],
+  economia: [
+    'https://www.elfinanciero.com.mx/arc/outboundfeeds/rss/?outputType=xml', // El Financiero
+    'https://expansion.mx/rss',                                  // Expansión
+    'https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/section/economia/portada', // El País Economía
+    'https://www.forbes.com.mx/feed/',                           // Forbes México
+  ],
+  tecnologia: [
+    'https://feeds.bbci.co.uk/mundo/rss.xml',                   // BBC Mundo (tech mixed)
+    'https://expansion.mx/rss',                                  // Expansión (tech section)
+    'https://rss.dw.com/rss-sp-all',                            // DW Español
+  ],
+  deportes: [
+    'https://www.milenio.com/rss',                               // Milenio
+    'https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/section/deportes/portada', // El País Deportes
+  ],
+  entretenimiento: [
+    'https://www.milenio.com/rss',                               // Milenio
+    'https://feeds.bbci.co.uk/mundo/rss.xml',                   // BBC Mundo
+  ],
+  salud: [
+    'https://feeds.bbci.co.uk/mundo/rss.xml',                   // BBC Mundo
+    'https://www.sinembargo.mx/feed',                            // Sin Embargo
+  ],
+  ciencia: [
+    'https://feeds.bbci.co.uk/mundo/rss.xml',                   // BBC Mundo
+    'https://rss.dw.com/rss-sp-all',                            // DW Español
+  ],
+  guerra: [
+    'https://feeds.bbci.co.uk/mundo/rss.xml',                   // BBC Mundo
+    'https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/section/internacional/portada', // El País
+    'https://rss.dw.com/rss-sp-all',                            // DW Español
+    'https://www.france24.com/es/rss',                           // France24 Español
+    'https://www.europapress.es/rss/rss.aspx',                   // Europa Press
+  ],
+  mexico: [
+    'https://www.jornada.com.mx/rss/edicion.xml',               // La Jornada
+    'https://www.milenio.com/rss',                               // Milenio
+    'https://www.sinembargo.mx/feed',                            // Sin Embargo
+    'https://www.elfinanciero.com.mx/arc/outboundfeeds/rss/?outputType=xml', // El Financiero
+    'https://lopezdoriga.com/feed/',                             // López-Dóriga
+    'https://www.forbes.com.mx/feed/',                           // Forbes México
+    'https://www.reforma.com/rss/portada.xml',                   // Reforma
+    'https://www.eluniversal.com.mx/arc/outboundfeeds/rss/?outputType=xml', // El Universal
+    'https://www.sdpnoticias.com/arc/outboundfeeds/rss/?outputType=xml',    // SDP Noticias
+  ]
+};
+
 // ========== CATEGORY MAPPING (Improved with Google News standard categories) ==========
 const CATEGORY_QUERIES = {
   internacional: '(política internacional OR diplomacia OR cumbre OR ONU OR OTAN OR G20 OR Unión Europea OR presidente OR elecciones OR sanciones OR embajada) -deportes -entretenimiento when:2d',
@@ -137,32 +194,20 @@ function isRelevantArticle(title, category) {
   return hasKeyword;
 }
 
-// ========== XML PARSER ==========
-async function fetchGoogleNewsRss(scope, category) {
-  const cacheKey = `${scope}:${category || 'all'}`;
-  const cached = getCached(cacheKey);
-  if (cached) return cached;
-
+// ========== NEWSPAPER RSS FETCHER ==========
+async function fetchNewspaperFeed(url) {
   try {
-    const url = buildGoogleNewsUrl(scope, category);
-    console.log(`[GoogleNewsRss] Fetching: ${url}`);
-
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'application/rss+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'es-MX,es;q=0.9'
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+        'Accept': 'application/rss+xml,application/xml;q=0.9,*/*;q=0.8'
       },
-      timeout: 10000
+      signal: AbortSignal.timeout(8000)
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
+    if (!response.ok) return [];
 
     const xmlText = await response.text();
-
-    // Parse XML
     const parser = new XMLParser({
       ignoreAttributes: false,
       attributeNamePrefix: '@_',
@@ -171,64 +216,151 @@ async function fetchGoogleNewsRss(scope, category) {
 
     const result = parser.parse(xmlText);
 
-    if (!result.rss || !result.rss.channel || !result.rss.channel.item) {
-      throw new Error('Invalid RSS structure from Google News');
+    // Handle both RSS 2.0 and Atom formats
+    let items = [];
+    if (result.rss?.channel?.item) {
+      items = Array.isArray(result.rss.channel.item) ? result.rss.channel.item : [result.rss.channel.item];
+    } else if (result.feed?.entry) {
+      items = Array.isArray(result.feed.entry) ? result.feed.entry : [result.feed.entry];
     }
 
-    // Handle both single item and array of items
-    const items = Array.isArray(result.rss.channel.item)
-      ? result.rss.channel.item
-      : [result.rss.channel.item];
-
-    // Filter: only articles from last 48 hours
-    const maxAge = 48 * 60 * 60 * 1000; // 48 hours in ms
+    const maxAge = 48 * 60 * 60 * 1000;
     const now = Date.now();
 
-    // Transform to standard format with keyword + freshness filtering
-    const articles = items
+    return items
       .filter(item => {
-        if (!isRelevantArticle(item.title, category)) return false;
-        // Reject articles older than 48 hours
-        if (item.pubDate) {
-          const articleDate = new Date(item.pubDate).getTime();
-          if (now - articleDate > maxAge) return false;
+        const dateStr = item.pubDate || item.published || item['dc:date'] || '';
+        if (dateStr) {
+          const age = now - new Date(dateStr).getTime();
+          if (age > maxAge) return false;
         }
         return true;
       })
-      .map((item, i) => {
-        let sourceText = item.source || 'Google News';
+      .map(item => {
+        const title = (typeof item.title === 'object' ? item.title['#text'] : item.title) || '';
+        const desc = item.description || item.summary || item.content || '';
+        const dateStr = item.pubDate || item.published || item['dc:date'] || new Date().toISOString();
 
-        // Extract source name if it's an object with attributes
-        if (typeof sourceText === 'object' && sourceText['#text']) {
-          sourceText = sourceText['#text'];
-        }
-
-        // Extract and clean summary
-        const summary = extractSummary(item.description, item.title).slice(0, 400);
+        // Extract source from URL
+        let source = 'Periódico';
+        try {
+          const hostname = new URL(url).hostname.replace('www.', '').replace('feeds.', '').replace('rss.', '');
+          const sourceMap = {
+            'bbci.co.uk': 'BBC Mundo', 'elpais.com': 'El País', 'dw.com': 'DW',
+            'elfinanciero.com.mx': 'El Financiero', 'expansion.mx': 'Expansión',
+            'milenio.com': 'Milenio', 'jornada.com.mx': 'La Jornada', 'sinembargo.mx': 'Sin Embargo',
+            'france24.com': 'France24', 'europapress.es': 'Europa Press',
+            'lopezdoriga.com': 'López-Dóriga', 'forbes.com.mx': 'Forbes México',
+            'reforma.com': 'Reforma', 'eluniversal.com.mx': 'El Universal',
+            'sdpnoticias.com': 'SDP Noticias'
+          };
+          source = sourceMap[hostname] || hostname;
+        } catch {}
 
         return {
-          id: i + 1,
-          title: (item.title || '').slice(0, 300),
-          summary: summary,
-          source: sourceText,
-          date: item.pubDate || new Date().toISOString()
+          title: stripHtml(title).slice(0, 300),
+          summary: extractSummary(desc, title).slice(0, 400),
+          source,
+          date: dateStr
         };
-      })
-      // Sort by date descending (most recent first)
-      .sort((a, b) => {
-        const dateA = new Date(a.date);
-        const dateB = new Date(b.date);
-        return dateB - dateA; // Descending order (newest first)
       });
+  } catch (e) {
+    console.warn(`[NewspaperRss] Failed to fetch ${url}: ${e.message}`);
+    return [];
+  }
+}
 
-    console.log(`[GoogleNewsRss] Found ${articles.length} relevant articles for ${cacheKey} (filtered from RSS feed)`);
+// ========== MAIN FETCHER (Google News + Newspapers combined) ==========
+async function fetchGoogleNewsRss(scope, category) {
+  const cacheKey = `${scope}:${category || 'all'}`;
+  const cached = getCached(cacheKey);
+  if (cached) return cached;
 
-    setCache(cacheKey, articles);
-    return articles;
+  try {
+    // ========== FETCH GOOGLE NEWS + NEWSPAPERS IN PARALLEL ==========
+    const googlePromise = (async () => {
+      const url = buildGoogleNewsUrl(scope, category);
+      console.log(`[GoogleNews] Fetching: ${url}`);
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'application/rss+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'es-MX,es;q=0.9'
+        },
+        signal: AbortSignal.timeout(10000)
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const xmlText = await response.text();
+      const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_', parseTagValue: false });
+      const result = parser.parse(xmlText);
+      if (!result.rss?.channel?.item) return [];
+      const items = Array.isArray(result.rss.channel.item) ? result.rss.channel.item : [result.rss.channel.item];
+      const maxAge = 48 * 60 * 60 * 1000;
+      const now = Date.now();
+      return items
+        .filter(item => {
+          if (!isRelevantArticle(item.title, category)) return false;
+          if (item.pubDate && (now - new Date(item.pubDate).getTime() > maxAge)) return false;
+          return true;
+        })
+        .map(item => {
+          let sourceText = item.source || 'Google News';
+          if (typeof sourceText === 'object' && sourceText['#text']) sourceText = sourceText['#text'];
+          return {
+            title: (item.title || '').slice(0, 300),
+            summary: extractSummary(item.description, item.title).slice(0, 400),
+            source: sourceText,
+            date: item.pubDate || new Date().toISOString()
+          };
+        });
+    })().catch(e => { console.warn(`[GoogleNews] Failed: ${e.message}`); return []; });
+
+    const newspaperFeeds = NEWSPAPER_FEEDS[category] || [];
+    const newspaperPromise = Promise.allSettled(
+      newspaperFeeds.map(feedUrl => fetchNewspaperFeed(feedUrl))
+    ).then(results => {
+      let articles = [];
+      for (const r of results) {
+        if (r.status === 'fulfilled' && r.value.length > 0) {
+          articles.push(...r.value.filter(a => isRelevantArticle(a.title, category)));
+        }
+      }
+      return articles;
+    });
+
+    const [googleArticles, newspaperArticles] = await Promise.all([googlePromise, newspaperPromise]);
+
+    console.log(`[NewsRss] Google: ${googleArticles.length}, Newspapers: ${newspaperArticles.length} for ${cacheKey}`);
+
+    // ========== MERGE & DEDUPLICATE ==========
+    const allArticles = [...googleArticles, ...newspaperArticles];
+    const seen = new Set();
+    const deduplicated = allArticles.filter(article => {
+      const normalized = article.title.toLowerCase()
+        .replace(/[^a-záéíóúñü\s]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 60);
+      if (seen.has(normalized)) return false;
+      const partial = normalized.slice(0, 40);
+      for (const s of seen) {
+        if (s.startsWith(partial) || partial.startsWith(s.slice(0, 40))) return false;
+      }
+      seen.add(normalized);
+      return true;
+    });
+
+    deduplicated.sort((a, b) => new Date(b.date) - new Date(a.date));
+    const final = deduplicated.map((a, i) => ({ ...a, id: i + 1 }));
+
+    console.log(`[NewsRss] Final: ${final.length} articles for ${cacheKey} (after dedup)`);
+
+    setCache(cacheKey, final);
+    return final;
 
   } catch (e) {
-    console.error('[GoogleNewsRss] Error:', e.message);
-    throw new Error(`Failed to fetch Google News RSS: ${e.message}`);
+    console.error('[NewsRss] Error:', e.message);
+    throw new Error(`Failed to fetch news: ${e.message}`);
   }
 }
 

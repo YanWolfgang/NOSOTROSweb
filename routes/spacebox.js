@@ -120,7 +120,7 @@ router.post('/generate', requirePermission('spacebox', 'crear'), async (req, res
 });
 
 // ========== IDEAS ==========
-router.get('/ideas', async (req, res) => {
+router.get('/ideas', requirePermission('spacebox', 'ver'), async (req, res) => {
   try {
     const { rows } = await pool.query(
       'SELECT * FROM ideas WHERE business = $1 ORDER BY created_at DESC LIMIT 100',
@@ -170,7 +170,7 @@ router.post('/ideas/generate', requirePermission('spacebox', 'crear'), async (re
   }
 });
 
-router.put('/ideas/:id', async (req, res) => {
+router.put('/ideas/:id', requirePermission('spacebox', 'editar'), async (req, res) => {
   try {
     const { status } = req.body;
     if (!['used', 'discarded'].includes(status)) return res.status(400).json({ error: 'Status debe ser used o discarded' });
@@ -187,7 +187,7 @@ router.put('/ideas/:id', async (req, res) => {
 });
 
 // ========== HISTORY ==========
-router.get('/history', async (req, res) => {
+router.get('/history', requirePermission('spacebox', 'ver'), async (req, res) => {
   try {
     const { rows } = await pool.query(
       `SELECT ch.id, ch.format_type, ch.status, ch.scheduled_date, ch.scheduled_platform, ch.notes, ch.created_at,
@@ -202,7 +202,7 @@ router.get('/history', async (req, res) => {
   }
 });
 
-router.get('/history/:id', async (req, res) => {
+router.get('/history/:id', requirePermission('spacebox', 'ver'), async (req, res) => {
   try {
     const { rows } = await pool.query(
       `SELECT ch.*, u.name as user_name FROM content_history ch LEFT JOIN users u ON ch.user_id = u.id WHERE ch.id = $1 AND ch.business = 'spacebox'`,
@@ -236,7 +236,7 @@ router.post('/history/bulk-delete', requirePermission('spacebox', 'editar'), asy
 });
 
 // ========== CALENDAR ==========
-router.get('/calendar', async (req, res) => {
+router.get('/calendar', requirePermission('spacebox', 'ver'), async (req, res) => {
   try {
     const { start, end } = req.query;
     if (!start || !end) return res.status(400).json({ error: 'start y end requeridos (YYYY-MM-DD)' });
@@ -254,7 +254,7 @@ router.get('/calendar', async (req, res) => {
 });
 
 // ========== APPROVE ==========
-router.post('/approve', async (req, res) => {
+router.post('/approve', requirePermission('spacebox', 'editar'), async (req, res) => {
   try {
     const { content_id, scheduled_date, scheduled_time, scheduled_platform, notes } = req.body;
     if (!content_id || !scheduled_date) return res.status(400).json({ error: 'content_id y scheduled_date requeridos' });

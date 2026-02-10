@@ -99,7 +99,7 @@ const SPORT_CFG = {
 };
 
 // Noticias deportivas
-router.post('/news', async (req, res) => {
+router.post('/news', requirePermission('duelazo', 'ver'), async (req, res) => {
   try {
     const r = await fetch(`https://newsapi.org/v2/everything?q=fútbol OR deportes OR liga mx OR NBA OR NFL&language=es&sortBy=publishedAt&pageSize=15&apiKey=${NEWS_KEY}`);
     const d = await r.json();
@@ -120,7 +120,7 @@ router.post('/news', async (req, res) => {
 });
 
 // Partidos multi-deporte
-router.get('/fixtures', async (req, res) => {
+router.get('/fixtures', requirePermission('duelazo', 'ver'), async (req, res) => {
   try {
     const { sport, date, league, status } = req.query;
     const cfg = SPORT_CFG[sport] || SPORT_CFG.football;
@@ -139,7 +139,7 @@ router.get('/fixtures', async (req, res) => {
 });
 
 // Momios multi-deporte
-router.get('/odds/:fixtureId', async (req, res) => {
+router.get('/odds/:fixtureId', requirePermission('duelazo', 'ver'), async (req, res) => {
   try {
     const sport = req.query.sport || 'football';
     const cfg = SPORT_CFG[sport] || SPORT_CFG.football;
@@ -165,7 +165,7 @@ router.get('/odds/:fixtureId', async (req, res) => {
 });
 
 // Tabla de posiciones
-router.get('/standings', async (req, res) => {
+router.get('/standings', requirePermission('duelazo', 'ver'), async (req, res) => {
   try {
     const { league, season } = req.query;
     if (!league || !season) return res.status(400).json({ error: 'league y season requeridos' });
@@ -208,7 +208,7 @@ router.post('/generate', requirePermission('duelazo', 'crear'), async (req, res)
 });
 
 // Historial
-router.get('/history', async (req, res) => {
+router.get('/history', requirePermission('duelazo', 'ver'), async (req, res) => {
   try {
     const { rows } = await pool.query(
       'SELECT id, format_type, status, created_at, LEFT(output_text, 200) as preview FROM content_history WHERE user_id = $1 AND business = $2 ORDER BY created_at DESC LIMIT 50',
@@ -218,7 +218,7 @@ router.get('/history', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.get('/history/:id', async (req, res) => {
+router.get('/history/:id', requirePermission('duelazo', 'ver'), async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT * FROM content_history WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
     if (!rows.length) return res.status(404).json({ error: 'No encontrado' });
