@@ -211,7 +211,7 @@ router.post('/generate', requirePermission('duelazo', 'crear'), async (req, res)
 router.get('/history', requirePermission('duelazo', 'ver'), async (req, res) => {
   try {
     const page = Math.max(1, parseInt(req.query.page) || 1);
-    const pageSize = Math.min(50, Math.max(1, parseInt(req.query.pageSize) || 10));
+    const pageSize = Math.min(10000, Math.max(1, parseInt(req.query.pageSize) || 10));
     const filterUser = req.query.user_id || null;
     const offset = (page - 1) * pageSize;
 
@@ -249,7 +249,12 @@ router.get('/history/:id', requirePermission('duelazo', 'ver'), async (req, res)
 
 router.delete('/history/:id', requirePermission('duelazo', 'editar'), async (req, res) => {
   try {
-    const { rowCount } = await pool.query('DELETE FROM content_history WHERE id = $1 AND user_id = $2 AND business = $3', [req.params.id, req.user.id, 'duelazo']);
+    const isAdmin = req.user.role === 'admin';
+    const q = isAdmin
+      ? 'DELETE FROM content_history WHERE id = $1 AND business = $2'
+      : 'DELETE FROM content_history WHERE id = $1 AND user_id = $2 AND business = $3';
+    const p = isAdmin ? [req.params.id, 'duelazo'] : [req.params.id, req.user.id, 'duelazo'];
+    const { rowCount } = await pool.query(q, p);
     if (!rowCount) return res.status(404).json({ error: 'No encontrado' });
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -259,10 +264,12 @@ router.post('/history/bulk-delete', requirePermission('duelazo', 'editar'), asyn
   try {
     const { ids } = req.body;
     if (!ids || !Array.isArray(ids) || !ids.length) return res.status(400).json({ error: 'Se requiere array de ids' });
-    const { rowCount } = await pool.query(
-      'DELETE FROM content_history WHERE id = ANY($1::int[]) AND user_id = $2 AND business = $3',
-      [ids, req.user.id, 'duelazo']
-    );
+    const isAdmin = req.user.role === 'admin';
+    const q = isAdmin
+      ? 'DELETE FROM content_history WHERE id = ANY($1::int[]) AND business = $2'
+      : 'DELETE FROM content_history WHERE id = ANY($1::int[]) AND user_id = $2 AND business = $3';
+    const p = isAdmin ? [ids, 'duelazo'] : [ids, req.user.id, 'duelazo'];
+    const { rowCount } = await pool.query(q, p);
     res.json({ ok: true, deleted: rowCount });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });

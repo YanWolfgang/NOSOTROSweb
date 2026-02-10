@@ -185,6 +185,8 @@ const FMT_EMOJI={video:'<i class="feather" data-icon="film" style="display:inlin
 let tab='generar';
 let G={fmt:null,topic:'',phase:'pick',result:'',resultId:null,editTxt:'',analysis:null,analysisLoading:false};
 let calWeekStart=getMonday(new Date());
+let ideasMultiSelectMode=false;
+let selectedIdeas=[];
 
 // ========== HELPERS ==========
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
@@ -473,11 +475,19 @@ async function renderIdeas(m){
     const r=await fetch('/api/spacebox/ideas',{headers:hdrs});
     const d=await r.json();if(d.error)throw new Error(d.error);
     const ideas=d.ideas||[];
-    m.innerHTML=`
-      <div class="ideas-header">
-        <h3 style="color:var(--fg);margin:0">💡 Banco de Ideas</h3>
-        <button class="btn" onclick="generateIdeas()"><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Generar 4 ideas del mes</button>
+    m.innerHTML=`<div class="ideas-header">
+      <div><h3 style="color:var(--fg);margin:0">Ideas del Mes</h3></div>
+      <div style="display:flex;gap:.5rem;align-items:center">
+        ${!ideasMultiSelectMode?`
+          <button class="btn" onclick="generateIdeas()"><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Generar 4 ideas</button>
+          ${ideas.length?`<button class="btn" style="background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.3)" onclick="enableIdeasMultiSelect()"><i class="feather" data-icon="trash-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Eliminar</button>`:''}
+        `:`
+          <span style="color:var(--fg);font-size:.9rem">${selectedIdeas.length} seleccionadas</span>
+          <button class="btn" style="background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.3)" onclick="deleteMultipleIdeas()" ${selectedIdeas.length===0?'disabled':''}><i class="feather" data-icon="trash-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Confirmar</button>
+          <button class="btn" style="background:rgba(107,128,180,0.2);border-color:rgba(107,128,180,0.3)" onclick="cancelIdeasMultiSelect()"><i class="feather" data-icon="x" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Cancelar</button>
+        `}
       </div>
+    </div>
       ${ideas.length?`<div class="ideas-grid">${ideas.map(renderIdeaCard).join('')}</div>`
         :'<p style="color:var(--mt);text-align:center;padding:2rem">No hay ideas aún. Genera las primeras 4 ideas del mes.</p>'}`;
   }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
@@ -485,14 +495,17 @@ async function renderIdeas(m){
 
 function renderIdeaCard(idea){
   const s=idea.status;
+  const isSelected=selectedIdeas.includes(idea.id);
   const emoji=FMT_EMOJI[idea.format]||'<i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>';
   const fmtName=FMTS.find(f=>f.id===idea.format)?.name||idea.format;
-  return`<div class="idea-card ${s}">
+  return`<div class="idea-card ${s}" style="position:relative">
+    ${ideasMultiSelectMode?`<input type="checkbox" ${isSelected?'checked':''} onclick="event.stopPropagation();toggleIdeaSelection(${idea.id})" style="position:absolute;top:.5rem;right:.5rem;width:1.2rem;height:1.2rem;cursor:pointer">`
+      :`<button class="idea-btn danger" onclick="event.stopPropagation();deleteIdea(${idea.id})" style="position:absolute;top:.25rem;right:.25rem;padding:.12rem .2rem;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);border-radius:3px;cursor:pointer;font-size:.7rem;line-height:1;color:rgba(239,68,68,0.9);font-weight:bold;min-width:auto" title="Eliminar idea">&#10005;</button>`}
     <span class="idea-badge ${s}">${s==='new'?'NUEVA':s==='used'?'USADA'+(idea.used_at?' — '+fmtDateTime(idea.used_at):''):'DESCARTADA'}</span>
     <div class="idea-text">${esc(idea.idea_text)}</div>
     <div class="idea-tags">
       <span class="idea-tag">${emoji} ${fmtName}</span>
-      ${idea.season_relevance?`<span class="idea-tag season">🗓️ ${esc(idea.season_relevance)}</span>`:''}
+      ${idea.season_relevance?`<span class="idea-tag season">${esc(idea.season_relevance)}</span>`:''}
     </div>
     ${s==='new'?`<div class="idea-actions">
       <button class="idea-btn" onclick="useIdea(${idea.id},'${idea.format}',\`${esc(idea.idea_text).replace(/`/g,'')}\`)"><i class="feather" data-icon="edit-3" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Generar contenido</button>
@@ -513,8 +526,8 @@ async function generateIdeas(){
 }
 
 function useIdea(id,format,text){
-  // Switch to generate tab with pre-filled data
-  G.fmt=format;G.topic=text;G.phase='topic';G.result='';G.resultId=null;G.editTxt='';
+  // Switch to generate tab - show format picker with topic pre-filled
+  G.fmt=null;G.topic=text;G.phase='pick';G.result='';G.resultId=null;G.editTxt='';G.analysis=null;G.analysisLoading=false;
   // Mark as used
   fetch('/api/spacebox/ideas/'+id,{method:'PUT',headers:hdrs,body:JSON.stringify({status:'used'})});
   setTab('generar');
@@ -524,6 +537,42 @@ async function discardIdea(id){
   try{
     await fetch('/api/spacebox/ideas/'+id,{method:'PUT',headers:hdrs,body:JSON.stringify({status:'discarded'})});
     toast('Idea descartada');
+    renderIdeas(document.getElementById('modContent'));
+  }catch(e){toast('Error: '+e.message)}
+}
+
+async function deleteIdea(id){
+  if(!confirm('Eliminar esta idea permanentemente?'))return;
+  try{
+    await fetch('/api/spacebox/ideas/'+id,{method:'DELETE',headers:hdrs});
+    toast('Idea eliminada');
+    renderIdeas(document.getElementById('modContent'));
+  }catch(e){toast('Error: '+e.message)}
+}
+
+function enableIdeasMultiSelect(){
+  ideasMultiSelectMode=true;
+  selectedIdeas=[];
+  renderIdeas(document.getElementById('modContent'));
+}
+function cancelIdeasMultiSelect(){
+  ideasMultiSelectMode=false;
+  selectedIdeas=[];
+  renderIdeas(document.getElementById('modContent'));
+}
+function toggleIdeaSelection(id){
+  if(selectedIdeas.includes(id)){selectedIdeas=selectedIdeas.filter(i=>i!==id)}
+  else{selectedIdeas.push(id)}
+  renderIdeas(document.getElementById('modContent'));
+}
+async function deleteMultipleIdeas(){
+  if(!selectedIdeas.length){toast('Selecciona al menos una idea');return}
+  if(!confirm(`Eliminar ${selectedIdeas.length} idea(s) permanentemente?`))return;
+  try{
+    await Promise.all(selectedIdeas.map(id=>fetch('/api/spacebox/ideas/'+id,{method:'DELETE',headers:hdrs})));
+    toast(`${selectedIdeas.length} ideas eliminadas`);
+    ideasMultiSelectMode=false;
+    selectedIdeas=[];
     renderIdeas(document.getElementById('modContent'));
   }catch(e){toast('Error: '+e.message)}
 }
@@ -639,7 +688,7 @@ async function renderHistorial(m){
         <span id="histSelCount" style="font-size:.75rem;color:var(--mt)"></span>
         <div style="margin-left:auto;display:flex;gap:.4rem">
           <button id="btnBulkDel" onclick="bulkDelHist()" style="display:none;background:#EF4444;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:.75rem;cursor:pointer">Eliminar seleccionados</button>
-          <button onclick="delAllHist(${JSON.stringify(allItems.map(i=>i.id))})" style="background:none;border:1px solid #EF4444;color:#EF4444;border-radius:6px;padding:4px 10px;font-size:.75rem;cursor:pointer">Borrar todo</button>
+          <button onclick="delAllHist()" style="background:none;border:1px solid #EF4444;color:#EF4444;border-radius:6px;padding:4px 10px;font-size:.75rem;cursor:pointer">Borrar todo</button>
         </div>
       </div>`:''}
       ${items.map(it=>`<div class="hist-item">
@@ -665,7 +714,7 @@ function toggleHistSel(id,checked){if(checked)histSel.add(id);else histSel.delet
 function toggleAllHist(checked,ids){histSel.clear();if(checked)ids.forEach(id=>histSel.add(id));document.querySelectorAll('[data-hid]').forEach(c=>c.checked=checked);updHistSelUI()}
 function updHistSelUI(){const n=histSel.size;const c=document.getElementById('histSelCount');const b=document.getElementById('btnBulkDel');if(c)c.textContent=n?n+' seleccionado'+(n>1?'s':''):'';if(b)b.style.display=n?'inline-block':'none'}
 async function bulkDelHist(){if(!histSel.size)return;if(!confirm(`Eliminar ${histSel.size} elemento(s) del historial?`))return;try{const r=await fetch('/api/spacebox/history/bulk-delete',{method:'POST',headers:hdrs,body:JSON.stringify({ids:[...histSel]})});const d=await r.json();if(d.error)throw new Error(d.error);toast(d.deleted+' eliminado(s)');renderHistorial(document.getElementById('modContent'))}catch(e){toast('Error: '+e.message)}}
-async function delAllHist(ids){if(!ids||!ids.length)return toast('No hay elementos');if(!confirm('Eliminar TODO el historial de SpaceBox? Esta accion no se puede deshacer.'))return;try{const r=await fetch('/api/spacebox/history/bulk-delete',{method:'POST',headers:hdrs,body:JSON.stringify({ids})});const d=await r.json();if(d.error)throw new Error(d.error);toast(d.deleted+' eliminado(s)');renderHistorial(document.getElementById('modContent'))}catch(e){toast('Error: '+e.message)}}
+async function delAllHist(){if(!confirm('Eliminar TODO el historial de SpaceBox? Esta accion no se puede deshacer.'))return;try{const r=await fetch('/api/spacebox/history?pageSize=9999',{headers:hdrs});const d=await r.json();const ids=(d.history||[]).map(h=>h.id);if(!ids.length)return toast('No hay elementos');const r2=await fetch('/api/spacebox/history/bulk-delete',{method:'POST',headers:hdrs,body:JSON.stringify({ids})});const d2=await r2.json();if(d2.error)throw new Error(d2.error);toast(d2.deleted+' eliminado(s)');renderHistorial(document.getElementById('modContent'))}catch(e){toast('Error: '+e.message)}}
 
 async function viewHistItem(id){
   try{
