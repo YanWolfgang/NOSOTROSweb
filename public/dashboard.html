@@ -1143,15 +1143,34 @@ async function loadStylyTasksIntel(){
 
 function renderStylyTasks(el,d){
   const s=d.stats;
+  const allStatuses=d.allStatuses||['Pendiente','En Progreso','Completada'];
+  const byStatus=s.byStatus||{};
   const projEntries=Object.entries(d.byProject).sort((a,b)=>b[1].total-a[1].total);
   const userEntries=Object.entries(d.byUser).filter(([k])=>k!=='Sin asignar').sort((a,b)=>b[1].total-a[1].total);
   const bp=d.byPriority;
   const urgent=d.urgent||[];
   const recent=d.recentlyUpdated||[];
 
+  // Default colors for known statuses, generate for custom ones
+  const STATUS_COLORS={'Pendiente':'#EF4444','En Progreso':'#F59E0B','Completada':'#10B981'};
+  const EXTRA_COLORS=['#8B5CF6','#3B82F6','#EC4899','#F97316','#06B6D4','#84CC16','#A855F7','#14B8A6'];
+  let extraIdx=0;
+  function statusColor(name){if(STATUS_COLORS[name])return STATUS_COLORS[name];if(!STATUS_COLORS[name]){STATUS_COLORS[name]=EXTRA_COLORS[extraIdx%EXTRA_COLORS.length];extraIdx++}return STATUS_COLORS[name]}
+
   // Donut chart SVG values
   const R=28, C=2*Math.PI*R;
   const offset=C-(s.completionRate/100)*C;
+
+  // Build KPI cards dynamically for all statuses
+  const statusCards=allStatuses.map(st=>{
+    const count=byStatus[st]||0;
+    const color=statusColor(st);
+    return`<div class="kpi-card" style="border-top:3px solid ${color}">
+      <div class="kpi-label">${esc(st)}</div>
+      <div class="kpi-value" style="color:${color}">${count}</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="background:${color};width:${s.total>0?count/s.total*100:0}%"></div></div>
+    </div>`;
+  }).join('');
 
   el.innerHTML=`
     <!-- KPI ROW -->
@@ -1160,21 +1179,7 @@ function renderStylyTasks(el,d){
         <div class="kpi-label">Total</div>
         <div class="kpi-value" style="color:#3B82F6">${s.total}</div>
       </div>
-      <div class="kpi-card" style="border-top:3px solid #EF4444">
-        <div class="kpi-label">Pendientes</div>
-        <div class="kpi-value" style="color:#EF4444">${s.pendiente}</div>
-        <div class="kpi-bar"><div class="kpi-bar-fill" style="background:#EF4444;width:${s.total>0?s.pendiente/s.total*100:0}%"></div></div>
-      </div>
-      <div class="kpi-card" style="border-top:3px solid #F59E0B">
-        <div class="kpi-label">En Progreso</div>
-        <div class="kpi-value" style="color:#F59E0B">${s.enProgreso}</div>
-        <div class="kpi-bar"><div class="kpi-bar-fill" style="background:#F59E0B;width:${s.total>0?s.enProgreso/s.total*100:0}%"></div></div>
-      </div>
-      <div class="kpi-card" style="border-top:3px solid #10B981">
-        <div class="kpi-label">Completadas</div>
-        <div class="kpi-value" style="color:#10B981">${s.completada}</div>
-        <div class="kpi-bar"><div class="kpi-bar-fill" style="background:#10B981;width:${s.total>0?s.completada/s.total*100:0}%"></div></div>
-      </div>
+      ${statusCards}
       <div class="kpi-card" style="border-top:3px solid #EC4899">
         <div class="kpi-label">Completado</div>
         <div class="donut-wrap">
@@ -1205,22 +1210,18 @@ function renderStylyTasks(el,d){
 
       <div class="dash-panel">
         <div class="dash-panel-title"><i class="feather" data-icon="users" style="display:inline-block;width:1em;height:1em;color:#8B5CF6" aria-hidden="true"></i> Carga por Usuario</div>
-        ${userEntries.map(([name,u])=>`
-          <div class="progress-row">
+        ${userEntries.map(([name,u])=>{
+          const uStatus=u.byStatus||{};
+          const badges=allStatuses.map(st=>`<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:.65rem;font-weight:700;background:${statusColor(st)}22;color:${statusColor(st)}">${uStatus[st]||0}</span>`).join('');
+          const bars=allStatuses.slice().reverse().map(st=>`<div style="background:${statusColor(st)};width:${u.total>0?(uStatus[st]||0)/u.total*100:0}%"></div>`).join('');
+          return`<div class="progress-row">
             <div class="progress-header">
               <span class="progress-name">${esc(name)}</span>
-              <div class="user-badges">
-                <span class="user-badge red">${u.pendiente}</span>
-                <span class="user-badge yellow">${u.enProgreso||0}</span>
-                <span class="user-badge green">${u.completada}</span>
-              </div>
+              <div class="user-badges">${badges}</div>
             </div>
-            <div class="progress-stacked">
-              <div style="background:#10B981;width:${u.total>0?u.completada/u.total*100:0}%"></div>
-              <div style="background:#F59E0B;width:${u.total>0?(u.enProgreso||0)/u.total*100:0}%"></div>
-              <div style="background:#EF4444;width:${u.total>0?u.pendiente/u.total*100:0}%"></div>
-            </div>
-          </div>`).join('')}
+            <div class="progress-stacked">${bars}</div>
+          </div>`;
+        }).join('')}
       </div>
     </div>
 
@@ -1237,9 +1238,7 @@ function renderStylyTasks(el,d){
               <div class="urgent-meta"><i class="feather" data-icon="user" style="display:inline-block;width:.8em;height:.8em;color:currentColor" aria-hidden="true"></i> ${esc(t.assigned_to||'Sin asignar')} ${t.project?'· <i class="feather" data-icon="folder" style="display:inline-block;width:.8em;height:.8em;color:currentColor" aria-hidden="true"></i> '+esc(t.project):''}</div>
             </div>
             <select onchange="updateStylyTask(${t.id},this.value)">
-              <option value="Pendiente" ${(t.status||'').toLowerCase()==='pendiente'?'selected':''}>Pendiente</option>
-              <option value="En Progreso" ${(t.status||'').toLowerCase()==='en progreso'?'selected':''}>En Progreso</option>
-              <option value="Completada" ${(t.status||'').toLowerCase()==='completada'?'selected':''}>Completada</option>
+              ${allStatuses.map(st=>`<option value="${esc(st)}" ${t.status===st?'selected':''}>${esc(st)}</option>`).join('')}
             </select>
           </div>
         `).join('')+
@@ -1268,11 +1267,9 @@ function renderStylyTasks(el,d){
     <div class="dash-panel">
       <div class="dash-panel-title"><i class="feather" data-icon="clock" style="display:inline-block;width:1em;height:1em;color:var(--mt)" aria-hidden="true"></i> Actividad Reciente</div>
       ${recent.map(t=>{
-        const stLow=(t.status||'').toLowerCase();
-        const stColor=stLow==='completada'?'#10B981':(stLow==='en progreso'?'#F59E0B':'#EF4444');
-        const stBg=stLow==='completada'?'rgba(16,185,129,.15)':(stLow==='en progreso'?'rgba(245,158,11,.15)':'rgba(239,68,68,.15)');
+        const stColor=statusColor(t.status||'Pendiente');
         return`<div class="activity-item">
-          <span class="activity-badge" style="background:${stBg};color:${stColor}">${esc(t.status)}</span>
+          <span class="activity-badge" style="background:${stColor}22;color:${stColor}">${esc(t.status)}</span>
           <span class="activity-id">${esc(t.task_id)}</span>
           <span class="activity-desc">${esc(t.description)}</span>
           <span class="activity-date">${t.updated_at?new Date(t.updated_at).toLocaleDateString('es-MX',{day:'2-digit',month:'short'}):''}</span>

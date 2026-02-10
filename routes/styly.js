@@ -736,14 +736,23 @@ router.get('/tasks/analytics', async (req, res) => {
       asignadosMap[a.task_id].push(a.name);
     });
 
-    // Overall stats
+    // Collect all unique statuses dynamically
+    const allStatuses = [...new Set(allTasks.map(t => t.estado || 'Pendiente'))];
+
+    // Overall stats — dynamic per status
+    const byStatus = {};
+    allStatuses.forEach(st => {
+      byStatus[st] = allTasks.filter(t => (t.estado || 'Pendiente') === st).length;
+    });
+    const completada = byStatus['Completada'] || 0;
     const stats = {
       total: allTasks.length,
-      pendiente: allTasks.filter(t => (t.estado || '').toLowerCase() === 'pendiente').length,
-      enProgreso: allTasks.filter(t => (t.estado || '').toLowerCase() === 'en progreso').length,
-      completada: allTasks.filter(t => (t.estado || '').toLowerCase() === 'completada').length
+      pendiente: byStatus['Pendiente'] || 0,
+      enProgreso: byStatus['En Progreso'] || 0,
+      completada,
+      byStatus
     };
-    stats.completionRate = stats.total > 0 ? Math.round((stats.completada / stats.total) * 100) : 0;
+    stats.completionRate = stats.total > 0 ? Math.round((completada / stats.total) * 100) : 0;
 
     // By priority
     const byPriority = { alta: { total: 0, done: 0 }, media: { total: 0, done: 0 }, baja: { total: 0, done: 0 } };
@@ -751,36 +760,32 @@ router.get('/tasks/analytics', async (req, res) => {
       const p = (t.prioridad || 'media').toLowerCase();
       if (byPriority[p]) {
         byPriority[p].total++;
-        if ((t.estado || '').toLowerCase() === 'completada') byPriority[p].done++;
+        if ((t.estado || '') === 'Completada') byPriority[p].done++;
       }
     });
 
-    // By user (from asignados)
+    // By user (from asignados) — dynamic per status
     const byUser = {};
     allTasks.forEach(t => {
       const users = asignadosMap[t.id] || ['Sin asignar'];
       users.forEach(u => {
-        if (!byUser[u]) byUser[u] = { total: 0, pendiente: 0, enProgreso: 0, completada: 0 };
+        if (!byUser[u]) byUser[u] = { total: 0, byStatus: {} };
         byUser[u].total++;
-        const s = (t.estado || '').toLowerCase();
-        if (s === 'pendiente') byUser[u].pendiente++;
-        else if (s === 'en progreso') byUser[u].enProgreso++;
-        else if (s === 'completada') byUser[u].completada++;
+        const st = t.estado || 'Pendiente';
+        byUser[u].byStatus[st] = (byUser[u].byStatus[st] || 0) + 1;
       });
     });
 
-    // By project
+    // By project — completion = Completada / total
     const byProject = {};
     projects.forEach(p => {
-      byProject[p.nombre] = { id: p.id, color: p.color, total: 0, pendiente: 0, completada: 0, completion: 0 };
+      byProject[p.nombre] = { id: p.id, color: p.color, total: 0, completada: 0, completion: 0 };
     });
     allTasks.forEach(t => {
       const pn = t.proyecto_nombre || 'Sin proyecto';
-      if (!byProject[pn]) byProject[pn] = { total: 0, pendiente: 0, completada: 0, completion: 0 };
+      if (!byProject[pn]) byProject[pn] = { total: 0, completada: 0, completion: 0 };
       byProject[pn].total++;
-      const s = (t.estado || '').toLowerCase();
-      if (s === 'pendiente') byProject[pn].pendiente++;
-      if (s === 'completada') byProject[pn].completada++;
+      if ((t.estado || '') === 'Completada') byProject[pn].completada++;
     });
     Object.values(byProject).forEach(p => {
       p.completion = p.total > 0 ? Math.round((p.completada / p.total) * 100) : 0;
@@ -798,7 +803,7 @@ router.get('/tasks/analytics', async (req, res) => {
       .slice(0, 5)
       .map(t => ({ task_id: t.task_id, description: t.titulo, status: t.estado, assigned_to: (asignadosMap[t.id]||[]).join(', ') || null, updated_at: t.updated_at }));
 
-    res.json({ stats, byPriority, byUser, byProject, urgent, recentlyUpdated, projects });
+    res.json({ stats, byPriority, byUser, byProject, urgent, recentlyUpdated, projects, allStatuses });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
