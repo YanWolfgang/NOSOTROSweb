@@ -392,9 +392,10 @@ const INDUSTRIES=['Estetica/Salon','Barberia','Spa/Bienestar','Nail salon','Tatu
 const FEATURES=['Agenda digital (adios libreta)','Website de reservas (tu-negocio.styly.mx)','CRM (historial de clientes)','Cobro de suscripciones (membresias 0% comision)','WhatsApp masivo (promos 1 click)','Cerebro IA (predicciones, precios)','Multi-sucursal (todos tus locales)','Metricas (empleados, nominas, reportes)'];
 // ========== STATE ==========
 let tab='generar';
-let G={category:null,format:null,aud:null,industry:'',feature:'',topic:'',phase:'category',result:'',resultId:null};
+let G={category:null,format:null,aud:null,industry:'',feature:'',topic:'',phase:'category',result:'',resultId:null,analysis:null,analysisLoading:false};
 let calWeekStart=getMonday(new Date());
-let histFilter={format:'',audience:'',status:''};
+let histFilter={format:'',audience:'',status:'',user:''};
+let histPage=1,histPageSize=parseInt(localStorage.getItem('styly_hist_ps'))||10,histUsers=[];
 let ideasMultiSelectMode=false;
 let selectedIdeas=[];
 
@@ -501,7 +502,47 @@ function rGenResult(){
       <button class="sy-tool" onclick="approveAndSchedule()"><i class="feather" data-icon="check-circle" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Aprobar y Agendar</button>
       <button class="sy-tool" onclick="doGenerate()">🔃 Regenerar</button>
     </div>
-    <div class="sy-edit"><input id="editIn" placeholder="Ej: Hazlo mas corto, enfocalo a barberias, tono mas urgente, cambia CTA..."><button onclick="doRegenEdit()"><i class="feather" data-icon="refresh-cw" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Regenerar con cambios</button></div>`;
+    <div class="sy-edit"><input id="editIn" placeholder="Ej: Hazlo mas corto, enfocalo a barberias, tono mas urgente, cambia CTA..."><button onclick="doRegenEdit()"><i class="feather" data-icon="refresh-cw" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Regenerar con cambios</button></div>
+    ${rAnalysisBar()}`;
+}
+function rAnalysisBar(){
+  if(G.analysisLoading){
+    return`<div style="margin-top:1rem;padding:1rem;border-radius:12px;background:rgba(236,72,153,0.08);border:1px solid rgba(236,72,153,0.2)">
+      <div style="display:flex;align-items:center;gap:.5rem;color:#EC4899"><div class="loader-dots" style="display:flex;gap:4px"><span></span><span></span><span></span></div> Analizando viralidad...</div></div>`;
+  }
+  if(G.analysis){
+    const a=G.analysis;
+    const scoreColor=a.score>=8?'#10B981':a.score>=5?'#F59E0B':'#EF4444';
+    return`<div style="margin-top:1rem;padding:1.25rem;border-radius:12px;background:rgba(236,72,153,0.06);border:1px solid rgba(236,72,153,0.15);backdrop-filter:blur(10px)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+        <div style="font-weight:600;font-size:.9rem;color:var(--text)"><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:#EC4899" aria-hidden="true"></i> Analisis de Viralidad</div>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <span style="font-size:1.5rem;font-weight:700;color:${scoreColor}">${a.score}</span>
+          <span style="font-size:.8rem;color:var(--mt)">/10</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem;margin-bottom:.75rem">
+        <div style="padding:.6rem;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border)">
+          <div style="font-size:.7rem;color:var(--mt);margin-bottom:.25rem">Engagement</div>
+          <div style="font-weight:600;color:${a.engagement>=7?'#10B981':a.engagement>=4?'#F59E0B':'#EF4444'}">${a.engagement}/10</div>
+        </div>
+        <div style="padding:.6rem;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border)">
+          <div style="font-size:.7rem;color:var(--mt);margin-bottom:.25rem">Contenido</div>
+          <div style="font-weight:600;color:${a.content_quality>=7?'#10B981':a.content_quality>=4?'#F59E0B':'#EF4444'}">${a.content_quality}/10</div>
+        </div>
+        <div style="padding:.6rem;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border)">
+          <div style="font-size:.7rem;color:var(--mt);margin-bottom:.25rem">Redaccion</div>
+          <div style="font-weight:600;color:${a.writing>=7?'#10B981':a.writing>=4?'#F59E0B':'#EF4444'}">${a.writing}/10</div>
+        </div>
+      </div>
+      <div style="font-size:.85rem;color:var(--text);line-height:1.5;margin-bottom:.75rem">
+        <div style="font-weight:600;font-size:.75rem;color:var(--mt);margin-bottom:.35rem">Observaciones</div>
+        ${a.observations.map(o=>'<div style="margin-bottom:.3rem">- '+esc(o)+'</div>').join('')}
+      </div>
+      <button class="btn" onclick="stylyImproveResult()" style="width:100%;background:#EC4899;font-size:.85rem;padding:.6rem"><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Mejorar basado en observaciones</button>
+    </div>`;
+  }
+  return`<div style="margin-top:1rem"><button class="sy-tool" onclick="stylyAnalyzeResult()" style="width:100%;border-color:#EC4899;color:#EC4899;background:rgba(236,72,153,0.05)"><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Analizar viralidad con IA</button></div>`;
 }
 
 function pickCategory(categoryId,audience){
@@ -523,7 +564,7 @@ function approveAndSchedule(){
 }
 
 function resetGen(){
-  G={category:null,format:null,aud:null,industry:'',feature:'',topic:'',phase:'category',result:'',resultId:null};
+  G={category:null,format:null,aud:null,industry:'',feature:'',topic:'',phase:'category',result:'',resultId:null,analysis:null,analysisLoading:false};
   renderTab();
 }
 
@@ -533,7 +574,7 @@ async function doGenerate(){
   try{
     const r=await fetch('/api/styly/generate',{method:'POST',headers:hdrs,body:JSON.stringify({category:G.category,format:G.format,audience:G.aud,topic:topicFull||undefined,industry:G.industry||undefined,feature:G.feature||undefined})});
     const d=await r.json();if(d.error)throw new Error(d.error);
-    G.result=d.content;G.resultId=d.id;G.phase='result';renderTab();
+    G.result=d.content;G.resultId=d.id;G.phase='result';G.analysis=null;G.analysisLoading=false;renderTab();
   }catch(e){console.error('Error en doGenerate:',e);toast('Error: '+e.message + ' - Reintentando en 2s...');setTimeout(()=>doGenerate(),2000)}
 }
 async function doRegenEdit(){
@@ -542,7 +583,7 @@ async function doRegenEdit(){
   try{
     const r=await fetch('/api/styly/generate',{method:'POST',headers:hdrs,body:JSON.stringify({category:G.category,format:G.format,audience:G.aud,previousContent:G.result,editInstructions:txt})});
     const d=await r.json();if(d.error)throw new Error(d.error);
-    G.result=d.content;G.resultId=d.id;G.phase='result';toast('Regenerado con cambios');
+    G.result=d.content;G.resultId=d.id;G.phase='result';G.analysis=null;G.analysisLoading=false;toast('Regenerado con cambios');
   }catch(e){G.phase='result';toast('Error: '+e.message)}
   renderTab();
 }
@@ -551,9 +592,42 @@ async function aiAction(instr){
   try{
     const r=await fetch('/api/styly/generate',{method:'POST',headers:hdrs,body:JSON.stringify({category:G.category,format:G.format,audience:G.aud,previousContent:G.result,editInstructions:instr})});
     const d=await r.json();if(d.error)throw new Error(d.error);
-    G.result=d.content;G.resultId=d.id;G.phase='result';toast('Listo');
+    G.result=d.content;G.resultId=d.id;G.phase='result';G.analysis=null;G.analysisLoading=false;toast('Listo');
   }catch(e){G.phase='result';toast('Error: '+e.message)}
   renderTab();
+}
+async function stylyAnalyzeResult(){
+  G.analysisLoading=true;G.analysis=null;renderTab();
+  const prompt=`Analiza el siguiente contenido para redes sociales y evalua su potencial de viralidad.
+
+CONTENIDO:
+${G.result}
+
+Responde SOLO con JSON valido en este formato exacto:
+{"score":7,"engagement":8,"content_quality":6,"writing":7,"observations":["observacion 1","observacion 2","observacion 3"]}
+
+Criterios de evaluacion:
+- score: Calificacion general de viralidad del 1 al 10
+- engagement: Potencial de interaccion (likes, comentarios, compartidos). Evalua si el gancho atrapa, si genera curiosidad, si el CTA invita a actuar.
+- content_quality: Calidad del contenido. Evalua si los beneficios son claros, si hay datos concretos, si el mensaje es relevante para la audiencia.
+- writing: Calidad de redaccion. Evalua claridad, tono, estructura, longitud adecuada, ortografia.
+- observations: Array de 3-5 observaciones especificas y accionables para mejorar el contenido. Se concreto: "El CTA es generico, cambiarlo a algo mas directo como 'Agenda tu cita hoy'" en vez de "mejorar el CTA".
+
+Se critico y honesto. Un 10 es practicamente imposible.`;
+  try{
+    const r=await fetch('/api/nosotros/generate',{method:'POST',headers:hdrs,body:JSON.stringify({prompt})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    const parsed=pJ(d.result||'');
+    if(!parsed||!parsed.score)throw new Error('No se pudo analizar');
+    G.analysis=parsed;
+  }catch(e){toast('Error al analizar: '+e.message);G.analysis=null}
+  G.analysisLoading=false;renderTab();
+}
+async function stylyImproveResult(){
+  if(!G.analysis)return;
+  const obs=G.analysis.observations.join('\n- ');
+  G.analysis=null;G.analysisLoading=false;
+  await aiAction(`Aqui estan las observaciones de un analisis de viralidad. Aplica TODAS las mejoras al contenido:\n- ${obs}\n\nReescribe el contenido COMPLETO aplicando cada observacion. Mantiene el mismo formato y estructura pero mejora cada punto senalado.`);
 }
 function cpSec(i){const el=document.getElementById('sec'+i);if(!el)return;cpClip(el.textContent||el.innerText);el.closest('.sy-sec').querySelector('.cp-s').textContent='<i class="feather" data-icon="check" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>';setTimeout(()=>{const b=document.querySelector(`#sec${i}`)?.closest('.sy-sec')?.querySelector('.cp-s');if(b)b.textContent='<i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'},1500)}
 
@@ -765,8 +839,12 @@ async function renderHistorial(m){
   histSel.clear();
   m.innerHTML='<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div></div>';
   try{
-    const r=await fetch('/api/styly/history',{headers:hdrs});const d=await r.json();if(d.error)throw new Error(d.error);
+    let url=`/api/styly/history?page=${histPage}&pageSize=${histPageSize}`;
+    if(histFilter.user)url+=`&user_id=${histFilter.user}`;
+    const r=await fetch(url,{headers:hdrs});const d=await r.json();if(d.error)throw new Error(d.error);
     let allItems=d.history||[];
+    histUsers=d.users||histUsers;
+    const pg=d.pagination||{page:1,totalPages:1,total:0};
     let items=[...allItems];
     if(histFilter.format)items=items.filter(i=>i.format_type===histFilter.format);
     if(histFilter.audience)items=items.filter(i=>{const inp=typeof i.input_data==='string'?JSON.parse(i.input_data||'{}'):i.input_data||{};return inp.audience===histFilter.audience});
@@ -776,6 +854,9 @@ async function renderHistorial(m){
       <select onchange="histFilter.format=this.value;renderHistorial(document.getElementById('modContent'))"><option value="">Todos los formatos</option>${ALL_FMTS.map(f=>`<option value="${f.id}" ${histFilter.format===f.id?'selected':''}>${f.name}</option>`).join('')}<option value="script_pitch" ${histFilter.format==='script_pitch'?'selected':''}>Script Pitch</option><option value="script_objections" ${histFilter.format==='script_objections'?'selected':''}>Script Objeciones</option><option value="script_whatsapp" ${histFilter.format==='script_whatsapp'?'selected':''}>Script WhatsApp</option><option value="script_email" ${histFilter.format==='script_email'?'selected':''}>Script Email</option></select>
       <select onchange="histFilter.audience=this.value;renderHistorial(document.getElementById('modContent'))"><option value="">Todas las audiencias</option><option value="clients" ${histFilter.audience==='clients'?'selected':''}>Clientes</option><option value="affiliates" ${histFilter.audience==='affiliates'?'selected':''}>Afiliadas</option></select>
       <select onchange="histFilter.status=this.value;renderHistorial(document.getElementById('modContent'))"><option value="">Todos los status</option><option value="draft" ${histFilter.status==='draft'?'selected':''}>Draft</option><option value="approved" ${histFilter.status==='approved'?'selected':''}>Approved</option></select>
+      <select onchange="histFilter.user=this.value;histPage=1;renderHistorial(document.getElementById('modContent'))"><option value="">Todos los usuarios</option>${histUsers.map(u=>`<option value="${u.id}" ${histFilter.user==u.id?'selected':''}>${esc(u.name)}</option>`).join('')}</select>
+      <select onchange="histPageSize=+this.value;localStorage.setItem('styly_hist_ps',this.value);histPage=1;renderHistorial(document.getElementById('modContent'))"><option value="5" ${histPageSize===5?'selected':''}>5</option><option value="10" ${histPageSize===10?'selected':''}>10</option><option value="20" ${histPageSize===20?'selected':''}>20</option></select>
+      <span style="font-size:.75rem;color:var(--mt)">${pg.total} resultado${pg.total!==1?'s':''}</span>
     </div>
     ${items.length?`
     <div style="display:flex;gap:.5rem;margin-bottom:.5rem;align-items:center;flex-wrap:wrap">
@@ -787,8 +868,9 @@ async function renderHistorial(m){
       </div>
     </div>
     ${items.map(it=>{const inp=typeof it.input_data==='string'?JSON.parse(it.input_data||'{}'):it.input_data||{};const aud=inp.audience;
-      return`<div class="hist-item"><input type="checkbox" data-hid="${it.id}" onchange="toggleHistSel(${it.id},this.checked)" style="cursor:pointer;accent-color:#EF4444;margin-right:.3rem"><div class="hist-left"><span class="hist-emoji">${FMT_EMOJI[it.format_type]||'<i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'}</span><div class="hist-info"><div class="hist-title">${esc((it.preview||'').slice(0,60))}</div><div class="hist-meta">${aud?'<span class="idea-bdg '+(aud==='affiliates'?'affiliates':'clients')+'" style="font-size:.6rem;margin-right:.25rem">'+(aud==='affiliates'?'AFILIADAS':'CLIENTES')+'</span>':''}${esc(it.user_name||'Usuario')} · ${fmtDT(it.created_at)}${it.status==='approved'&&it.scheduled_date?' · '+fmtDT(it.scheduled_date):''}</div></div></div>
-        <div class="hist-right"><span class="hist-st ${it.status==='approved'?'approved':'draft'}">${it.status==='approved'?'Approved':'Draft'}</span><button class="idea-btn" onclick="viewHistItem(${it.id})">Ver</button><button class="idea-btn" onclick="cpHistItem(${it.id})"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button><button class="idea-btn danger" onclick="delHistItem(${it.id})"><i class="feather" data-icon="trash-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button></div></div>`}).join('')}`:'<p style="color:var(--mt);text-align:center;padding:2rem">No hay contenido generado.</p>'}`;
+      return`<div class="hist-item"><input type="checkbox" data-hid="${it.id}" onchange="toggleHistSel(${it.id},this.checked)" style="cursor:pointer;accent-color:#EF4444;margin-right:.3rem"><div class="hist-left"><span class="hist-emoji">${FMT_EMOJI[it.format_type]||'<i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'}</span><div class="hist-info"><div class="hist-title">${esc((it.preview||'').slice(0,60))}</div><div class="hist-meta">${aud?'<span class="idea-bdg '+(aud==='affiliates'?'affiliates':'clients')+'" style="font-size:.6rem;margin-right:.25rem">'+(aud==='affiliates'?'AFILIADAS':'CLIENTES')+'</span>':''}<span style="color:#EC4899;font-weight:500">${esc(it.user_name||'Usuario')}</span> · ${fmtDT(it.created_at)}${it.status==='approved'&&it.scheduled_date?' · '+fmtDT(it.scheduled_date):''}</div></div></div>
+        <div class="hist-right"><span class="hist-st ${it.status==='approved'?'approved':'draft'}">${it.status==='approved'?'Approved':'Draft'}</span><button class="idea-btn" onclick="viewHistItem(${it.id})">Ver</button><button class="idea-btn" onclick="cpHistItem(${it.id})"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button><button class="idea-btn danger" onclick="delHistItem(${it.id})"><i class="feather" data-icon="trash-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button></div></div>`}).join('')}
+    ${pg.totalPages>1?`<div style="display:flex;justify-content:center;gap:.4rem;margin-top:.75rem;flex-wrap:wrap">${Array.from({length:pg.totalPages},(_,i)=>i+1).map(p=>`<button onclick="histPage=${p};renderHistorial(document.getElementById('modContent'))" style="padding:4px 10px;border-radius:6px;border:1px solid ${p===pg.page?'#EC4899':'var(--border)'};background:${p===pg.page?'#EC4899':'var(--card)'};color:${p===pg.page?'#fff':'var(--fg)'};cursor:pointer;font-size:.8rem">${p}</button>`).join('')}</div>`:''}`:'<p style="color:var(--mt);text-align:center;padding:2rem">No hay contenido generado.</p>'}`;
   }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
 }
 function toggleHistSel(id,checked){if(checked)histSel.add(id);else histSel.delete(id);updHistSelUI()}

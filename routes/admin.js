@@ -251,6 +251,45 @@ router.get('/trends', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ========== CONTENT ACTIVITY FEED ==========
+router.get('/content-activity', async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 50, 200);
+    const business = req.query.business || null;
+    const userId = req.query.user_id || null;
+
+    let where = '';
+    const params = [];
+    let idx = 1;
+    if (business) { where += ` AND ch.business = $${idx++}`; params.push(business); }
+    if (userId) { where += ` AND ch.user_id = $${idx++}`; params.push(userId); }
+    params.push(limit);
+
+    const { rows } = await pool.query(
+      `SELECT ch.id, ch.business, ch.format_type, ch.status, ch.created_at,
+              ch.scheduled_date, ch.scheduled_platform,
+              LEFT(ch.output_text, 150) as preview,
+              u.id as user_id, u.name as user_name, u.role as user_role
+       FROM content_history ch
+       LEFT JOIN users u ON ch.user_id = u.id
+       WHERE 1=1 ${where}
+       ORDER BY ch.created_at DESC
+       LIMIT $${idx}`, params
+    );
+
+    // Group by user for summary
+    const byUser = {};
+    for (const r of rows) {
+      const name = r.user_name || 'Desconocido';
+      if (!byUser[name]) byUser[name] = { user_id: r.user_id, role: r.user_role, total: 0, byBusiness: {} };
+      byUser[name].total++;
+      byUser[name].byBusiness[r.business] = (byUser[name].byBusiness[r.business] || 0) + 1;
+    }
+
+    res.json({ activity: rows, byUser });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // ========== STYLY USER PERMISSIONS ==========
 router.get('/styly/permissions/:userId', async (req, res) => {
   try {

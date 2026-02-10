@@ -210,11 +210,32 @@ router.post('/generate', requirePermission('duelazo', 'crear'), async (req, res)
 // Historial
 router.get('/history', requirePermission('duelazo', 'ver'), async (req, res) => {
   try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const pageSize = Math.min(50, Math.max(1, parseInt(req.query.pageSize) || 10));
+    const filterUser = req.query.user_id || null;
+    const offset = (page - 1) * pageSize;
+
+    let where = `ch.business = 'duelazo'`;
+    const params = [];
+    let idx = 1;
+    if (filterUser) { where += ` AND ch.user_id = $${idx++}`; params.push(filterUser); }
+
+    const countRes = await pool.query(`SELECT COUNT(*)::int as total FROM content_history ch WHERE ${where}`, params);
+    const total = countRes.rows[0].total;
+
+    params.push(pageSize, offset);
     const { rows } = await pool.query(
-      'SELECT id, format_type, status, created_at, LEFT(output_text, 200) as preview FROM content_history WHERE user_id = $1 AND business = $2 ORDER BY created_at DESC LIMIT 50',
-      [req.user.id, 'duelazo']
+      `SELECT ch.id, ch.format_type, ch.status, ch.created_at,
+              LEFT(ch.output_text, 200) as preview, u.name as user_name, ch.user_id
+       FROM content_history ch LEFT JOIN users u ON ch.user_id = u.id
+       WHERE ${where} ORDER BY ch.created_at DESC LIMIT $${idx++} OFFSET $${idx}`, params
     );
-    res.json({ history: rows });
+
+    const usersRes = await pool.query(
+      `SELECT DISTINCT u.id, u.name FROM content_history ch JOIN users u ON ch.user_id = u.id WHERE ch.business = 'duelazo' ORDER BY u.name`
+    );
+
+    res.json({ history: rows, users: usersRes.rows, pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) } });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

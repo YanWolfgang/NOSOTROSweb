@@ -247,6 +247,25 @@
 .toast.info{background:rgba(59,130,246,.9);border:1px solid rgba(59,130,246,.3)}
 @keyframes toastIn{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:translateX(0)}}
 @keyframes toastOut{from{opacity:1}to{opacity:0;transform:translateY(-10px)}}
+/* Content Activity */
+.ca-filters{display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap}
+.ca-filters select{padding:.4rem .75rem;border-radius:10px;border:1px solid var(--glass-border);background:var(--glass);color:var(--fg);font-size:.8rem;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.ca-item{display:flex;align-items:center;gap:.6rem;padding:.55rem .4rem;border-bottom:1px solid var(--glass-border);transition:background .2s;font-size:.82rem}
+.ca-item:last-child{border-bottom:none}
+.ca-item:hover{background:rgba(255,255,255,.03);border-radius:8px}
+.ca-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:#fff;flex-shrink:0}
+.ca-body{flex:1;min-width:0}
+.ca-user{font-weight:600;color:var(--fg);font-size:.8rem}
+.ca-preview{font-size:.75rem;color:var(--mt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:350px;margin-top:.15rem}
+.ca-meta{display:flex;align-items:center;gap:.4rem;flex-shrink:0}
+.ca-biz{padding:2px 8px;border-radius:6px;font-size:.68rem;font-weight:700;color:#fff}
+.ca-date{font-size:.7rem;color:var(--mt)}
+.ca-status{padding:2px 6px;border-radius:5px;font-size:.65rem;font-weight:700}
+@media(max-width:768px){
+  .ca-item{flex-direction:column;align-items:flex-start;gap:.3rem;padding:.5rem 0}
+  .ca-preview{max-width:100%}
+  .ca-meta{width:100%;justify-content:space-between}
+}
 </style>
 </head>
 <body>
@@ -371,6 +390,12 @@ function renderDashboard(){
       </div>
     </div>
 
+    <!-- CONTENT ACTIVITY -->
+    <div class="dash-section">
+      <div class="dash-section-title"><i class="feather" data-icon="file-text" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Actividad de Contenido</div>
+      <div class="dash-panel" id="contentActivityPanel"><div style="color:var(--mt);font-size:.82rem;padding:1rem;text-align:center">Cargando...</div></div>
+    </div>
+
     <!-- BIZ INTEL GRID -->
     <div class="dash-section">
       <div class="dash-section-title"><i class="feather" data-icon="trending-up" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Inteligencia por Negocio</div>
@@ -407,6 +432,7 @@ function renderDashboard(){
   loadStats();
   loadTeam();
   loadCalendar();
+  loadContentActivity();
   loadBizIntel();
   loadStylyTasksIntel();
   loadTrends();
@@ -959,6 +985,73 @@ async function loadCalendar(){
           :`<div class="cal-day-empty">Sin contenido agendado</div>`}
       </div>`).join('');
   }catch(e){el.innerHTML=`<div style="color:var(--mt);font-size:.82rem;padding:1rem">${esc(e.message)}</div>`}
+}
+
+// ========== CONTENT ACTIVITY ==========
+let caFilter={business:'',user_id:''};
+let caUsers=[];
+async function loadContentActivity(){
+  const el=document.getElementById('contentActivityPanel');if(!el)return;
+  try{
+    // Always load unfiltered user list for dropdown (only on first load or when no users cached)
+    if(!caUsers.length){
+      const ur=await fetch('/api/admin/content-activity?limit=200',{headers:hdrs});
+      const ud=await ur.json();
+      caUsers=Object.entries(ud.byUser||{}).map(([name,u])=>({name,user_id:u.user_id,total:u.total})).sort((a,b)=>b.total-a.total);
+    }
+    let url='/api/admin/content-activity?limit=30';
+    if(caFilter.business)url+='&business='+caFilter.business;
+    if(caFilter.user_id)url+='&user_id='+caFilter.user_id;
+    const r=await fetch(url,{headers:hdrs});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    const items=d.activity||[];
+
+    el.innerHTML=`
+      <div class="ca-filters">
+        <select onchange="caFilter.business=this.value;loadContentActivity()">
+          <option value="">Todos los negocios</option>
+          ${BUSINESSES.map(b=>`<option value="${b.id}" ${caFilter.business===b.id?'selected':''}>${b.name}</option>`).join('')}
+        </select>
+        <select onchange="caFilter.user_id=this.value;loadContentActivity()">
+          <option value="">Todos los usuarios</option>
+          ${caUsers.map(u=>`<option value="${u.user_id}" ${caFilter.user_id==u.user_id?'selected':''}>${esc(u.name)} (${u.total})</option>`).join('')}
+        </select>
+        <span style="font-size:.75rem;color:var(--mt);margin-left:auto">${items.length} registros</span>
+      </div>
+      ${items.length?items.map(it=>{
+        const color=BIZ_COLORS[it.business]||'#6B7280';
+        const icon=BIZ_ICONS[it.business]||'';
+        const stColor=it.status==='approved'?'#10B981':'#6B7280';
+        const stBg=it.status==='approved'?'rgba(16,185,129,.12)':'rgba(107,114,128,.1)';
+        const initial=(it.user_name||'?')[0].toUpperCase();
+        const ago=timeAgo(it.created_at);
+        const preview=(it.preview||'').replace(/\n/g,' ').slice(0,100);
+        return`<div class="ca-item">
+          <div class="ca-avatar" style="background:${color}">${initial}</div>
+          <div class="ca-body">
+            <div class="ca-user">${esc(it.user_name||'Desconocido')} <span style="font-weight:400;color:var(--mt)">genero</span> <span style="color:${color};font-weight:600">${esc(it.format_type)}</span></div>
+            <div class="ca-preview">${esc(preview)}</div>
+          </div>
+          <div class="ca-meta">
+            <span class="ca-biz" style="background:${color}">${icon} ${esc(it.business.toUpperCase())}</span>
+            <span class="ca-status" style="background:${stBg};color:${stColor}">${it.status==='approved'?'Aprobado':'Draft'}</span>
+            <span class="ca-date">${ago}</span>
+          </div>
+        </div>`;
+      }).join(''):'<p style="color:var(--mt);text-align:center;padding:1rem">No hay actividad de contenido registrada.</p>'}`;
+  }catch(e){el.innerHTML=`<div style="color:var(--mt);font-size:.82rem;padding:1rem">${esc(e.message)}</div>`}
+}
+function timeAgo(dateStr){
+  if(!dateStr)return'';
+  const ms=Date.now()-new Date(dateStr).getTime();
+  const mins=Math.floor(ms/60000);
+  if(mins<1)return'Ahora';
+  if(mins<60)return mins+'m';
+  const hrs=Math.floor(mins/60);
+  if(hrs<24)return hrs+'h';
+  const days=Math.floor(hrs/24);
+  if(days<7)return days+'d';
+  return new Date(dateStr).toLocaleDateString('es-MX',{day:'2-digit',month:'short'});
 }
 
 // ========== BUSINESS INTELLIGENCE ==========

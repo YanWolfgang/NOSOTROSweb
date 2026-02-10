@@ -183,11 +183,12 @@ const FMT_EMOJI={video:'<i class="feather" data-icon="film" style="display:inlin
 
 // ========== STATE ==========
 let tab='generar';
-let G={fmt:null,topic:'',phase:'pick',result:'',resultId:null,editTxt:''};
+let G={fmt:null,topic:'',phase:'pick',result:'',resultId:null,editTxt:'',analysis:null,analysisLoading:false};
 let calWeekStart=getMonday(new Date());
 
 // ========== HELPERS ==========
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function pJ(t){try{const i=t.indexOf('{'),j=t.lastIndexOf('}');if(i===-1||j===-1)return null;return JSON.parse(t.slice(i,j+1))}catch{return null}}
 function md(t){
   return esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>')
     .replace(/^### (.+)$/gm,'<h4>$1</h4>').replace(/^## (.+)$/gm,'<h3>$1</h3>').replace(/^# (.+)$/gm,'<h2>$1</h2>')
@@ -279,7 +280,8 @@ function rGenResult(){
     <div class="sb-edit">
       <input id="editInput" placeholder="Ej: Hazlo más corto, cambia el CTA, hazlo más informal, agrega dato de seguridad..." value="${esc(G.editTxt)}">
       <button onclick="doRegenEdit()"><i class="feather" data-icon="refresh-cw" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Regenerar con cambios</button>
-    </div>`;
+    </div>
+    ${rAnalysisBar()}`;
 }
 
 function parseSections(text){
@@ -311,9 +313,90 @@ function parseSections(text){
   return sections.filter(s=>s.body.trim()).map(s=>({title:s.title,body:s.body.trim()}));
 }
 
+function rAnalysisBar(){
+  if(G.analysisLoading){
+    return`<div style="margin-top:1rem;padding:1rem;border-radius:12px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2)">
+      <div style="display:flex;align-items:center;gap:.5rem;color:var(--sb)"><div class="loader-dots" style="display:flex;gap:4px"><span></span><span></span><span></span></div> Analizando viralidad...</div></div>`;
+  }
+  if(G.analysis){
+    const a=G.analysis;
+    const scoreColor=a.score>=8?'#10B981':a.score>=5?'#F59E0B':'#EF4444';
+    return`<div style="margin-top:1rem;padding:1.25rem;border-radius:12px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15);backdrop-filter:blur(10px)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+        <div style="font-weight:600;font-size:.9rem;color:var(--text)"><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:var(--sb)" aria-hidden="true"></i> Analisis de Viralidad</div>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <span style="font-size:1.5rem;font-weight:700;color:${scoreColor}">${a.score}</span>
+          <span style="font-size:.8rem;color:var(--mt)">/10</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem;margin-bottom:.75rem">
+        <div style="padding:.6rem;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border)">
+          <div style="font-size:.7rem;color:var(--mt);margin-bottom:.25rem">Engagement</div>
+          <div style="font-weight:600;color:${a.engagement>=7?'#10B981':a.engagement>=4?'#F59E0B':'#EF4444'}">${a.engagement}/10</div>
+        </div>
+        <div style="padding:.6rem;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border)">
+          <div style="font-size:.7rem;color:var(--mt);margin-bottom:.25rem">Contenido</div>
+          <div style="font-weight:600;color:${a.content_quality>=7?'#10B981':a.content_quality>=4?'#F59E0B':'#EF4444'}">${a.content_quality}/10</div>
+        </div>
+        <div style="padding:.6rem;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border)">
+          <div style="font-size:.7rem;color:var(--mt);margin-bottom:.25rem">Redaccion</div>
+          <div style="font-weight:600;color:${a.writing>=7?'#10B981':a.writing>=4?'#F59E0B':'#EF4444'}">${a.writing}/10</div>
+        </div>
+      </div>
+      <div style="font-size:.85rem;color:var(--fg);line-height:1.5;margin-bottom:.75rem">
+        <div style="font-weight:600;font-size:.75rem;color:var(--mt);margin-bottom:.35rem">Observaciones</div>
+        ${a.observations.map(o=>'<div style="margin-bottom:.3rem">- '+esc(o)+'</div>').join('')}
+      </div>
+      <button class="btn" onclick="sbImproveResult()" style="width:100%;background:var(--sb);font-size:.85rem;padding:.6rem"><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Mejorar basado en observaciones</button>
+    </div>`;
+  }
+  return`<div style="margin-top:1rem"><button class="sb-tool" onclick="sbAnalyzeResult()" style="width:100%;border-color:var(--sb);color:var(--sb);background:rgba(59,130,246,0.05)"><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Analizar viralidad con IA</button></div>`;
+}
+async function sbAnalyzeResult(){
+  G.analysisLoading=true;G.analysis=null;renderTab();
+  const prompt=`Analiza el siguiente contenido para redes sociales y evalua su potencial de viralidad.
+
+CONTENIDO:
+${G.result}
+
+Responde SOLO con JSON valido en este formato exacto:
+{"score":7,"engagement":8,"content_quality":6,"writing":7,"observations":["observacion 1","observacion 2","observacion 3"]}
+
+Criterios de evaluacion:
+- score: Calificacion general de viralidad del 1 al 10
+- engagement: Potencial de interaccion (likes, comentarios, compartidos). Evalua si el gancho atrapa, si genera curiosidad, si el CTA invita a actuar.
+- content_quality: Calidad del contenido. Evalua si los beneficios son claros, si hay datos concretos, si el mensaje es relevante para la audiencia.
+- writing: Calidad de redaccion. Evalua claridad, tono, estructura, longitud adecuada, ortografia.
+- observations: Array de 3-5 observaciones especificas y accionables para mejorar el contenido. Se concreto: "El CTA es generico, cambiarlo a algo mas directo como 'Reserva tu bodega hoy'" en vez de "mejorar el CTA".
+
+Se critico y honesto. Un 10 es practicamente imposible.`;
+  try{
+    const r=await fetch('/api/nosotros/generate',{method:'POST',headers:hdrs,body:JSON.stringify({prompt})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    const parsed=pJ(d.result||'');
+    if(!parsed||!parsed.score)throw new Error('No se pudo analizar');
+    G.analysis=parsed;
+  }catch(e){toast('Error al analizar: '+e.message);G.analysis=null}
+  G.analysisLoading=false;renderTab();
+}
+async function sbImproveResult(){
+  if(!G.analysis)return;
+  const obs=G.analysis.observations.join('\n- ');
+  G.analysis=null;G.analysisLoading=false;
+  G.phase='loading';renderTab();
+  try{
+    const r=await fetch('/api/spacebox/generate',{method:'POST',headers:hdrs,
+      body:JSON.stringify({format:G.fmt,previousContent:G.result,editInstructions:`Aqui estan las observaciones de un analisis de viralidad. Aplica TODAS las mejoras al contenido:\n- ${obs}\n\nReescribe el contenido COMPLETO aplicando cada observacion. Mantiene el mismo formato y estructura pero mejora cada punto senalado.`})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    G.result=d.content;G.resultId=d.id;G.phase='result';
+    toast('Contenido mejorado');
+  }catch(e){G.phase='result';toast('Error: '+e.message)}
+  renderTab();
+}
+
 // ========== GENERAR ACTIONS ==========
 function pickFmt(id){G.fmt=id;renderTab()}
-function resetGen(){G={fmt:null,topic:'',phase:'pick',result:'',resultId:null,editTxt:''};renderTab()}
+function resetGen(){G={fmt:null,topic:'',phase:'pick',result:'',resultId:null,editTxt:'',analysis:null,analysisLoading:false};renderTab()}
 
 async function doGenerate(){
   G.phase='loading';renderTab();
@@ -321,7 +404,7 @@ async function doGenerate(){
     const r=await fetch('/api/spacebox/generate',{method:'POST',headers:hdrs,
       body:JSON.stringify({format:G.fmt,topic:G.topic||undefined})});
     const d=await r.json();if(d.error)throw new Error(d.error);
-    G.result=d.content;G.resultId=d.id;G.phase='result';G.editTxt='';
+    G.result=d.content;G.resultId=d.id;G.phase='result';G.editTxt='';G.analysis=null;G.analysisLoading=false;
   }catch(e){G.phase='topic';toast('Error: '+e.message)}
   renderTab();
 }
@@ -334,7 +417,7 @@ async function doRegenEdit(){
     const r=await fetch('/api/spacebox/generate',{method:'POST',headers:hdrs,
       body:JSON.stringify({format:G.fmt,previousContent:G.result,editInstructions:txt})});
     const d=await r.json();if(d.error)throw new Error(d.error);
-    G.result=d.content;G.resultId=d.id;G.phase='result';G.editTxt='';
+    G.result=d.content;G.resultId=d.id;G.phase='result';G.editTxt='';G.analysis=null;G.analysisLoading=false;
     toast('Contenido regenerado con cambios');
   }catch(e){G.phase='result';toast('Error: '+e.message)}
   renderTab();
@@ -346,7 +429,7 @@ async function aiReview(){
     const r=await fetch('/api/spacebox/generate',{method:'POST',headers:hdrs,
       body:JSON.stringify({format:G.fmt,previousContent:G.result,editInstructions:'Revisa el contenido. Corrige errores de ortografía, mejora la claridad, asegúrate de que el CTA esté claro y los beneficios de SPACEBOX estén presentes. Devuelve la versión mejorada.'})});
     const d=await r.json();if(d.error)throw new Error(d.error);
-    G.result=d.content;G.resultId=d.id;G.phase='result';
+    G.result=d.content;G.resultId=d.id;G.phase='result';G.analysis=null;G.analysisLoading=false;
     toast('Contenido revisado por IA');
   }catch(e){G.phase='result';toast('Error: '+e.message)}
   renderTab();
@@ -358,7 +441,7 @@ async function aiMulti(){
     const r=await fetch('/api/spacebox/generate',{method:'POST',headers:hdrs,
       body:JSON.stringify({format:G.fmt,previousContent:G.result,editInstructions:'Adapta este contenido para 3 plataformas:\n1. Instagram Feed (copy 500 chars + hashtags)\n2. Instagram Stories (texto corto + CTA)\n3. Instagram Reels (guion 30 seg)\nMantén el mensaje central pero adapta el formato a cada plataforma.'})});
     const d=await r.json();if(d.error)throw new Error(d.error);
-    G.result=d.content;G.resultId=d.id;G.phase='result';
+    G.result=d.content;G.resultId=d.id;G.phase='result';G.analysis=null;G.analysisLoading=false;
     toast('Multi-formato generado');
   }catch(e){G.phase='result';toast('Error: '+e.message)}
   renderTab();
@@ -370,7 +453,7 @@ async function aiVariants(){
     const r=await fetch('/api/spacebox/generate',{method:'POST',headers:hdrs,
       body:JSON.stringify({format:G.fmt,previousContent:G.result,editInstructions:'Genera 2 variantes (A y B) de este contenido para test A/B. Variante A: tono más profesional/corporativo. Variante B: tono más cercano/casual. Ambas deben mantener el CTA y los beneficios de SPACEBOX.'})});
     const d=await r.json();if(d.error)throw new Error(d.error);
-    G.result=d.content;G.resultId=d.id;G.phase='result';
+    G.result=d.content;G.resultId=d.id;G.phase='result';G.analysis=null;G.analysisLoading=false;
     toast('Variantes A/B generadas');
   }catch(e){G.phase='result';toast('Error: '+e.message)}
   renderTab();
@@ -509,16 +592,21 @@ async function viewCalItem(id){
 }
 
 // ========== TAB 4: HISTORIAL ==========
-let histFilter={format:'',status:''};
+let histFilter={format:'',status:'',user:''};
 let histSel=new Set();
+let histPage=1,histPageSize=parseInt(localStorage.getItem('spacebox_hist_ps'))||10,histUsers=[];
 
 async function renderHistorial(m){
   histSel.clear();
   m.innerHTML='<div class="loader"><div class="loader-dots"><span></span><span></span><span></span></div></div>';
   try{
-    const r=await fetch('/api/spacebox/history',{headers:hdrs});
+    let url=`/api/spacebox/history?page=${histPage}&pageSize=${histPageSize}`;
+    if(histFilter.user)url+=`&user_id=${histFilter.user}`;
+    const r=await fetch(url,{headers:hdrs});
     const d=await r.json();if(d.error)throw new Error(d.error);
     let allItems=d.history||[];
+    histUsers=d.users||histUsers;
+    const pg=d.pagination||{page:1,totalPages:1,total:0};
     let items=[...allItems];
     if(histFilter.format) items=items.filter(i=>i.format_type===histFilter.format);
     if(histFilter.status) items=items.filter(i=>i.status===histFilter.status);
@@ -534,6 +622,16 @@ async function renderHistorial(m){
           <option value="draft" ${histFilter.status==='draft'?'selected':''}>Draft</option>
           <option value="approved" ${histFilter.status==='approved'?'selected':''}>Approved</option>
         </select>
+        <select onchange="histFilter.user=this.value;histPage=1;renderHistorial(document.getElementById('modContent'))">
+          <option value="">Todos los usuarios</option>
+          ${histUsers.map(u=>`<option value="${u.id}" ${histFilter.user==u.id?'selected':''}>${esc(u.name)}</option>`).join('')}
+        </select>
+        <select onchange="histPageSize=+this.value;localStorage.setItem('spacebox_hist_ps',this.value);histPage=1;renderHistorial(document.getElementById('modContent'))">
+          <option value="5" ${histPageSize===5?'selected':''}>5</option>
+          <option value="10" ${histPageSize===10?'selected':''}>10</option>
+          <option value="20" ${histPageSize===20?'selected':''}>20</option>
+        </select>
+        <span style="font-size:.75rem;color:var(--mt)">${pg.total} resultado${pg.total!==1?'s':''}</span>
       </div>
       ${items.length?`
       ${canEdit?`<div style="display:flex;gap:.5rem;margin-bottom:.6rem;align-items:center;flex-wrap:wrap">
@@ -550,7 +648,7 @@ async function renderHistorial(m){
           <span class="hist-emoji">${FMT_EMOJI[it.format_type]||'<i class="feather" data-icon="clipboard" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i>'}</span>
           <div class="hist-info">
             <div class="hist-title">${esc((it.preview||'Sin titulo').slice(0,50))}</div>
-            <div class="hist-meta">${esc(it.user_name||'Usuario')} · ${fmtDateTime(it.created_at)}${it.status==='approved'&&it.scheduled_date?' · Agendado: '+fmtDateTime(it.scheduled_date):''}</div>
+            <div class="hist-meta"><span style="color:var(--sb);font-weight:500">${esc(it.user_name||'Usuario')}</span> · ${fmtDateTime(it.created_at)}${it.status==='approved'&&it.scheduled_date?' · Agendado: '+fmtDateTime(it.scheduled_date):''}</div>
           </div>
         </div>
         <div class="hist-right">
@@ -559,7 +657,8 @@ async function renderHistorial(m){
           <button class="idea-btn" onclick="cpHistItem(${it.id})"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>
           ${canEdit?`<button class="idea-btn danger" onclick="delHistItem(${it.id})"><i class="feather" data-icon="trash-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i></button>`:''}
         </div>
-      </div>`).join('')}`:'<p style="color:var(--mt);text-align:center;padding:2rem">No hay contenido generado aún.</p>'}`;
+      </div>`).join('')}
+      ${pg.totalPages>1?`<div style="display:flex;justify-content:center;gap:.4rem;margin-top:.75rem;flex-wrap:wrap">${Array.from({length:pg.totalPages},(_,i)=>i+1).map(p=>`<button onclick="histPage=${p};renderHistorial(document.getElementById('modContent'))" style="padding:4px 10px;border-radius:6px;border:1px solid ${p===pg.page?'var(--sb)':'var(--border)'};background:${p===pg.page?'var(--sb)':'var(--card)'};color:${p===pg.page?'#fff':'var(--fg)'};cursor:pointer;font-size:.8rem">${p}</button>`).join('')}</div>`:''}`:'<p style="color:var(--mt);text-align:center;padding:2rem">No hay contenido generado aún.</p>'}`;
   }catch(e){m.innerHTML=`<div class="error-bar"><span>${esc(e.message)}</span></div>`}
 }
 function toggleHistSel(id,checked){if(checked)histSel.add(id);else histSel.delete(id);updHistSelUI()}
