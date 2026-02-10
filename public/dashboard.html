@@ -537,7 +537,11 @@ function showCommandConfirmation(parsed){
     const isAssign=changes.asignado_nombre||changes.asignado;
     const icon=isAssign?'user-plus':'edit-3';
     const title=isAssign?'Asignar Tareas':'Edicion Masiva';
-    html=`<h3 style="margin:0 0 .8rem 0;font-size:1.1rem;color:var(--tx)"><i class="feather" data-icon="${icon}" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> ${title}</h3><p style="color:var(--mt);font-size:.84rem;margin-bottom:1rem">${esc(parsed.summary)}</p><div style="font-size:.9rem;color:var(--tx)"><div style="margin-bottom:.5rem"><strong>Filtros:</strong> ${Object.entries(filters).map(([k,v])=>`<span style="display:inline-block;padding:2px 8px;border-radius:6px;background:rgba(59,130,246,.1);color:#3B82F6;font-size:.8rem;margin:2px">${esc(k)}=${esc(v)}</span>`).join(' ')}</div><div style="margin-bottom:.5rem"><strong>${isAssign?'Asignar a':'Cambios'}:</strong> ${Object.entries(changes).map(([k,v])=>`<span style="display:inline-block;padding:2px 8px;border-radius:6px;background:rgba(16,185,129,.1);color:#10B981;font-size:.8rem;margin:2px">${isAssign?esc(v):esc(k)+' → '+esc(v)}</span>`).join(' ')}</div><div style="color:#F59E0B;font-weight:600">~${parsed.affectedCount||0} tareas afectadas</div></div>`;
+    const filterEntries=Object.entries(filters).map(([k,v])=>{
+      if(k==='task_ids'&&Array.isArray(v))return`<span style="display:inline-block;padding:2px 8px;border-radius:6px;background:rgba(59,130,246,.1);color:#3B82F6;font-size:.8rem;margin:2px">IDs: ${v.map(id=>esc(id)).join(', ')}</span>`;
+      return`<span style="display:inline-block;padding:2px 8px;border-radius:6px;background:rgba(59,130,246,.1);color:#3B82F6;font-size:.8rem;margin:2px">${esc(k)}=${esc(v)}</span>`;
+    }).join(' ');
+    html=`<h3 style="margin:0 0 .8rem 0;font-size:1.1rem;color:var(--tx)"><i class="feather" data-icon="${icon}" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> ${title}</h3><p style="color:var(--mt);font-size:.84rem;margin-bottom:1rem">${esc(parsed.summary)}</p><div style="font-size:.9rem;color:var(--tx)"><div style="margin-bottom:.5rem"><strong>Filtros:</strong> ${filterEntries}</div><div style="margin-bottom:.5rem"><strong>${isAssign?'Asignar a':'Cambios'}:</strong> ${Object.entries(changes).map(([k,v])=>`<span style="display:inline-block;padding:2px 8px;border-radius:6px;background:rgba(16,185,129,.1);color:#10B981;font-size:.8rem;margin:2px">${isAssign?esc(v):esc(k)+' → '+esc(v)}</span>`).join(' ')}</div><div style="color:#F59E0B;font-weight:600">~${parsed.affectedCount||0} tareas afectadas</div></div>`;
   }
   preview.innerHTML=html;
   document.getElementById('cmdOverlay').style.display='flex';
@@ -657,9 +661,16 @@ async function executeBulkEdit(params){
   const tasksD=await tasksR.json();
   let allTasks=tasksD.tasks||[];
   console.log('[BulkEdit] Total tasks:',allTasks.length,'Filters:',JSON.stringify(filters),'Changes:',JSON.stringify(changes));
-  // Apply filters — support "proyecto", "proyecto_nombre", and "proyecto_id"
+  // Apply filters — support "proyecto", "proyecto_nombre", "proyecto_id", and "task_ids"
   const projFilter=filters.proyecto_nombre||filters.proyecto||null;
+  const taskIds=filters.task_ids||null;
   let targetTasks=allTasks.filter(t=>{
+    if(taskIds&&Array.isArray(taskIds)&&taskIds.length>0){
+      const ids=taskIds.map(id=>String(id).toLowerCase());
+      const tid=(t.task_id||'').toLowerCase();
+      const numId=String(t.id);
+      if(!ids.some(id=>tid===id||tid.includes(id)||numId===id))return false;
+    }
     if(filters.estado&&t.estado!==filters.estado)return false;
     if(filters.prioridad&&t.prioridad!==filters.prioridad)return false;
     if(projFilter){

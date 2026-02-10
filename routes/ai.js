@@ -287,10 +287,12 @@ ACCIONES SOPORTADAS:
    Params: { "count":5, "tipo":"reel_educativo", "proyecto_nombre":"STYLY Panel", "asignado_nombre":"Admin", "prioridad":"Media" }
 
 3. "bulk_edit" - Editar o asignar multiples tareas que coincidan con filtros
-   Filtros disponibles: estado, prioridad, proyecto_nombre, asignado
+   Filtros disponibles: estado, prioridad, proyecto_nombre, asignado, task_ids (array de IDs especificos como ["STY-001","STY-002"])
    Cambios disponibles: estado, prioridad, asignado_nombre (para asignar tareas a alguien)
-   Ejemplo asignar: { "filters": {"proyecto_nombre":"Panel Afiliados","estado":"Pendiente"}, "changes": {"asignado_nombre":"Emilio Uribe"} }
+   Ejemplo asignar por IDs: { "filters": {"task_ids":["STY-001","STY-002","STY-003"]}, "changes": {"asignado_nombre":"Emilio Uribe"} }
+   Ejemplo asignar por proyecto: { "filters": {"proyecto_nombre":"Panel Afiliados","estado":"Pendiente"}, "changes": {"asignado_nombre":"Emilio Uribe"} }
    Ejemplo editar: { "filters": {"estado":"Pendiente"}, "changes": {"prioridad":"Alta"} }
+   IMPORTANTE: Cuando el usuario mencione IDs especificos (ej: "asigna STY-001, STY-002 a Admin" o "las tareas 1,2,3"), usa task_ids como filtro
 
 4. "analyze" - Analizar tareas y dar recomendaciones
    Params: { "scope":"full" }
