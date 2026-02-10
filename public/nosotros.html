@@ -111,7 +111,8 @@ const CATS=[
 let S={view:'home',fid:null,step:0,phase:'input',ltxt:'',
   sq:'',cat:null,news:[],sn:new Set(),angles:[],sa:new Set(),
   structs:[],ss:null,result:'',itxt:'',err:null,selectedIds:new Set(),
-  manual_news:'',manual_format:null};
+  manual_news:'',manual_format:null,
+  analysis:null,analysisLoading:false};
 let modTab='generar';
 let newsPagination={page:1,pageSize:8,total:0,totalPages:0};
 
@@ -353,9 +354,48 @@ function rManualFormatSel(){
 }
 
 function rResult(){
+  let analysisHtml='';
+  if(S.analysisLoading){
+    analysisHtml=`<div class="analysis-bar" style="margin-top:1rem;padding:1rem;border-radius:12px;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.2)">
+      <div style="display:flex;align-items:center;gap:.5rem;color:var(--nosotros)"><div class="loader-dots" style="display:flex;gap:4px"><span></span><span></span><span></span></div> Analizando viralidad...</div></div>`;
+  }else if(S.analysis){
+    const a=S.analysis;
+    const scoreColor=a.score>=8?'#10B981':a.score>=5?'#F59E0B':'#EF4444';
+    analysisHtml=`<div class="analysis-bar" style="margin-top:1rem;padding:1.25rem;border-radius:12px;background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.15);backdrop-filter:blur(10px)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+        <div style="font-weight:600;font-size:.9rem;color:var(--text)"><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:var(--nosotros)" aria-hidden="true"></i> Analisis de Viralidad</div>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <span style="font-size:1.5rem;font-weight:700;color:${scoreColor}">${a.score}</span>
+          <span style="font-size:.8rem;color:var(--mt)">/10</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem;margin-bottom:.75rem">
+        <div style="padding:.6rem;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border)">
+          <div style="font-size:.7rem;color:var(--mt);margin-bottom:.25rem">Engagement</div>
+          <div style="font-weight:600;color:${a.engagement>=7?'#10B981':a.engagement>=4?'#F59E0B':'#EF4444'}">${a.engagement}/10</div>
+        </div>
+        <div style="padding:.6rem;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border)">
+          <div style="font-size:.7rem;color:var(--mt);margin-bottom:.25rem">Noticia</div>
+          <div style="font-weight:600;color:${a.news_quality>=7?'#10B981':a.news_quality>=4?'#F59E0B':'#EF4444'}">${a.news_quality}/10</div>
+        </div>
+        <div style="padding:.6rem;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border)">
+          <div style="font-size:.7rem;color:var(--mt);margin-bottom:.25rem">Redaccion</div>
+          <div style="font-weight:600;color:${a.writing>=7?'#10B981':a.writing>=4?'#F59E0B':'#EF4444'}">${a.writing}/10</div>
+        </div>
+      </div>
+      <div style="font-size:.85rem;color:var(--text);line-height:1.5;margin-bottom:.75rem">
+        <div style="font-weight:600;font-size:.75rem;color:var(--mt);margin-bottom:.35rem">Observaciones</div>
+        ${a.observations.map(o=>'<div style="margin-bottom:.3rem">- '+esc(o)+'</div>').join('')}
+      </div>
+      <button class="btn" onclick="improveResult()" style="width:100%;background:var(--nosotros);font-size:.85rem;padding:.6rem"><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Mejorar basado en observaciones</button>
+    </div>`;
+  }else{
+    analysisHtml=`<div style="margin-top:1rem"><button class="btn-outline btn" onclick="analyzeResult()" style="width:100%;border-color:var(--nosotros);color:var(--nosotros)"><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Analizar viralidad con IA</button></div>`;
+  }
   return`<div class="result-box">
     <button class="copy-btn" onclick="cpRes()"><i class="feather" data-icon="list" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Copiar</button>
     <div class="result-content">${md(S.result)}</div></div>
+    ${analysisHtml}
     <div class="actions"><button class="btn-outline btn" onclick="goHome()">Nuevo contenido</button></div>`;
 }
 
@@ -371,13 +411,13 @@ function formatNewsDate(dateStr){
 }
 
 // ========== HANDLERS ==========
-function goHome(){S={view:'home',fid:null,step:0,phase:'input',ltxt:'',sq:'',cat:null,news:[],sn:new Set(),angles:[],sa:new Set(),structs:[],ss:null,result:'',itxt:'',err:null,selectedIds:new Set(),manual_news:'',manual_format:null};newsPagination={page:1,pageSize:8,total:0,totalPages:0};render()}
+function goHome(){S={view:'home',fid:null,step:0,phase:'input',ltxt:'',sq:'',cat:null,news:[],sn:new Set(),angles:[],sa:new Set(),structs:[],ss:null,result:'',itxt:'',err:null,selectedIds:new Set(),manual_news:'',manual_format:null,analysis:null,analysisLoading:false};newsPagination={page:1,pageSize:8,total:0,totalPages:0};render()}
 function clErr(){S.err=null;render()}
 function setCat(c){if(S.cat===c)return;S.cat=c;S.selectedIds=new Set();S.err=null;newsPagination.page=1;fetchN(F().scope,S.sq||undefined)}
 function goFmt(id){
   S.view='flow';S.fid=id;S.step=0;S.news=[];S.sn=new Set();S.angles=[];S.sa=new Set();
   S.structs=[];S.ss=null;S.result='';S.err=null;S.sq='';S.cat=null;S.itxt='';S.selectedIds=new Set();
-  S.manual_news='';S.manual_format=null;
+  S.manual_news='';S.manual_format=null;S.analysis=null;S.analysisLoading=false;
   newsPagination={page:1,pageSize:8,total:0,totalPages:0};
   const f=F();
   if(f.id==='copy'){S.phase='input';render();return}
@@ -521,6 +561,52 @@ function buildFinal(f,news,ang,str){
       return`Noticia: ${nt}\nAngulos elegidos: ${at}\nEstructura elegida: ${str.name}\n\nIMPORTANTE: Escribe el guion COMPLETO, palabra por palabra. Cada seccion debe tener el texto DESARROLLADO.\n\nEstructura del guion (12-15 minutos):\n${secs}\n\nFormato de entrega:\n\n# TITULO YOUTUBE (SEO optimizado)\n\n## [00:00] Seccion 1\n(Texto narrado completo)\n\n## [MM:SS] Seccion 2\n(Texto narrado completo)\n\n---\n## DESCRIPCION YOUTUBE\n(200-300 palabras)\n\n---\n## CLIPS CORTOS\n4 clips con: titulo, duracion, extracto y copy para redes (280 caracteres)`;}
     default:return'';
   }
+}
+
+async function analyzeResult(){
+  S.analysisLoading=true;S.analysis=null;render();
+  const prompt=`Analiza el siguiente contenido para redes sociales y evalua su potencial de viralidad.
+
+CONTENIDO:
+${S.result}
+
+Responde SOLO con JSON valido en este formato exacto:
+{"score":7,"engagement":8,"news_quality":6,"writing":7,"observations":["observacion 1","observacion 2","observacion 3"]}
+
+Criterios de evaluacion:
+- score: Calificacion general de viralidad del 1 al 10
+- engagement: Potencial de interaccion (likes, comentarios, compartidos). Evalua si el gancho atrapa, si genera curiosidad, si invita a interactuar.
+- news_quality: Calidad de la noticia. Evalua relevancia, datos concretos, fuentes, actualidad.
+- writing: Calidad de redaccion. Evalua claridad, tono, estructura, longitud adecuada, ortografia.
+- observations: Array de 3-5 observaciones especificas y accionables para mejorar el contenido. Se concreto: "El slide 1 tiene 15 palabras, reducir a 10" en vez de "mejorar el gancho".
+
+Se critico y honesto. Un 10 es practicamente imposible.`;
+  try{
+    const txt=await apiGen(prompt);
+    const parsed=pJ(txt);
+    if(!parsed||!parsed.score)throw new Error('No se pudo analizar');
+    S.analysis=parsed;
+  }catch(e){S.err='Error al analizar: '+e.message;S.analysis=null}
+  S.analysisLoading=false;render();
+}
+
+async function improveResult(){
+  if(!S.analysis)return;
+  S.phase='loading';S.ltxt='Mejorando contenido basado en observaciones...';render();
+  const obs=S.analysis.observations.join('\n- ');
+  const prompt=`Aqui esta el contenido original:
+
+${S.result}
+
+Un analisis de viralidad detecto estas observaciones para mejorar:
+- ${obs}
+
+Reescribe el contenido COMPLETO aplicando TODAS las observaciones. Mantiene el mismo formato y estructura pero mejora cada punto senalado. Responde SOLO con el contenido mejorado, sin explicaciones.`;
+  try{
+    const txt=await apiGen(prompt,SYS,S.fid||S.manual_format);
+    S.result=txt;S.analysis=null;S.analysisLoading=false;S.phase='result';
+  }catch(e){S.err='Error al mejorar: '+e.message;S.phase='result'}
+  render();
 }
 
 function cpRes(){
