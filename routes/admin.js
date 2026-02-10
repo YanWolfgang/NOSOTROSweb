@@ -103,6 +103,31 @@ router.get('/team-stats', async (req, res) => {
        GROUP BY u.id
        ORDER BY COUNT(ch.id) DESC`, [ws]
     );
+    // Add STYLY task stats per user
+    const tasksByUser = {};
+    const taskRows = await pool.query(
+      `SELECT ta.user_id, t.estado
+       FROM styly_task_asignados ta
+       JOIN styly_tasks t ON ta.task_id = t.id`
+    ).catch(() => ({ rows: [] }));
+    taskRows.rows.forEach(r => {
+      if (!tasksByUser[r.user_id]) tasksByUser[r.user_id] = { total: 0, completed: 0, byStatus: {} };
+      tasksByUser[r.user_id].total++;
+      const st = r.estado || 'Pendiente';
+      tasksByUser[r.user_id].byStatus[st] = (tasksByUser[r.user_id].byStatus[st] || 0) + 1;
+      if (st === 'Completada') tasksByUser[r.user_id].completed++;
+    });
+
+    // Merge task stats into team rows
+    rows.forEach(r => {
+      const ts = tasksByUser[r.id] || { total: 0, completed: 0, byStatus: {} };
+      r.tasks_total = ts.total;
+      r.tasks_completed = ts.completed;
+      r.tasks_pending = ts.total - ts.completed;
+      r.tasks_completion = ts.total > 0 ? Math.round((ts.completed / ts.total) * 100) : 0;
+      r.tasks_by_status = ts.byStatus;
+    });
+
     res.json({ team: rows });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });

@@ -970,7 +970,26 @@ async function loadTeam(){
       if(t.generated>=5)alerts.push({type:'green',text:`${t.name} lleva buena racha generando contenido`});
 
       const byBiz=t.by_business||{};
-      return`<div class="emp-row">
+      const tt=t.tasks_total||0;const tc=t.tasks_completed||0;const tp=t.tasks_pending||0;const tpct=t.tasks_completion||0;
+      const tbs=t.tasks_by_status||{};
+      // Task alerts
+      if(tt>0&&tp>0&&tpct<30)alerts.push({type:'yellow',text:`${t.name} tiene ${tp} tareas pendientes (${tpct}% completado)`});
+      if(tt>0&&tpct===100)alerts.push({type:'green',text:`${t.name} completo todas sus tareas (${tt})`});
+
+      // Task status mini-bars
+      const STATUS_C={'Pendiente':'#EF4444','En Progreso':'#F59E0B','Completada':'#10B981'};
+      const EXTRA_C=['#8B5CF6','#3B82F6','#EC4899','#F97316','#06B6D4'];
+      let ei=0;
+      const taskBars=tt>0?Object.entries(tbs).map(([st,cnt])=>{
+        const c=STATUS_C[st]||(EXTRA_C[ei++%EXTRA_C.length]);
+        return`<div title="${esc(st)}: ${cnt}" style="background:${c};width:${cnt/tt*100}%;height:100%;min-width:2px"></div>`;
+      }).join(''):'';
+      const taskChips=tt>0?Object.entries(tbs).map(([st,cnt])=>{
+        const c=STATUS_C[st]||(EXTRA_C[ei++%EXTRA_C.length]);
+        return`<span style="font-size:.55rem;padding:1px 4px;border-radius:3px;background:${c}22;color:${c};font-weight:600">${cnt} ${esc(st)}</span>`;
+      }).join(' '):'<span style="font-size:.6rem;color:var(--mt)">Sin tareas</span>';
+
+      return`<div class="emp-row" style="flex-wrap:wrap">
         <div class="emp-avatar" style="background:${EMP_COLORS[i%EMP_COLORS.length]}">${(t.name||'?')[0].toUpperCase()}</div>
         <div class="emp-info">
           <div class="emp-name">${esc(t.name)} <span style="font-size:.65rem;color:var(--mt)">${esc(t.role)}</span></div>
@@ -981,6 +1000,15 @@ async function loadTeam(){
           <div class="emp-num"><div class="n">${t.approved}</div><div class="l">Apr</div></div>
           <div class="emp-num"><div class="n">${ratio}%</div><div class="l">Ratio</div></div>
           <div class="emp-num"><div class="n" style="font-size:.72rem;${isInactive?'color:#EF4444':''}">${lastLabel}</div><div class="l">Ultima</div></div>
+        </div>
+        <div style="width:100%;margin-top:.35rem;padding-left:calc(36px + .65rem)">
+          <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.25rem">
+            <span style="font-size:.65rem;font-weight:700;color:var(--fg)">Tareas</span>
+            <span style="font-size:.6rem;color:var(--mt)">${tc}/${tt}</span>
+            ${tt>0?`<span style="font-size:.6rem;font-weight:700;color:${tpct===100?'#10B981':tpct>=50?'#F59E0B':'#EF4444'}">${tpct}%</span>`:''}
+            <div style="margin-left:auto;display:flex;gap:.2rem;flex-wrap:wrap">${taskChips}</div>
+          </div>
+          ${tt>0?`<div style="height:4px;background:var(--border);border-radius:4px;overflow:hidden;display:flex">${taskBars}</div>`:''}
         </div>
       </div>`;
     }).join('')+
@@ -1146,7 +1174,7 @@ function renderStylyTasks(el,d){
   const allStatuses=d.allStatuses||['Pendiente','En Progreso','Completada'];
   const byStatus=s.byStatus||{};
   const projEntries=Object.entries(d.byProject).sort((a,b)=>b[1].total-a[1].total);
-  const userEntries=Object.entries(d.byUser).filter(([k])=>k!=='Sin asignar').sort((a,b)=>b[1].total-a[1].total);
+  const userEntries=Object.entries(d.byUser).sort((a,b)=>{if(a[0]==='Sin asignar')return 1;if(b[0]==='Sin asignar')return -1;return b[1].total-a[1].total});
   const bp=d.byPriority;
   const urgent=d.urgent||[];
   const recent=d.recentlyUpdated||[];
