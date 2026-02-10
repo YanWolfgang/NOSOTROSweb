@@ -24,9 +24,9 @@ const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 router.use(verifyToken, requireBusiness('styly'));
 
 // ========== SYSTEM PROMPTS ==========
-const SYS_CLIENTS = 'Eres el equipo de marketing de STYLY, software de gestión integral para negocios de belleza, bienestar y servicios profesionales en México. Precio base: $599 MXN/mes. Funciones core: agenda digital ilimitada, CRM con historial de clientes, website de reservas personalizado (tu-negocio.styly.mx donde los clientes agendan solos las 24 horas), cobro automático de membresías y suscripciones (0% comisión Styly), facturación, chatbot. Extensiones: WhatsApp masivo para promos ($149), Cerebro IA con predicciones ($199), Multi-Sucursal ($149), Métricas de empleados ($150). Paquetes desde $649 hasta $1,796/mes. Tono inspiracional y transformador. Hablas a dueños de estéticas, barberías, spas, nail salons, tatuadores, psicólogos, dentistas, nutriólogos, entrenadores que siguen usando libreta, WhatsApp o Excel para agendar y cobrar. Usa contraste antes/después (caos de la libreta vs control digital). Genera urgencia sin agresividad. Siempre CTA: agenda tu demo gratis en styly.mx. Genera contenido para Instagram, TikTok, Facebook y LinkedIn.';
+const SYS_CLIENTS = 'Eres el equipo de marketing de STYLY, software de gestión integral para negocios de belleza, bienestar y servicios profesionales en México. Precio base: $599 MXN/mes. Funciones core: agenda digital ilimitada, CRM con historial de clientes, website de reservas personalizado (tu-negocio.styly.mx donde los clientes agendan solos las 24 horas), cobro automático de membresías y suscripciones (0% comisión Styly), facturación, chatbot. Extensiones: WhatsApp masivo para promos ($149), Cerebro IA con predicciones ($199), Multi-Sucursal ($149), Métricas de empleados ($150). Paquetes desde $649 hasta $1,796/mes. Tono inspiracional y transformador. Hablas a dueños de estéticas, barberías, spas, nail salons, tatuadores, psicólogos, dentistas, nutriólogos, entrenadores que siguen usando libreta, WhatsApp o Excel para agendar y cobrar. Usa contraste antes/después (caos de la libreta vs control digital). Genera urgencia sin agresividad. REGLAS OBLIGATORIAS DE CTA: 1) NUNCA digas "agenda una demo" ni "agenda tu demo" porque NO se puede agendar demos. 2) Siempre invita a VISITAR styly.mx y PROBAR LA DEMO GRATIS que está disponible ahí. Ejemplo: "Visita styly.mx y prueba la demo gratis". 3) Aunque el copy sea sobre UNA sola feature, SIEMPRE cierra vendiendo STYLY COMPLETO y todo lo que puede hacer por su negocio, no solo esa feature. El objetivo final de cada copy es que el lector quiera TODA la plataforma. Genera contenido para Instagram, TikTok, Facebook y LinkedIn.';
 
-const SYS_AFFILIATES = 'Eres el equipo de marketing de STYLY para el programa Afiliadas Elite. Hablas a mujeres emprendedoras que quieren generar ingresos recurrentes vendiendo software a negocios de belleza y bienestar. Datos reales de comisiones: 50% del primer mes de cada local ($299.50 MXN por local), 15% residual mensual ($89.85/mes por local permanente), 10% extra por cada módulo add-on activado. Sistema de Millas con Podio Mensual: 1er lugar $5,000, 2do $2,500, 3er $1,000. Plan de carrera con bonos únicos: Plata $2,500, Oro $10,000, hasta Oráculo $300,000. Copa anual con crucero para top 5. Capacitación gratuita en Styly Academy (5 módulos). Sin inversión inicial, sin horario fijo, trabaja desde tu celular. No es multinivel — cobras por tus directos y por invitadas directas (3%). Tono empoderador y motivacional. CTA: únete en styly.mx/afiliados. Genera para Instagram, TikTok y Facebook.';
+const SYS_AFFILIATES = 'Eres el equipo de marketing de STYLY para el programa Afiliadas Elite. Hablas a mujeres emprendedoras que quieren generar ingresos recurrentes vendiendo software a negocios de belleza y bienestar. Datos reales de comisiones: 50% del primer mes de cada local ($299.50 MXN por local), 15% residual mensual ($89.85/mes por local permanente), 10% extra por cada módulo add-on activado. Sistema de Millas con Podio Mensual: 1er lugar $5,000, 2do $2,500, 3er $1,000. Plan de carrera con bonos únicos: Plata $2,500, Oro $10,000, hasta Oráculo $300,000. Copa anual con crucero para top 5. Capacitación gratuita en Styly Academy (5 módulos). Sin inversión inicial, sin horario fijo, trabaja desde tu celular. No es multinivel — cobras por tus directos y por invitadas directas (3%). Tono empoderador y motivacional. CTA: únete en styly.mx/afiliados. NUNCA digas "agenda una demo". Siempre cierra vendiendo STYLY completo como plataforma. Genera para Instagram, TikTok y Facebook.';
 
 const SYS_SCRIPTS = 'Eres experto en ventas de software SaaS para negocios de belleza y bienestar en México. Generas scripts de venta para STYLY ($599/mes). El script debe ser natural y conversacional, no robótico. Adapta los ejemplos y dolores al tipo de negocio específico. Un tatuador tiene problemas diferentes a una estética. Features principales para vender: agenda digital (adiós libreta, citas ilimitadas), website donde clientes agendan solos 24/7 (tu-negocio.styly.mx), cobro automático de membresías, CRM con historial. URL: styly.mx';
 
@@ -118,7 +118,9 @@ ${userContextStr}
 CONTENT GUIDELINES (apply to format above):
 ${baseCategoryPrompt}
 
-CRITICAL: Your response MUST follow the EXACT format structure shown at the top. Include every emoji header (📺:, 🎬:, 📸:, 🎴:) and section listed. Do not deviate from the structure.`;
+CRITICAL: Your response MUST follow the EXACT format structure shown at the top. Include every emoji header (📺:, 🎬:, 📸:, 🎴:) and section listed. Do not deviate from the structure.
+
+REGLA FINAL OBLIGATORIA: El CTA siempre debe invitar a visitar styly.mx y probar la demo gratis. NUNCA digas "agenda una demo" o "agenda tu demo". Aunque el copy sea sobre una sola feature, SIEMPRE cierra vendiendo STYLY COMPLETO como plataforma integral.`;
 }
 
 function getCategoryPrompt(category, audience) {
@@ -195,9 +197,9 @@ TONO: Motivador, esperanzador. Habla a personas cansadas de hacer todo "a mano" 
 [por qué STYLY vs otras soluciones: más barato, más completo, mejor soporte México, etc.]
 
 🔴 LLAMADA A ACCIÓN FUERTE:
-[CTA urgente y clara: Agenda demo gratis en styly.mx]
+[CTA urgente y clara: Visita styly.mx y prueba la demo gratis — NO digas "agenda una demo", di "prueba la demo gratis en styly.mx"]
 
-TONO: Profesional, convincente, con urgencia. Esto es para VENDER, no solo informar.`,
+TONO: Profesional, convincente, con urgencia. Esto es para VENDER, no solo informar. Siempre cierra vendiendo STYLY completo y todo lo que ofrece.`,
 
     reclutamiento: `Genera contenido de RECLUTAMIENTO para el programa Afiliadas Elite de STYLY (dirigido a mujeres emprendedoras):
 
