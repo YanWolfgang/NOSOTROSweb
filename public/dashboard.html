@@ -454,8 +454,8 @@ function rotatePlaceholder(){
 function showToast(message,type='info'){let c=document.querySelector('.toast-container');if(!c){c=document.createElement('div');c.className='toast-container';document.body.appendChild(c)}const t=document.createElement('div');t.className='toast '+type;t.textContent=message;c.appendChild(t);setTimeout(()=>t.remove(),3000)}
 
 // ========== COMMAND DETECTION ==========
-const COMMAND_PREFIXES=['distribuye','distribui','reparte','asigna','genera','crea','agrega','cambia','actualiza','edita','modifica','analiza','reporta','resume','agenda','planifica','programa','duplica','copia','aprueba','completa','pon','mueve','pasa','sube','baja'];
-const COMMAND_KEYWORDS=['distribuir','repartir','asignar','generar','crear','cambiar','actualizar','editar','modificar','analizar','mover','pasar','subir','bajar','prioridad a ','estado a ','asigna a ','asignar a ','tareas de ','tareas del ','tareas en ','todas las tareas'];
+const COMMAND_PREFIXES=['distribuye','distribui','reparte','asigna','genera','crea','agrega','cambia','actualiza','edita','modifica','analiza','reporta','resume','agenda','planifica','programa','duplica','copia','aprueba','completa','pon','mueve','pasa','sube','baja','quita','remueve','desasigna','elimina de'];
+const COMMAND_KEYWORDS=['distribuir','repartir','asignar','generar','crear','cambiar','actualizar','editar','modificar','analizar','mover','pasar','subir','bajar','prioridad a ','estado a ','asigna a ','asignar a ','tareas de ','tareas del ','tareas en ','todas las tareas','quitar de','remover de','desasignar','quita a ','remueve a '];
 function isCommand(text){
   const l=text.toLowerCase().trim();
   // Direct prefix match (strongest signal)
@@ -464,7 +464,7 @@ function isCommand(text){
   const keywordMatches=COMMAND_KEYWORDS.filter(k=>l.includes(k));
   if(keywordMatches.length>=2)return true;
   // Patterns like "quiero que cambies", "puedes asignar", "hay que mover"
-  if(/(?:quiero|necesito|podrias|puedes|hay que|deberias|favor de|por favor)\s+(?:que\s+)?(?:cambiar|asignar|distribuir|generar|mover|editar|modificar|actualizar|crear|analizar|completar)/i.test(l))return true;
+  if(/(?:quiero|necesito|podrias|puedes|hay que|deberias|favor de|por favor)\s+(?:que\s+)?(?:cambiar|asignar|distribuir|generar|mover|editar|modificar|actualizar|crear|analizar|completar|quitar|remover|desasignar)/i.test(l))return true;
   return false;
 }
 
@@ -535,13 +535,17 @@ function showCommandConfirmation(parsed){
   }else if(parsed.action==='bulk_edit'){
     const filters=parsed.params.filters||{};const changes=parsed.params.changes||{};
     const isAssign=changes.asignado_nombre||changes.asignado;
-    const icon=isAssign?'user-plus':'edit-3';
-    const title=isAssign?'Asignar Tareas':'Edicion Masiva';
+    const isUnassign=changes.desasignar_nombre||changes.desasignar;
+    const icon=isUnassign?'user-minus':isAssign?'user-plus':'edit-3';
+    const title=isUnassign?'Quitar de Tareas':isAssign?'Asignar Tareas':'Edicion Masiva';
     const filterEntries=Object.entries(filters).map(([k,v])=>{
       if(k==='task_ids'&&Array.isArray(v))return`<span style="display:inline-block;padding:2px 8px;border-radius:6px;background:rgba(59,130,246,.1);color:#3B82F6;font-size:.8rem;margin:2px">IDs: ${v.map(id=>esc(id)).join(', ')}</span>`;
       return`<span style="display:inline-block;padding:2px 8px;border-radius:6px;background:rgba(59,130,246,.1);color:#3B82F6;font-size:.8rem;margin:2px">${esc(k)}=${esc(v)}</span>`;
     }).join(' ');
-    html=`<h3 style="margin:0 0 .8rem 0;font-size:1.1rem;color:var(--tx)"><i class="feather" data-icon="${icon}" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> ${title}</h3><p style="color:var(--mt);font-size:.84rem;margin-bottom:1rem">${esc(parsed.summary)}</p><div style="font-size:.9rem;color:var(--tx)"><div style="margin-bottom:.5rem"><strong>Filtros:</strong> ${filterEntries}</div><div style="margin-bottom:.5rem"><strong>${isAssign?'Asignar a':'Cambios'}:</strong> ${Object.entries(changes).map(([k,v])=>`<span style="display:inline-block;padding:2px 8px;border-radius:6px;background:rgba(16,185,129,.1);color:#10B981;font-size:.8rem;margin:2px">${isAssign?esc(v):esc(k)+' → '+esc(v)}</span>`).join(' ')}</div><div style="color:#F59E0B;font-weight:600">~${parsed.affectedCount||0} tareas afectadas</div></div>`;
+    const changesLabel=isUnassign?'Quitar a':isAssign?'Asignar a':'Cambios';
+    const changesColor=isUnassign?'rgba(239,68,68,.1)':'rgba(16,185,129,.1)';
+    const changesText=isUnassign?'#EF4444':'#10B981';
+    html=`<h3 style="margin:0 0 .8rem 0;font-size:1.1rem;color:var(--tx)"><i class="feather" data-icon="${icon}" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> ${title}</h3><p style="color:var(--mt);font-size:.84rem;margin-bottom:1rem">${esc(parsed.summary)}</p><div style="font-size:.9rem;color:var(--tx)"><div style="margin-bottom:.5rem"><strong>Filtros:</strong> ${filterEntries}</div><div style="margin-bottom:.5rem"><strong>${changesLabel}:</strong> ${Object.entries(changes).map(([k,v])=>`<span style="display:inline-block;padding:2px 8px;border-radius:6px;background:${changesColor};color:${changesText};font-size:.8rem;margin:2px">${isUnassign||isAssign?esc(v):esc(k)+' → '+esc(v)}</span>`).join(' ')}</div><div style="color:#F59E0B;font-weight:600">~${parsed.affectedCount||0} tareas afectadas</div></div>`;
   }
   preview.innerHTML=html;
   document.getElementById('cmdOverlay').style.display='flex';
@@ -691,6 +695,25 @@ async function executeBulkEdit(params){
     return'No se encontraron tareas que coincidan con los filtros.\n\n**Proyectos disponibles:** '+projectNames.join(', ')+'\n**Estados encontrados:** '+estados.join(', ');
   }
   let updated=0;let errors=[];const results=[];
+  // Handle UNASSIGN — remove specific user from tasks
+  const unassignName=changes.desasignar_nombre||changes.desasignar||null;
+  if(unassignName){
+    const usersR=await fetch('/api/styly/users',{headers:hdrs});
+    const usersD=await usersR.json();
+    const user=(usersD.users||[]).find(u=>u.name.toLowerCase().includes(unassignName.toLowerCase()));
+    if(!user)return'Usuario "'+unassignName+'" no encontrado en el sistema.';
+    // Only target tasks where this user is assigned
+    const tasksWithUser=targetTasks.filter(t=>(t.asignados||[]).some(a=>a.id===user.id));
+    if(tasksWithUser.length===0)return'**'+user.name+'** no esta asignado a ninguna de las '+targetTasks.length+' tareas filtradas.';
+    for(const task of tasksWithUser){
+      try{
+        const r=await fetch('/api/styly/tasks/'+task.id+'/asignados/'+user.id,{method:'DELETE',headers:hdrs});
+        if(r.ok)updated++;
+        else{const d=await r.json();errors.push(task.titulo+': '+(d.error||'error'))}
+      }catch(e){errors.push(task.titulo+': '+e.message)}
+    }
+    results.push('**'+user.name+'** removido de **'+updated+'** tareas');
+  }
   // Handle assignment change — REPLACE all assignees with the new one
   const assignName=changes.asignado_nombre||changes.asignado||null;
   if(assignName){

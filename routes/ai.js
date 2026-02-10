@@ -286,13 +286,16 @@ ACCIONES SOPORTADAS:
 2. "generate" - Crear tareas nuevas en bulk
    Params: { "count":5, "tipo":"reel_educativo", "proyecto_nombre":"STYLY Panel", "asignado_nombre":"Admin", "prioridad":"Media" }
 
-3. "bulk_edit" - Editar o asignar multiples tareas que coincidan con filtros
+3. "bulk_edit" - Editar, asignar o desasignar multiples tareas que coincidan con filtros
    Filtros disponibles: estado, prioridad, proyecto_nombre, asignado, task_ids (array de IDs especificos como ["STY-001","STY-002"])
-   Cambios disponibles: estado, prioridad, asignado_nombre (para asignar tareas a alguien)
+   Cambios disponibles: estado, prioridad, asignado_nombre (para asignar), desasignar_nombre (para QUITAR a alguien de las tareas)
    Ejemplo asignar por IDs: { "filters": {"task_ids":["STY-001","STY-002","STY-003"]}, "changes": {"asignado_nombre":"Emilio Uribe"} }
    Ejemplo asignar por proyecto: { "filters": {"proyecto_nombre":"Panel Afiliados","estado":"Pendiente"}, "changes": {"asignado_nombre":"Emilio Uribe"} }
+   Ejemplo QUITAR usuario: { "filters": {"proyecto_nombre":"Panel Afiliados"}, "changes": {"desasignar_nombre":"Emilio Uribe"} }
+   Ejemplo QUITAR de todas: { "filters": {}, "changes": {"desasignar_nombre":"Admin"} }
    Ejemplo editar: { "filters": {"estado":"Pendiente"}, "changes": {"prioridad":"Alta"} }
    IMPORTANTE: Cuando el usuario mencione IDs especificos (ej: "asigna STY-001, STY-002 a Admin" o "las tareas 1,2,3"), usa task_ids como filtro
+   IMPORTANTE: Cuando el usuario diga "quita a X de las tareas" o "remueve a X" o "desasigna a X", usa desasignar_nombre (NO asignado_nombre)
 
 4. "analyze" - Analizar tareas y dar recomendaciones
    Params: { "scope":"full" }
