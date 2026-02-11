@@ -388,7 +388,19 @@ const CLIENT_FMTS=CLIENT_CATEGORIES;
 const AFF_FMTS=AFFILIATE_CATEGORIES;
 const ALL_FMTS=[...CLIENT_CATEGORIES,...AFFILIATE_CATEGORIES];
 const FMT_EMOJI={};ALL_CATEGORIES.forEach(f=>{FMT_EMOJI[f.id]=f.icon});
-const INDUSTRIES=['Estetica/Salon','Barberia','Spa/Bienestar','Nail salon','Tatuador/Piercing','Psicologo/Terapeuta','Dentista/Consultorio','Nutriologo','Entrenador personal/Gym','Yoga/Pilates','General/Otro'];
+const INDUSTRIES_BY_CAT=[
+{cat:'Negocios en general',items:['Negocio general / Otro']},
+{cat:'Belleza y Estética',items:['Estética / Salón de belleza','Barbería','Nail salon / Uñas','Salón de pestañas y cejas','Maquillista profesional','Estilista independiente (a domicilio)','Salón de trenzas / peinados afro']},
+{cat:'Spa y Bienestar',items:['Spa','Masajista','Centro de relajación / flotación','Temazcal','Reflexólogo','Aromaterapeuta','Centro holístico']},
+{cat:'Cuerpo y Modificación',items:['Tatuador / Estudio de tatuaje','Piercer','Micropigmentación / Microblading','Depilación láser / Centro de depilación']},
+{cat:'Salud Mental',items:['Psicólogo','Terapeuta de pareja/familia','Coach de vida / Life coach','Hipnoterapeuta','Terapeuta ocupacional']},
+{cat:'Salud y Medicina Estética',items:['Dentista / Consultorio dental','Ortodoncista','Nutriólogo / Nutricionista','Dermatólogo','Médico estético (botox, rellenos)','Quiropráctico','Fisioterapeuta','Podólogo','Optometrista']},
+{cat:'Fitness y Deporte',items:['Entrenador personal','Estudio de yoga','Estudio de pilates','Crossfit box','Estudio de pole dance / aerial','Instructor de baile','Gimnasio boutique','Entrenador a domicilio']},
+{cat:'Educación y Servicios Personales',items:['Tutor / Maestro particular','Profesor de música','Profesor de idiomas','Fotógrafo (sesiones con cita)','Consultor de imagen','Personal shopper','Asesor de moda']},
+{cat:'Mascotas',items:['Veterinaria pequeña','Groomer / Estética canina','Entrenador de perros','Pet sitter (con citas)']},
+{cat:'Servicios Profesionales (con cita)',items:['Abogado independiente','Contador (asesorías)','Notaría pequeña','Agente de seguros','Asesor financiero personal','Consultor de negocios']}
+];
+const INDUSTRIES=INDUSTRIES_BY_CAT.flatMap(g=>g.items);
 const FEATURES=['Agenda digital (adios libreta)','Website de reservas (tu-negocio.styly.mx)','CRM (historial de clientes)','Cobro de suscripciones (membresias 0% comision)','WhatsApp masivo (promos 1 click)','Cerebro IA (predicciones, precios)','Multi-sucursal (todos tus locales)','Metricas (empleados, nominas, reportes)'];
 // ========== STATE ==========
 let tab='generar';
@@ -484,7 +496,7 @@ function rTopicInput(){
   };
   return`<div class="flow-header"><button class="btn-back" onclick="G.category=null;G.format=null;G.phase='format';renderTab()">← Volver</button><div class="flow-title"><span>${cat.icon}</span> ${cat.name}</div></div>
     <div class="sy-topic">
-      ${isClient?`<select id="indSel" onchange="G.industry=this.value"><option value="">Selecciona industria...</option>${INDUSTRIES.map(i=>`<option value="${i}" ${G.industry===i?'selected':''}>${i}</option>`).join('')}</select>`:''}
+      ${isClient?`<select id="indSel" onchange="G.industry=this.value"><option value="">Selecciona industria...</option>${INDUSTRIES_BY_CAT.map(g=>`<optgroup label="${g.cat}">${g.items.map(i=>`<option value="${i}" ${G.industry===i?'selected':''}>${i}</option>`).join('')}</optgroup>`).join('')}</select>`:''}
       ${G.category==='post_feature'?`<select id="featSel" onchange="G.feature=this.value"><option value="">Selecciona feature...</option>${FEATURES.map(f=>`<option value="${f}" ${G.feature===f?'selected':''}>${f}</option>`).join('')}</select>`:''}
       <textarea id="topicTa" placeholder="${placeholders[G.category]||'Describe el tema...'}" oninput="G.topic=this.value">${esc(G.topic)}</textarea>
     </div>
