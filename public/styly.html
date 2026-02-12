@@ -940,7 +940,10 @@ async function loadBoardColumns(){
     const r=await fetch('/api/styly/board-columns',{headers:hdrs});
     const d=await r.json();
     if(d.columns&&Array.isArray(d.columns)&&d.columns.length>0){boardColumns=d.columns}
-    else{const ls=JSON.parse(localStorage.getItem('styly_board_columns')||'null');if(ls&&ls.length)boardColumns=ls}
+    else{
+      const ls=JSON.parse(localStorage.getItem('styly_board_columns')||'null');
+      if(ls&&ls.length){boardColumns=ls;saveBoardColumns()}
+    }
   }catch(e){const ls=JSON.parse(localStorage.getItem('styly_board_columns')||'null');if(ls&&ls.length)boardColumns=ls}
   boardColsLoaded=true;
 }
