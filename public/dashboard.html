@@ -1050,35 +1050,42 @@ async function loadCalendar(){
 }
 
 // ========== CONTENT ACTIVITY ==========
-let caFilter={business:'',user_id:''};
+let caFilter={business:'',user_id:'',pageSize:10,page:1};
 let caUsers=[];
-async function loadContentActivity(){
+let caAllItems=[];
+async function loadContentActivity(resetPage){
+  if(resetPage)caFilter.page=1;
   const el=document.getElementById('contentActivityPanel');if(!el)return;
   try{
-    // Always load unfiltered user list for dropdown (only on first load or when no users cached)
     if(!caUsers.length){
       const ur=await fetch('/api/admin/content-activity?limit=200',{headers:hdrs});
       const ud=await ur.json();
       caUsers=Object.entries(ud.byUser||{}).map(([name,u])=>({name,user_id:u.user_id,total:u.total})).sort((a,b)=>b.total-a.total);
     }
-    let url='/api/admin/content-activity?limit=30';
+    let url='/api/admin/content-activity?limit=200';
     if(caFilter.business)url+='&business='+caFilter.business;
     if(caFilter.user_id)url+='&user_id='+caFilter.user_id;
     const r=await fetch(url,{headers:hdrs});
     const d=await r.json();if(d.error)throw new Error(d.error);
-    const items=d.activity||[];
+    caAllItems=d.activity||[];
+    const total=caAllItems.length;
+    const ps=caFilter.pageSize;
+    const totalPages=Math.max(1,Math.ceil(total/ps));
+    if(caFilter.page>totalPages)caFilter.page=totalPages;
+    const start=(caFilter.page-1)*ps;
+    const items=caAllItems.slice(start,start+ps);
 
     el.innerHTML=`
       <div class="ca-filters">
-        <select onchange="caFilter.business=this.value;loadContentActivity()">
+        <select onchange="caFilter.business=this.value;loadContentActivity(true)">
           <option value="">Todos los negocios</option>
           ${BUSINESSES.map(b=>`<option value="${b.id}" ${caFilter.business===b.id?'selected':''}>${b.name}</option>`).join('')}
         </select>
-        <select onchange="caFilter.user_id=this.value;loadContentActivity()">
+        <select onchange="caFilter.user_id=this.value;loadContentActivity(true)">
           <option value="">Todos los usuarios</option>
           ${caUsers.map(u=>`<option value="${u.user_id}" ${caFilter.user_id==u.user_id?'selected':''}>${esc(u.name)} (${u.total})</option>`).join('')}
         </select>
-        <span style="font-size:.75rem;color:var(--mt);margin-left:auto">${items.length} registros</span>
+        <span style="font-size:.75rem;color:var(--mt);margin-left:auto">${total} registros</span>
       </div>
       ${items.length?items.map(it=>{
         const color=BIZ_COLORS[it.business]||'#6B7280';
@@ -1100,8 +1107,32 @@ async function loadContentActivity(){
             <span class="ca-date">${ago}</span>
           </div>
         </div>`;
-      }).join(''):'<p style="color:var(--mt);text-align:center;padding:1rem">No hay actividad de contenido registrada.</p>'}`;
+      }).join(''):'<p style="color:var(--mt);text-align:center;padding:1rem">No hay actividad de contenido registrada.</p>'}
+      ${total>0?`<div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 0;border-top:1px solid var(--border);margin-top:.5rem">
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <span style="font-size:.75rem;color:var(--mt)">Mostrar</span>
+          <select onchange="caFilter.pageSize=+this.value;caFilter.page=1;renderCaPage()" style="padding:.3rem .5rem;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);font-size:.75rem">
+            ${[5,10,20].map(n=>`<option value="${n}" ${caFilter.pageSize===n?'selected':''}>${n}</option>`).join('')}
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <button onclick="if(caFilter.page>1){caFilter.page--;renderCaPage()}" style="padding:.3rem .6rem;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);cursor:pointer;font-size:.75rem;opacity:${caFilter.page<=1?.4:1}" ${caFilter.page<=1?'disabled':''}>←</button>
+          <span style="font-size:.75rem;color:var(--mt)">${caFilter.page} / ${totalPages}</span>
+          <button onclick="if(caFilter.page<${totalPages}){caFilter.page++;renderCaPage()}" style="padding:.3rem .6rem;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);cursor:pointer;font-size:.75rem;opacity:${caFilter.page>=totalPages?.4:1}" ${caFilter.page>=totalPages?'disabled':''}>→</button>
+        </div>
+      </div>`:''}`;
   }catch(e){el.innerHTML=`<div style="color:var(--mt);font-size:.82rem;padding:1rem">${esc(e.message)}</div>`}
+}
+function renderCaPage(){
+  const el=document.getElementById('contentActivityPanel');if(!el||!caAllItems.length)return;
+  const total=caAllItems.length;const ps=caFilter.pageSize;
+  const totalPages=Math.max(1,Math.ceil(total/ps));
+  if(caFilter.page>totalPages)caFilter.page=totalPages;
+  const start=(caFilter.page-1)*ps;const items=caAllItems.slice(start,start+ps);
+  const listEl=el.querySelector('.ca-items-list');
+  const pagEl=el.querySelector('.ca-pagination');
+  // Re-render full panel for simplicity
+  loadContentActivity();
 }
 function timeAgo(dateStr){
   if(!dateStr)return'';
