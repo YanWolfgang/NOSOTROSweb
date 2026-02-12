@@ -406,7 +406,11 @@ function rResult(){
         <div style="font-weight:600;font-size:.75rem;color:var(--mt);margin-bottom:.35rem">Observaciones</div>
         ${a.observations.map(o=>'<div style="margin-bottom:.3rem">- '+esc(o)+'</div>').join('')}
       </div>
-      <button class="btn" onclick="improveResult()" style="width:100%;background:var(--nosotros);font-size:.85rem;padding:.6rem"><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Mejorar basado en observaciones</button>
+      <div style="margin-top:.75rem">
+        <div style="font-weight:600;font-size:.75rem;color:var(--mt);margin-bottom:.35rem">Tus ajustes (opcional)</div>
+        <textarea id="userAdjustments" placeholder="Escribe ajustes adicionales que quieras aplicar..." style="width:100%;min-height:60px;padding:.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:.8rem;resize:vertical;box-sizing:border-box"></textarea>
+      </div>
+      <button class="btn" onclick="improveResult()" style="width:100%;background:var(--nosotros);font-size:.85rem;padding:.6rem;margin-top:.5rem"><i class="feather" data-icon="zap" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Mejorar basado en observaciones</button>
     </div>`;
   }else{
     analysisHtml=`<div style="margin-top:1rem"><button class="btn-outline btn" onclick="analyzeResult()" style="width:100%;border-color:var(--nosotros);color:var(--nosotros)"><i class="feather" data-icon="bar-chart-2" style="display:inline-block;width:1em;height:1em;color:currentColor" aria-hidden="true"></i> Analizar viralidad con IA</button></div>`;
@@ -611,16 +615,19 @@ Se critico y honesto. Un 10 es practicamente imposible.`;
 
 async function improveResult(){
   if(!S.analysis)return;
+  const userAdj=(document.getElementById('userAdjustments')||{}).value||'';
   S.phase='loading';S.ltxt='Mejorando contenido basado en observaciones...';render();
   const obs=S.analysis.observations.join('\n- ');
+  let adjustBlock='';
+  if(userAdj.trim()){adjustBlock=`\n\nAjustes adicionales del usuario (PRIORIDAD ALTA, aplica estos cambios obligatoriamente):\n${userAdj.trim()}`}
   const prompt=`Aqui esta el contenido original:
 
 ${S.result}
 
 Un analisis de viralidad detecto estas observaciones para mejorar:
-- ${obs}
+- ${obs}${adjustBlock}
 
-Reescribe el contenido COMPLETO aplicando TODAS las observaciones. Mantiene el mismo formato y estructura pero mejora cada punto senalado. Responde SOLO con el contenido mejorado, sin explicaciones.`;
+Reescribe el contenido COMPLETO aplicando TODAS las observaciones${userAdj.trim()?' y los ajustes del usuario':''}. Mantiene el mismo formato y estructura pero mejora cada punto senalado. Responde SOLO con el contenido mejorado, sin explicaciones.`;
   try{
     const txt=await apiGen(prompt,SYS,S.fid||S.manual_format);
     S.result=txt;S.analysis=null;S.analysisLoading=false;S.phase='result';
