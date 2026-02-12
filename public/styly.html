@@ -931,10 +931,20 @@ function fbCp(text){const ta=document.createElement('textarea');ta.value=text;ta
 let tasks=[],projects=[],users=[],tasksLoaded=false;
 let taskView=localStorage.getItem('styly_task_view')||'list';let tasksSubView='tareas';let taskFilters={status:'',assigned:'',priority:'',project:'',search:'',dateRange:{start:null,end:null}};let selectedTask=null;
 
-// Board columns configuration (stored in localStorage)
+// Board columns configuration (synced to server for all users)
 const DEFAULT_BOARD_COLS=[{name:'Pendiente',color:'#EF4444'},{name:'En Progreso',color:'#F59E0B'},{name:'Completada',color:'#10B981'}];
-let boardColumns=JSON.parse(localStorage.getItem('styly_board_columns')||'null')||DEFAULT_BOARD_COLS.map(c=>({...c}));
-function saveBoardColumns(){localStorage.setItem('styly_board_columns',JSON.stringify(boardColumns))}
+let boardColumns=DEFAULT_BOARD_COLS.map(c=>({...c}));
+let boardColsLoaded=false;
+async function loadBoardColumns(){
+  try{
+    const r=await fetch('/api/styly/board-columns',{headers:hdrs});
+    const d=await r.json();
+    if(d.columns&&Array.isArray(d.columns)&&d.columns.length>0){boardColumns=d.columns}
+    else{const ls=JSON.parse(localStorage.getItem('styly_board_columns')||'null');if(ls&&ls.length)boardColumns=ls}
+  }catch(e){const ls=JSON.parse(localStorage.getItem('styly_board_columns')||'null');if(ls&&ls.length)boardColumns=ls}
+  boardColsLoaded=true;
+}
+function saveBoardColumns(){localStorage.setItem('styly_board_columns',JSON.stringify(boardColumns));fetch('/api/styly/board-columns',{method:'PUT',headers:hdrs,body:JSON.stringify({columns:boardColumns})}).catch(()=>{})}
 function getBoardColColor(status){const col=boardColumns.find(c=>c.name===status);return col?col.color:'#6B7280'}
 function getStatusStyle(status){const c=getBoardColColor(status);return{bg:c+'18',b:c,c:c}}
 function getStatusOptions(selected='Pendiente'){return boardColumns.map(c=>`<option value="${c.name}" ${selected===c.name?'selected':''}>${c.name}</option>`).join('')}
@@ -970,6 +980,7 @@ function getProjectConfig(p){
 async function loadTasks(){
   if(tasksLoaded)return;
   try{
+    if(!boardColsLoaded)await loadBoardColumns();
     let r=await fetch('/api/styly/projects',{headers:hdrs});
     if(!r.ok)throw new Error(`Error HTTP: ${r.status}`);
     let d=await r.json();
@@ -1725,7 +1736,7 @@ async function confirmBulkImport() {
 
     toast(`${d.created}/${d.total_attempted} tareas importadas`);
     closeModal();
-    tasksLoaded = false;
+    tasksLoaded = false;boardColsLoaded=false;
     renderTareas(document.getElementById('modContent'));
   } catch (e) {
     toast('Error: ' + e.message);

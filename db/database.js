@@ -236,6 +236,15 @@ async function initDB() {
       );
     `);
 
+    // ========== STYLY: SETTINGS (key-value) ==========
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS styly_settings (
+        key VARCHAR(100) PRIMARY KEY,
+        value JSONB NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
     // Create indexes
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_styly_tasks_proyecto ON styly_tasks(proyecto_id);

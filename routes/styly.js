@@ -1431,4 +1431,26 @@ router.delete('/archivos/:id', requirePermission('styly', 'editar'), async (req,
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ========== BOARD COLUMNS (shared settings) ==========
+router.get('/board-columns', async (req, res) => {
+  try {
+    const { rows } = await pool.query("SELECT value FROM styly_settings WHERE key = 'board_columns'");
+    if (rows.length) return res.json({ columns: rows[0].value });
+    res.json({ columns: null });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.put('/board-columns', requirePermission('styly', 'editar'), async (req, res) => {
+  try {
+    const { columns } = req.body;
+    if (!Array.isArray(columns)) return res.status(400).json({ error: 'columns must be an array' });
+    await pool.query(
+      `INSERT INTO styly_settings (key, value, updated_at) VALUES ('board_columns', $1, NOW())
+       ON CONFLICT (key) DO UPDATE SET value = $1, updated_at = NOW()`,
+      [JSON.stringify(columns)]
+    );
+    res.json({ ok: true, columns });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 module.exports = router;
