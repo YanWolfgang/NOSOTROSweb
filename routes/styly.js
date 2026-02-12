@@ -1447,13 +1447,13 @@ router.get('/board-columns', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.put('/board-columns', requirePermission('styly', 'editar'), async (req, res) => {
+router.put('/board-columns', async (req, res) => {
   try {
     const { columns } = req.body;
     if (!Array.isArray(columns)) return res.status(400).json({ error: 'columns must be an array' });
     await pool.query(
-      `INSERT INTO styly_settings (key, value, updated_at) VALUES ('board_columns', $1, NOW())
-       ON CONFLICT (key) DO UPDATE SET value = $1, updated_at = NOW()`,
+      `INSERT INTO styly_settings (key, value, updated_at) VALUES ('board_columns', $1::jsonb, NOW())
+       ON CONFLICT (key) DO UPDATE SET value = $1::jsonb, updated_at = NOW()`,
       [JSON.stringify(columns)]
     );
     res.json({ ok: true, columns });

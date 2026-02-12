@@ -939,15 +939,26 @@ async function loadBoardColumns(){
   try{
     const r=await fetch('/api/styly/board-columns',{headers:hdrs});
     const d=await r.json();
-    if(d.columns&&Array.isArray(d.columns)&&d.columns.length>0){boardColumns=d.columns}
-    else{
+    if(d.columns&&Array.isArray(d.columns)&&d.columns.length>0){
+      boardColumns=d.columns;
+      localStorage.setItem('styly_board_columns',JSON.stringify(boardColumns));
+    }else{
       const ls=JSON.parse(localStorage.getItem('styly_board_columns')||'null');
-      if(ls&&ls.length){boardColumns=ls;saveBoardColumns()}
+      if(ls&&ls.length&&ls.length>DEFAULT_BOARD_COLS.length){
+        boardColumns=ls;
+        await saveBoardColumns();
+      }
     }
   }catch(e){const ls=JSON.parse(localStorage.getItem('styly_board_columns')||'null');if(ls&&ls.length)boardColumns=ls}
   boardColsLoaded=true;
 }
-function saveBoardColumns(){localStorage.setItem('styly_board_columns',JSON.stringify(boardColumns));fetch('/api/styly/board-columns',{method:'PUT',headers:hdrs,body:JSON.stringify({columns:boardColumns})}).catch(()=>{})}
+async function saveBoardColumns(){
+  localStorage.setItem('styly_board_columns',JSON.stringify(boardColumns));
+  try{
+    const r=await fetch('/api/styly/board-columns',{method:'PUT',headers:hdrs,body:JSON.stringify({columns:boardColumns})});
+    if(!r.ok){const d=await r.json().catch(()=>({}));console.error('Error saving board columns:',d.error||r.status)}
+  }catch(e){console.error('Error saving board columns:',e)}
+}
 function getBoardColColor(status){const col=boardColumns.find(c=>c.name===status);return col?col.color:'#6B7280'}
 function getStatusStyle(status){const c=getBoardColColor(status);return{bg:c+'18',b:c,c:c}}
 function getStatusOptions(selected='Pendiente'){return boardColumns.map(c=>`<option value="${c.name}" ${selected===c.name?'selected':''}>${c.name}</option>`).join('')}
