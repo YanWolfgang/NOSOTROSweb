@@ -20,6 +20,19 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Health
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', service: 'Panel Central API' }));
 
+// Serve uploaded files from database (public, no auth required for img/a tags)
+app.get('/api/styly/files/:id', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT nombre, tipo, file_data FROM styly_task_archivos WHERE id = $1', [req.params.id]);
+    if (!rows.length || !rows[0].file_data) return res.status(404).send('Not found');
+    const file = rows[0];
+    res.set('Content-Type', file.tipo || 'application/octet-stream');
+    res.set('Content-Disposition', `inline; filename="${encodeURIComponent(file.nombre)}"`);
+    res.set('Cache-Control', 'public, max-age=86400');
+    res.send(file.file_data);
+  } catch (e) { res.status(500).send('Error'); }
+});
+
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin', require('./routes/admin'));

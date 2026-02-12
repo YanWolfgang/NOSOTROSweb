@@ -231,10 +231,13 @@ async function initDB() {
         tipo VARCHAR(100),
         tamano INTEGER,
         ruta VARCHAR(500) NOT NULL,
+        file_data BYTEA,
         subido_por INTEGER REFERENCES users(id) ON DELETE SET NULL,
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);
+    // Add file_data column if missing (existing databases)
+    await client.query(`ALTER TABLE styly_task_archivos ADD COLUMN IF NOT EXISTS file_data BYTEA`);
 
     // ========== STYLY: SETTINGS (key-value) ==========
     await client.query(`

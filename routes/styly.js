@@ -1399,7 +1399,7 @@ router.delete('/comentarios/:id', requirePermission('styly', 'editar'), async (r
 router.get('/tasks/:taskId/archivos', async (req, res) => {
   try {
     const { rows } = await pool.query(
-      'SELECT a.*, u.name as subido_por_nombre FROM styly_task_archivos a LEFT JOIN users u ON a.subido_por = u.id WHERE a.task_id = $1 ORDER BY a.created_at DESC',
+      'SELECT a.id, a.task_id, a.nombre, a.tipo, a.tamano, a.ruta, a.subido_por, a.created_at, u.name as subido_por_nombre FROM styly_task_archivos a LEFT JOIN users u ON a.subido_por = u.id WHERE a.task_id = $1 ORDER BY a.created_at DESC',
       [req.params.taskId]
     );
     res.json({ archivos: rows });
@@ -1411,22 +1411,29 @@ router.post('/tasks/:taskId/archivos', requirePermission('styly', 'editar'), upl
     if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'No se enviaron archivos' });
     const results = [];
     for (const file of req.files) {
+      const fileData = fs.readFileSync(file.path);
       const { rows } = await pool.query(
-        'INSERT INTO styly_task_archivos (task_id, nombre, tipo, tamano, ruta, subido_por) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-        [req.params.taskId, file.originalname, file.mimetype, file.size, `/uploads/styly/${file.filename}`, req.user.id]
+        'INSERT INTO styly_task_archivos (task_id, nombre, tipo, tamano, ruta, file_data, subido_por) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, task_id, nombre, tipo, tamano, ruta, subido_por, created_at',
+        [req.params.taskId, file.originalname, file.mimetype, file.size, `/api/styly/files/${Date.now()}`, fileData, req.user.id]
       );
       results.push(rows[0]);
+      // Clean up temp file
+      try { fs.unlinkSync(file.path); } catch(e) {}
+    }
+    // Update ruta with actual IDs
+    for (const r of results) {
+      await pool.query('UPDATE styly_task_archivos SET ruta = $1 WHERE id = $2', [`/api/styly/files/${r.id}`, r.id]);
+      r.ruta = `/api/styly/files/${r.id}`;
     }
     res.json({ archivos: results });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+
 router.delete('/archivos/:id', requirePermission('styly', 'editar'), async (req, res) => {
   try {
-    const { rows } = await pool.query('DELETE FROM styly_task_archivos WHERE id = $1 RETURNING ruta', [req.params.id]);
+    const { rows } = await pool.query('DELETE FROM styly_task_archivos WHERE id = $1 RETURNING id', [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: 'Archivo no encontrado' });
-    const filePath = path.join(__dirname, '..', rows[0].ruta);
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
