@@ -107,6 +107,192 @@ const CATS=[
   {id:'ciencia',label:'Ciencia'},{id:'guerra',label:'Guerra'},{id:'mexico',label:'Mexico'}
 ];
 
+// ========== YOUTUBE MASTER PROMPT ==========
+function buildYtPrompt(noticia, angulos, estructura) {
+  const seccionesCustom = estructura ? `\nEstructura elegida: ${estructura.name}\nSecciones de la estructura: ${estructura.sections.join(' -> ')}\n\nADAPTA el contenido de los bloques de desarrollo a estas secciones, pero MANTIENE la estructura obligatoria de 12 secciones con hooks, rehooks y CTAs.` : '';
+  return `Noticia: ${noticia}
+Angulos elegidos: ${angulos}${seccionesCustom}
+
+Eres un guionista experto en videos de noticias para YouTube optimizados para retencion y crecimiento. Genera un guion para el canal NOSOTROS siguiendo OBLIGATORIAMENTE esta estructura. No omitas ninguna seccion. No cambies el orden. No ignores los timestamps de rehooks ni CTAs.
+
+FORMATO: El guion debe estar en formato de DOS COLUMNAS:
+- COLUMNA IZQUIERDA: Dialogo/narracion exacta (lo que se dice)
+- COLUMNA DERECHA: Notas visuales (que aparece en pantalla: graficas, B-roll, texto overlay, cambios de camara, efectos)
+
+Velocidad de habla: ~150 palabras por minuto. Video de 10 minutos = ~1,500 palabras de guion.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# TITULO YOUTUBE
+SEO optimizado, curiosidad irresistible, maximo 70 caracteres. Formulas: numeros, preguntas, palabras power ("revelado", "nadie habla de", "la verdad sobre"). NO clickbait falso.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## [0:00-0:03] SECCION 1: HOOK
+
+Capturar atencion en 3 segundos. El espectador debe sentir que NO PUEDE irse.
+- Hook TRIPLE: visual impactante + texto en pantalla + frase verbal, los tres al mismo tiempo
+- Crear un "open loop": idea incompleta que el cerebro necesita cerrar
+- NUNCA empieces con "Hola, bienvenidos..." ni con el nombre del canal
+- NUNCA empieces con "Sabias que...?"
+Formulas: Dato impactante / Declaracion contraintuitiva / Resultado primero / Confrontacion directa
+VISUAL: Imagen o clip de alto impacto + texto grande con la frase clave
+
+## [0:03-0:15] SECCION 2: AMPLIFICACION DEL HOOK + PROMESA
+
+Expandir el hook. Decir EXACTAMENTE que va a obtener si se queda.
+- Mencionar 3-4 puntos especificos que se cubriran (crea lista mental)
+- Lenguaje de urgencia: "lo que nadie te esta contando", "lo que realmente esta pasando", "y lo mas grave"
+- La promesa debe ser CONCRETA, no vaga
+VISUAL: Transicion rapida, previews/flashes de lo que viene (graficas, mapas, clips)
+
+## [0:15-2:00] SECCION 3: CONTEXTO RAPIDO
+
+Dar contexto minimo para que CUALQUIER espectador entienda la noticia.
+- Frases cortas y directas. Cada oracion aporta info nueva
+- Ritmo rapido. No divagar
+- Datos duros: fechas, numeros, nombres de actores clave
+- Open loop al final que conecte con lo que viene
+VISUAL: Graficas explicativas, mapas, timeline, texto con datos resaltados
+
+## [~2:00] SECCION 4: REHOOK #1
+
+Evitar primer drop-off. Reenganchar.
+- "Pero lo que te voy a contar ahora es lo que realmente causo todo esto, y no es lo que piensas."
+- "Y aqui es donde la historia se pone interesante..."
+- "Pero eso no es lo peor. Lo peor es lo que viene..."
+VISUAL: Cambio de escenario, zoom dramatico, nueva grafica, cambio de tono musical
+
+## [2:00-5:00] SECCION 5: DESARROLLO BLOQUE 1
+
+Primera parte del contenido principal.
+- Sub-bloques de 60-90 segundos maximo. Cada uno responde UNA pregunta
+- Progresion ASCENDENTE: cada punto mas impactante que el anterior
+- Pattern interrupt cada 45-60 segundos: cambio de angulo, grafica nueva, clip, zoom, texto nuevo
+- NUNCA mas de 60 segundos con el mismo encuadre estatico
+VISUAL: Alternar: presentador -> grafica/dato -> clip/imagen -> presentador
+
+## [~3:30-4:00] SECCION 6: CTA #1 SUSCRIPCION (entre el 40-50% del video)
+
+NUNCA decir "suscribete y dale a la campanita" de forma generica.
+El CTA debe ser CONTEXTUAL, conectado con el contenido que se acaba de ver.
+- "Si te interesa estar al dia con [TEMA], suscribete porque vamos a estar cubriendo esto cada semana."
+- "Si esto te esta pareciendo importante, un subscribe nos ayuda a seguir investigando estos temas."
+VISUAL: Animacion sutil del boton de suscripcion. Maximo 5 segundos
+
+## [~5:00] SECCION 7: REHOOK #2
+
+Evitar "slump de mitad de video".
+- "Ahora, hay algo que la mayoria de los medios no estan cubriendo..."
+- "Pero espera, porque aqui es donde la cosa se pone realmente seria."
+- "Ahora te voy a dar el dato que lo cambia todo..."
+VISUAL: Pattern interrupt fuerte: cambio de musica, nueva animacion, texto impactante
+
+## [5:00-8:00] SECCION 8: DESARROLLO BLOQUE 2
+
+Analisis profundo. Lo que DIFERENCIA este video de solo leer la noticia.
+- Perspectivas multiples, datos de fuentes oficiales, opiniones de expertos
+- Conectar con el impacto real en la vida de las personas
+- Pattern interrupts cada 45-60 segundos
+VISUAL: Clips de declaraciones, graficas comparativas, mapas, screenshots de fuentes
+
+## [~8:00] SECCION 9: REHOOK #3
+
+Retener para el cierre y analisis final.
+- "Y lo mas importante de todo esto..."
+- "Pero aqui viene la parte que a mi mas me preocupa..."
+- "Y esto nos lleva a la conclusion mas importante..."
+
+## [8:00-11:00] SECCION 10: BLOQUE FINAL + ANALISIS
+
+Analisis personal, perspectiva editorial, proyeccion.
+- Opinion o perspectiva CLARA (no ambiguedad)
+- Proyectar escenarios: "Si esto sigue asi..." / "Lo que podria pasar es..."
+- Conectar con impacto humano y emocional
+
+## [~9:00-10:00] SECCION 11: CTA #2 COMENTARIOS
+
+Pregunta ESPECIFICA, no generica. Conectada con el contenido.
+Dar 2 opciones para que sea facil responder.
+- "Tu que opinas? Crees que [ESCENARIO A] o que [ESCENARIO B]? Dejamelo en los comentarios."
+- "En tu estado ya se esta sintiendo esto? Cuentame en los comentarios."
+
+## [Ultimos 30s] SECCION 12: CIERRE + CTA FINAL + END SCREEN
+
+1. Frase resumen POTENTE (1 oracion que resuma todo)
+2. CTA: "Dale like si te sirvio, suscribete para no perderte la siguiente actualizacion."
+3. Teaser proximo video: "Y si quieres entender [TEMA RELACIONADO], mira este video donde te lo explico a fondo."
+4. End screen: tarjeta clicable (20 segundos)
+VISUAL: End screen con thumbnail + animacion de suscripcion
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## DESCRIPCION YOUTUBE (OBLIGATORIO)
+
+Genera descripcion completa siguiendo guidelines de YouTube SEO:
+- Primeras 2-3 lineas (above the fold): resumen atractivo con keyword principal + CTA suscripcion
+- Keyword principal en las primeras 25 palabras
+- Longitud: 200-350 palabras
+
+Estructura:
+[2-3 lineas de resumen enganchante con keyword principal]
+
+Suscribete a NOSOTROS: [LINK DEL CANAL]
+
+En este video:
+- [Punto 1 con keywords naturales]
+- [Punto 2 con keywords naturales]
+- [Punto 3 con keywords naturales]
+- [Punto 4 con keywords naturales]
+
+Timestamps:
+0:00 — [Titulo seccion]
+0:15 — [Titulo seccion]
+2:00 — [Titulo seccion]
+5:00 — [Titulo seccion]
+8:00 — [Titulo seccion]
+
+Fuentes:
+- [Fuente 1]
+- [Fuente 2]
+
+Siguenos en redes:
+- Instagram: [LINK]
+- TikTok: [LINK]
+- X/Twitter: [LINK]
+
+#[HashtagPrincipal] #[Hashtag2] #[Hashtag3] #Nosotros #Noticias
+
+Integrar 3-5 keywords secundarias naturalmente. NO incluir links de spam ni keywords stuffing.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## 4 CLIPS PARA REDES SOCIALES (OBLIGATORIO)
+
+Selecciona los 4 momentos mas potentes del guion. Priorizar: datos impactantes, declaraciones fuertes, momentos de tension, analisis que genere debate.
+
+REGLAS:
+- Duracion: 30-60 segundos cada clip (45-90 palabras)
+- Cada clip debe funcionar de forma INDEPENDIENTE (alguien que no vio el video completo debe entenderlo)
+- Cada clip debe terminar con un OPEN LOOP que haga querer ver el video completo
+- El extracto debe ser 100% TEXTO EXACTO del guion, copiado literalmente. PROHIBIDO reescribir o parafrasear
+
+Por cada clip:
+
+CLIP [1/2/3/4]
+
+TITULO YOUTUBE SHORTS:
+[Max 70 caracteres, con keyword, curiosidad. Formulas: "Lo que nadie te dice sobre...", "La verdad sobre..."]
+
+COPY PARA REDES (max 200 caracteres):
+[1 emoji al inicio + hashtag principal + CTA: "Video completo en el canal" o "Link en bio"]
+
+EXTRACTO EXACTO DEL GUION:
+"[Copia EXACTAMENTE el fragmento. Palabra por palabra. No parafrasear.]"
+
+TIMESTAMP EN EL VIDEO ORIGINAL:
+[MM:SS - MM:SS]
+
+POR QUE FUNCIONA COMO CLIP:
+[1 linea]`;
+}
+
 // ========== STATE ==========
 let S={view:'home',fid:null,step:0,phase:'input',ltxt:'',
   sq:'',cat:null,news:[],sn:new Set(),angles:[],sa:new Set(),
@@ -509,7 +695,7 @@ async function goStructs(){
   const f=F(),news=selN(),ang=selA();
   S.step=f.steps.indexOf('Estructura');S.phase='loading';S.ltxt='Generando estructuras...';render();
   const n=news[0],at=ang.map(a=>a.name).join(', ');
-  const prompt=`Noticia: ${n.title} - ${n.summary}\nAngulos: ${at}\n\nGenera 4 estructuras de storytelling para video YouTube 12-15 min. Cada estructura debe estar disenada para MAXIMO ENGAGEMENT y retencion: hooks entre secciones, tension narrativa creciente, revelaciones graduales. Las secciones deben tener nombres emocionantes que generen curiosidad. Responde SOLO con JSON valido:\n{"structures":[{"id":1,"name":"nombre","description":"descripcion breve","sections":["seccion1","seccion2","seccion3"]}]}`;
+  const prompt=`Noticia: ${n.title} - ${n.summary}\nAngulos: ${at}\n\nGenera 4 estructuras de storytelling para video YouTube de 10 minutos. Cada estructura propone una forma diferente de organizar el CONTENIDO DE DESARROLLO del video (los bloques donde se profundiza la noticia).\n\nEl video SIEMPRE tendra esta estructura fija:\n- Hook (0:00-0:03)\n- Amplificacion + Promesa (0:03-0:15)\n- Contexto rapido (0:15-2:00)\n- Rehook #1 (~2:00)\n- DESARROLLO BLOQUE 1 (2:00-5:00) ← las secciones que generes van AQUI\n- CTA suscripcion (~3:30)\n- Rehook #2 (~5:00)\n- DESARROLLO BLOQUE 2 (5:00-8:00) ← y AQUI\n- Rehook #3 (~8:00)\n- BLOQUE FINAL + Analisis (8:00-11:00) ← y AQUI\n- CTA comentarios (~9:00)\n- Cierre + End Screen\n\nTus 4 estructuras deben proponer DIFERENTES formas de organizar el contenido de desarrollo (los 3 bloques). Cada estructura tiene 3-5 secciones de desarrollo con nombres emocionantes que generen curiosidad.\n\nEjemplo: {"id":1,"name":"Cronologica Reveladora","description":"De los hechos al impacto oculto","sections":["Los hechos que nadie cuestiono","El dato que lo cambia todo","Las consecuencias que nadie ve venir"]}\n\nResponde SOLO con JSON valido:\n{"structures":[{"id":1,"name":"nombre","description":"descripcion breve","sections":["seccion1","seccion2","seccion3"]}]}`;
   try{const txt=await apiGen(prompt);const p=pJ(txt);if(!p?.structures)throw new Error('No se pudieron parsear estructuras');S.structs=p.structures;S.phase='select'}
   catch(e){S.err=e.message;S.step=f.steps.indexOf('Angulos');S.phase='select'}render();
 }
@@ -575,7 +761,7 @@ async function goManualFinalContent(){
     case'carrusel':prompt=`Noticia: ${nt}\nAngulos elegidos: ${at}\n\nEres un redactor de noticias para Instagram. Escribes carruseles informativos para @nosotros.news.\n\nREGLAS DE ESTILO (OBLIGATORIAS EN TODO EL CARRUSEL):\n- Frases cortas y directas. Sin adornos.\n- Tono periodistico pero accesible. Como si le explicaras a un amigo inteligente.\n- PROHIBIDO usar emojis en cualquier parte (slides, copies, todo).\n- NO uses signos de exclamacion innecesarios.\n- NO uses palabras como "increible", "impactante", "sorprendente".\n- Usa datos concretos (numeros, nombres, porcentajes).\n\nESTRUCTURA (4 slides obligatorios):\n\nSLIDE 1 — GANCHO\n- UNA sola linea. MAXIMO 10 PALABRAS, ni una mas. Titular potente y directo. Si tiene mas de 10 palabras, reescribelo hasta que quepa.\n\nSLIDE 2 — QUE PASO\n- Cuenta inicialmente que paso en la noticia: los hechos concretos.\n- Responde que, donde, cuando, quienes.\n- Entre 150 y 200 caracteres.\n\nSLIDE 3 — CONTEXTO\n- Agrega contexto, analisis o consecuencias.\n- Conecta con el impacto real: politico, economico o social.\n- Entre 150 y 200 caracteres.\n\nSLIDE 4 — CIERRE\n- Exactamente: "Siguenos para mas noticias."\n\nADEMAS genera:\n\nCOPY LARGO (para Instagram):\n- FORZOSAMENTE 600 caracteres. Ni menos, ni mucho mas.\n- Es practicamente TODA la noticia resumida: que paso, donde paso, como paso, quienes estan involucrados, por que importa, que consecuencias tiene.\n- Escribe parrafos completos, no bullets.\n- Termina con 3 hashtags relevantes.\n- NO agregues call to action, ni CTA, ni "lee mas", ni "siguenos". Solo la noticia y los hashtags.\n- Sin emojis.\n\nCOPY CORTO (para Twitter/X):\n- Maximo 200 caracteres.\n- Version resumida del copy largo. Solo la noticia, directo.\n- Termina con 3 hashtags relevantes.\n- NO agregues CTA ni "lee mas". Sin emojis.\n\nGenera el carrusel siguiendo este formato exacto. Responde SOLO con los slides y los copies, sin explicaciones adicionales.`;break;
     case'sketch':prompt=`Noticia: ${nt}\nAngulos elegidos: ${at}\n\nEres un guionista de sketches de noticias para @nosotros.news. Escribes guiones breves, faciles de grabar en casa, con humor inteligente.\n\nESTRUCTURA DEL SKETCH (seguir este orden exacto):\n\n## ESCENA — PERSONAJE A vs PERSONAJE B\n- Define dos personajes con posiciones opuestas sobre la noticia.\n- Nombre y descripcion breve de cada uno (ej: "Juan — el que siempre defiende al gobierno" / "Carlos — el esceptico que no le cree nada").\n- Escribe un dialogo corto entre ambos (maximo 6-8 lineas de dialogo total). Debe ser gracioso, satirico, exagerado pero que refleje las dos posturas reales sobre la noticia.\n- La escena debe ser MUY SIMPLE de grabar: dos personas hablando, sin escenografia especial, grabable en una sala o escritorio.\n- Indica si se puede reforzar con material audiovisual intercalado (ej: "Insertar clip/imagen de [referencia al tema]").\n\n## CONTEXTO A CAMARA\n- Despues de la escena, el presentador habla DIRECTO a camara.\n- Explica la noticia real con datos concretos: que paso, quienes, donde, por que importa.\n- Tono serio pero accesible. Entre 150 y 250 palabras.\n- Si aplica, menciona fuentes o datos duros.\n- SIEMPRE cierra el contexto con una conclusion de la noticia: que significa, que sigue, o que impacto tiene. No dejes la noticia sin cerrar.\n\n## CIERRE\n- Despues de la conclusion de la noticia, termina SIEMPRE con el CTA exacto: "Siguenos para mas noticias."\n\n## COPY REDES\n- Maximo 280 caracteres. Resumen directo de la noticia, sin emojis, sin CTA. Termina con 3 hashtags.\n\n## TITULO YOUTUBE\n- Titulo SEO optimizado, maximo 60 caracteres, que genere curiosidad.\n\nGenera el sketch completo. Responde SOLO con el guion, sin explicaciones adicionales.`;break;
     case'nr':prompt=`Noticia: ${nt}\nAngulos elegidos: ${at}\n\nGenera una Nota de Investigacion con estos elementos:\n- Hook (gancho que atrape)\n- Contexto general\n- Contexto a fondo\n- Diferentes posturas sobre el tema\n- Cierre\n- Copy redes sociales: 280 caracteres\n- Titulo YouTube`;break;
-    case'youtube':prompt=`Noticia: ${nt}\nAngulos elegidos: ${at}\n\nEres un guionista de YouTube experto en alto engagement y retencion. Genera un guion COMPLETO de 12-15 minutos. Escribe CADA seccion con el texto narrado COMPLETO, palabra por palabra. Minimo 3 parrafos por seccion.\n\nREGLAS DE ENGAGEMENT (OBLIGATORIAS EN TODO EL GUION):\n- SIEMPRE inicia con un HOOK ultra impactante en los primeros 10 segundos que genere curiosidad extrema o tension\n- Entre CADA seccion incluye un mini-hook o transicion enganchante que conecte con lo siguiente ("Pero eso no es todo...", "Y aqui es donde la cosa se pone interesante...", "Lo que viene a continuacion va a cambiar tu perspectiva...")\n- Usa tension narrativa: plantea preguntas, genera misterio, revela informacion gradualmente\n- El ritmo debe ir subiendo: cada seccion mas intensa que la anterior\n- Usa datos impactantes, comparaciones sorprendentes, y frases que generen reaccion\n- Haz que el espectador NECESITE ver hasta el final\n\n# TITULO YOUTUBE\n- SEO optimizado, genera curiosidad irresistible, maximo 70 caracteres\n- Usa formulas probadas: numeros, preguntas, palabras power ("revelado", "nadie habla de", "la verdad sobre")\n\n## [00:00] HOOK + Introduccion\n- HOOK: Las primeras 2-3 oraciones deben ser EXPLOSIVAS. Un dato impactante, una pregunta provocadora, o una afirmacion que genere shock\n- Contexto inicial que genere urgencia de seguir viendo\n- Presenta lo que se va a cubrir creando expectativa ("En este video vamos a descubrir...")\n- Minimo 3 parrafos completos\n\n## [01:30] CTA SUSCRIPCION\n- Pide suscripcion y campanita de forma natural (1-2 oraciones)\n\n## [02:00] Desarrollo - Parte 1\n- MINI-HOOK de apertura que enganche esta seccion\n- Explicacion detallada de los hechos con datos duros\n- Fuentes, contexto historico, nombres, cifras concretas\n- Cierra con un gancho hacia la siguiente seccion\n- Minimo 4 parrafos completos\n\n## [MM:SS] Desarrollo - Parte 2\n- MINI-HOOK: "Pero lo mas revelador es lo que viene..."\n- Analisis profundo, diferentes perspectivas, opinion de expertos\n- Impacto y consecuencias reales\n- Cierra con transicion emocionante\n- Minimo 4 parrafos completos\n\n## [MM:SS] Desarrollo - Parte 3\n- MINI-HOOK: revelacion o giro narrativo\n- Proyecciones, escenarios posibles, que sigue\n- Conexion con otros temas relevantes\n- Minimo 3 parrafos completos\n\n## [MM:SS] Conclusion\n- Resumen de los puntos clave con impacto emocional\n- Reflexion final que deje pensando al espectador\n- Minimo 2 parrafos completos\n\n## [MM:SS] CTA FINAL\n- Agradece, pide suscribirse, like, compartir y comentar\n- Invita a seguir en redes sociales\n\n---\n## DESCRIPCION YOUTUBE\nDescripcion completa siguiendo best practices:\n- Primer parrafo: resumen atractivo (aparece en busquedas, maximo 200 caracteres)\n- Segundo parrafo: descripcion extendida (300-400 caracteres)\n- Timestamps de cada seccion del guion\n- 3-5 hashtags relevantes\n- Links de redes sociales placeholder: Instagram, TikTok, Twitter\n- "Suscribete para mas contenido como este"\n\n---\n## CLIPS PARA REDES\nSelecciona los 4 fragmentos del guion con MAYOR POTENCIAL DE VIRALIDAD. Elige los momentos mas impactantes, controversiales, sorprendentes o emotivos del guion.\n\nREGLAS ESTRICTAS:\n- Cada clip debe durar entre 2:00 y 3:00 minutos al leerse en voz alta (300-450 palabras)\n- El clip debe ser 100% TEXTO EXACTO copiado del guion de arriba. PROHIBIDO reescribir, resumir o inventar contenido nuevo\n- El fragmento debe ser CONTINUO (parrafos consecutivos, sin saltos)\n- Indica de que seccion del guion proviene\n\nPor cada clip:\n### CLIP [numero]\n- **Seccion de origen**: De que parte del guion se extrajo\n- **Titulo del clip**: Atractivo, maximo 50 caracteres\n- **Titulo YouTube Shorts**: SEO para Shorts/Reels, maximo 60 caracteres\n- **Duracion estimada**: Entre 2:00 y 3:00 minutos\n- **Por que es viral**: 1 linea explicando el potencial viral\n- **Fragmento literal**:\n[COPIAR AQUI EL TEXTO EXACTO DEL GUION, 300-450 palabras continuas, sin modificar ni una palabra]\n- **Copy redes sociales**: Maximo 200 caracteres, directo, sin emojis`;break;
+    case'youtube':prompt=buildYtPrompt(nt,at,null);break;
   }
   try{const txt=await apiGen(prompt,SYS,S.manual_format);S.result=txt;S.phase='result'}
   catch(e){S.err=e.message;S.step=f.steps.indexOf('Angulos');S.phase='select'}render();
@@ -589,9 +775,7 @@ function buildFinal(f,news,ang,str){
     case'noticias_hoy':case'noticias_mx':return`Noticias seleccionadas:\n${nt}\n\nGenera un guion de noticias con esta estructura FIJA (respetala exactamente):\n\n## HOOK\nUna linea por cada noticia, maximo 6 palabras cada una, estilo palabras clave impactantes. Van una tras otra, sin introduccion, sin contexto, sin saludo. Solo los hooks.\n\n## NOTICIAS\nINMEDIATAMENTE despues del hook, sin ninguna introduccion ni transicion, salta directo al desarrollo de cada noticia:\n- Noticia 1: desarrollo breve\n- Noticia 2: desarrollo breve\n- Noticia 3: desarrollo breve\n- Noticia 4: desarrollo breve\n\n## CIERRE\nSiempre termina con este CTA exacto: "No olvides seguirnos para mas noticias. Te enteraste con Nosotros."\n\n## COPY Y TITULO\n- Copy redes sociales: 280 caracteres\n- Titulo YouTube`;
     case'sketch':return`Noticia: ${nt}\nAngulos elegidos: ${at}\n\nEres un guionista de sketches de noticias para @nosotros.news. Escribes guiones breves, faciles de grabar en casa, con humor inteligente.\n\nESTRUCTURA DEL SKETCH (seguir este orden exacto):\n\n## ESCENA — PERSONAJE A vs PERSONAJE B\n- Define dos personajes con posiciones opuestas sobre la noticia.\n- Nombre y descripcion breve de cada uno (ej: "Juan — el que siempre defiende al gobierno" / "Carlos — el esceptico que no le cree nada").\n- Escribe un dialogo corto entre ambos (maximo 6-8 lineas de dialogo total). Debe ser gracioso, satirico, exagerado pero que refleje las dos posturas reales sobre la noticia.\n- La escena debe ser MUY SIMPLE de grabar: dos personas hablando, sin escenografia especial, grabable en una sala o escritorio.\n- Indica si se puede reforzar con material audiovisual intercalado (ej: "Insertar clip/imagen de [referencia al tema]").\n\n## CONTEXTO A CAMARA\n- Despues de la escena, el presentador habla DIRECTO a camara.\n- Explica la noticia real con datos concretos: que paso, quienes, donde, por que importa.\n- Tono serio pero accesible. Entre 150 y 250 palabras.\n- Si aplica, menciona fuentes o datos duros.\n- SIEMPRE cierra el contexto con una conclusion de la noticia: que significa, que sigue, o que impacto tiene. No dejes la noticia sin cerrar.\n\n## CIERRE\n- Despues de la conclusion de la noticia, termina SIEMPRE con el CTA exacto: "Siguenos para mas noticias."\n\n## COPY REDES\n- Maximo 280 caracteres. Resumen directo de la noticia, sin emojis, sin CTA. Termina con 3 hashtags.\n\n## TITULO YOUTUBE\n- Titulo SEO optimizado, maximo 60 caracteres, que genere curiosidad.\n\nGenera el sketch completo. Responde SOLO con el guion, sin explicaciones adicionales.`;
     case'nr':return`Noticia: ${nt}\nAngulos elegidos: ${at}\n\nGenera una Nota de Investigacion con estos elementos:\n- Hook (gancho que atrape)\n- Contexto general\n- Contexto a fondo\n- Diferentes posturas sobre el tema\n- Cierre\n- Copy redes sociales: 280 caracteres\n- Titulo YouTube`;
-    case'youtube':{
-      const secs=str.sections.map((s,i)=>`Seccion ${i+1} — "${s}": Escribe TODO el texto narrado completo. Desarrolla el contenido real: datos, contexto, analisis, argumentos. Minimo 3 parrafos. INICIA cada seccion con un mini-hook o frase enganchante que conecte con lo anterior y genere curiosidad por lo que viene.`).join('\n');
-      return`Noticia: ${nt}\nAngulos elegidos: ${at}\nEstructura elegida: ${str.name}\n\nEres un guionista de YouTube experto en alto engagement y retencion. Escribe el guion COMPLETO, palabra por palabra. El guion debe durar 12-15 minutos.\n\nREGLAS DE ENGAGEMENT (OBLIGATORIAS EN TODO EL GUION):\n- SIEMPRE inicia con un HOOK ultra impactante en los primeros 10 segundos que genere curiosidad extrema o tension\n- Entre CADA seccion incluye un mini-hook o transicion enganchante ("Pero eso no es todo...", "Y aqui es donde la cosa se pone interesante...", "Lo que viene a continuacion cambia todo...")\n- Usa tension narrativa: plantea preguntas, genera misterio, revela informacion gradualmente\n- El ritmo debe ir subiendo: cada seccion mas intensa que la anterior\n- Usa datos impactantes, comparaciones sorprendentes, y frases que generen reaccion\n- Haz que el espectador NECESITE ver hasta el final\n\nEstructura del guion:\n${secs}\n\nREGLAS ADICIONALES:\n1. Despues de la primera seccion, incluye un CTA breve y natural pidiendo suscribirse y activar campanita (1-2 oraciones)\n2. Al final, CTA FINAL: agradece, pide suscribirse, like, compartir, comentar\n\nFormato de entrega:\n\n# TITULO YOUTUBE (SEO optimizado, curiosidad irresistible, maximo 70 caracteres, usa formulas: numeros, preguntas, palabras power)\n\n## [00:00] HOOK + Seccion 1\n(HOOK explosivo en las primeras 2-3 oraciones + texto narrado completo, minimo 3 parrafos)\n\n## [MM:SS] CTA SUSCRIPCION\n(Breve, natural, 1-2 oraciones)\n\n## [MM:SS] Seccion 2\n(Mini-hook de apertura + texto narrado completo, minimo 3 parrafos)\n\n[...continuar con todas las secciones, cada una con mini-hook de apertura...]\n\n## [MM:SS] CTA FINAL\n(Agradece, suscribirse, like, compartir, comentar, redes sociales)\n\n---\n## DESCRIPCION YOUTUBE\nDescripcion completa best practices:\n- Primer parrafo: resumen atractivo (maximo 200 caracteres)\n- Segundo parrafo: descripcion extendida (300-400 caracteres)\n- Timestamps de cada seccion\n- 3-5 hashtags relevantes\n- Links redes sociales placeholder\n- "Suscribete para mas contenido como este"\n\n---\n## CLIPS PARA REDES\nSelecciona los 4 fragmentos del guion con MAYOR POTENCIAL DE VIRALIDAD. Elige los momentos mas impactantes, controversiales, sorprendentes o emotivos.\n\nREGLAS ESTRICTAS:\n- Cada clip: 2:00-3:00 minutos al leerse en voz alta (300-450 palabras)\n- 100% TEXTO EXACTO copiado del guion. PROHIBIDO reescribir, resumir o inventar\n- Fragmento CONTINUO (parrafos consecutivos, sin saltos)\n\nPor cada clip:\n### CLIP [numero]\n- **Seccion de origen**: De donde se extrajo\n- **Titulo del clip**: Atractivo, maximo 50 caracteres\n- **Titulo YouTube Shorts**: SEO para Shorts/Reels, maximo 60 caracteres\n- **Duracion estimada**: Entre 2:00 y 3:00 minutos\n- **Por que es viral**: 1 linea\n- **Fragmento literal**:\n[COPIAR TEXTO EXACTO DEL GUION, 300-450 palabras, sin modificar ni una palabra]\n- **Copy redes sociales**: Maximo 200 caracteres, sin emojis`;}
+    case'youtube':return buildYtPrompt(nt,at,str);
     default:return'';
   }
 }
