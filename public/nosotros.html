@@ -227,9 +227,10 @@ async function delHistory(id){
   if(!confirm('Eliminar este contenido del historial?'))return;
   try{
     const r=await fetch('/api/nosotros/history/'+id,{method:'DELETE',headers:hdrs});
+    if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.error||'Error HTTP '+r.status)}
     const d=await r.json();if(d.error)throw new Error(d.error);
     loadHistory();
-  }catch(e){alert('Error: '+e.message)}
+  }catch(e){alert('Error al borrar: '+e.message)}
 }
 
 // ========== RENDER ==========

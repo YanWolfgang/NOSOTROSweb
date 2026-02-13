@@ -129,12 +129,14 @@ router.get('/history', requirePermission('nosotros', 'ver'), async (req, res) =>
   }
 });
 
-router.get('/history/:id', requirePermission('nosotros', 'ver'), async (req, res) => {
+router.get('/history/:id', async (req, res) => {
   try {
-    const { rows } = await pool.query(
-      'SELECT * FROM content_history WHERE id = $1 AND user_id = $2',
-      [req.params.id, req.user.id]
-    );
+    const isAdmin = req.user.role === 'admin';
+    const q = isAdmin
+      ? 'SELECT * FROM content_history WHERE id = $1'
+      : 'SELECT * FROM content_history WHERE id = $1 AND user_id = $2';
+    const p = isAdmin ? [req.params.id] : [req.params.id, req.user.id];
+    const { rows } = await pool.query(q, p);
     if (!rows.length) return res.status(404).json({ error: 'No encontrado' });
     res.json({ item: rows[0] });
   } catch (e) {
@@ -142,28 +144,28 @@ router.get('/history/:id', requirePermission('nosotros', 'ver'), async (req, res
   }
 });
 
-router.delete('/history/:id', requirePermission('nosotros', 'editar'), async (req, res) => {
+router.delete('/history/:id', async (req, res) => {
   try {
     const isAdmin = req.user.role === 'admin';
     const q = isAdmin
-      ? 'DELETE FROM content_history WHERE id = $1 AND business = $2'
+      ? 'DELETE FROM content_history WHERE id = $1'
       : 'DELETE FROM content_history WHERE id = $1 AND user_id = $2 AND business = $3';
-    const p = isAdmin ? [req.params.id, 'nosotros'] : [req.params.id, req.user.id, 'nosotros'];
+    const p = isAdmin ? [req.params.id] : [req.params.id, req.user.id, 'nosotros'];
     const { rowCount } = await pool.query(q, p);
     if (!rowCount) return res.status(404).json({ error: 'No encontrado' });
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/history/bulk-delete', requirePermission('nosotros', 'editar'), async (req, res) => {
+router.post('/history/bulk-delete', async (req, res) => {
   try {
     const { ids } = req.body;
     if (!ids || !Array.isArray(ids) || !ids.length) return res.status(400).json({ error: 'Se requiere array de ids' });
     const isAdmin = req.user.role === 'admin';
     const q = isAdmin
-      ? 'DELETE FROM content_history WHERE id = ANY($1::int[]) AND business = $2'
+      ? 'DELETE FROM content_history WHERE id = ANY($1::int[])'
       : 'DELETE FROM content_history WHERE id = ANY($1::int[]) AND user_id = $2 AND business = $3';
-    const p = isAdmin ? [ids, 'nosotros'] : [ids, req.user.id, 'nosotros'];
+    const p = isAdmin ? [ids] : [ids, req.user.id, 'nosotros'];
     const { rowCount } = await pool.query(q, p);
     res.json({ ok: true, deleted: rowCount });
   } catch (e) { res.status(500).json({ error: e.message }); }
